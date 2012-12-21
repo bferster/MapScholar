@@ -37,8 +37,14 @@
 	var mps=null;
 	var shivaLib=null;
 	var geocoder=geocoder=new google.maps.Geocoder();
+	msgAction=new Array();												
 	
-	function shivaEventHandler(e) {}
+	function shivaEventHandler(e) 											// HANDLE SHIVA EVENTS
+	{
+		for (var i=0;i<msgAction.length;++i)									// For each action
+			if (e.data.indexOf(msgAction[i].id) != -1)							// Looking for this one
+				msgAction[i].do();												// Run callback
+	}
  
 	function ShivaPostInit()
  	{
@@ -73,6 +79,7 @@ var lastClick=0;
 
 function MapScholar()													// CONSTRUCTOR
 {
+	
 	mps=this;																// Point to this
 	this.showBoxes=true;													// Show boxes
 	shivaLib=new SHIVA_Show("containerDiv");								// Alloc SHIVA_Show
@@ -387,9 +394,14 @@ MapScholar.prototype.ShowSound=function(num, mode)						// HIDE/SHOW AUDIO
 		if (!m.west)														// If no position defined
 			m.north=270,m.south=579,m.east=302,m.west=32;					// Set at bottom
 		shivaLib.ShowIframe(m.north,m.south-0,m.east-0,m.west-0,url,"iframe-"+num,"black");	// Show iframe
+		if (mps.sh.inPlay)													// If playing until end
+			mps.sh.soundPause=true;											// Pause changing until done
+		msgAction=[{ id:"ShivaPlayer=done", do:function() { mps.sh.soundPause=false; }}];
 		}
-	else																	// If hiding
+	else{																	// If hiding
 		shivaLib.ShowIframe(0,0,0,0,"","iframe-"+num);						// Hide iframe
+		mps.sh.soundPause=false;											// Not in pause anymore
+		}
 }
 
 MapScholar.prototype.ClickHandler=function(e)							// HANDLE CLICKS TO EARTH
@@ -419,6 +431,7 @@ function MapScholar_Shelf()												// CONSTRUCTOR
 	this.playTime=3000;														// Time for 1 mob
 	this.playStart=0;														// Mob to start playing on
 	this.playEnd=0;															// Mob to stop playing on
+	this.soundPause=false;													// Pause while playing sound flag
 	
 	$("body").keydown(function(e) {										// KEY DOWN HANDLER
 		if (e.keyCode == 40) {												// Down arrow
@@ -450,6 +463,8 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 		return;																// Quit
 		}
 	if (which == "next") {													// Going forward										
+		if ((this.inPlay) && (this.soundPause)) 							// If pausing for sound to finish
+			return;															// Don't change
 		i=Math.min(i+1,n);													// Cap at end
 		while (((mps.mobs[i].type == "header") || (mps.mobs[i].type == "chapter")) && (i < n))  // Skip over nav mobs
 			mps.Goto(mps.mobs[i++].goto);									// Set position
