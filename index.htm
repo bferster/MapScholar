@@ -37,15 +37,7 @@
 	var mps=null;
 	var shivaLib=null;
 	var geocoder=geocoder=new google.maps.Geocoder();
-	msgAction=new Array();												
-	
-	function shivaEventHandler(e) 											// HANDLE SHIVA EVENTS
-	{
-		for (var i=0;i<msgAction.length;++i)									// For each action
-			if (e.data.indexOf(msgAction[i].id) != -1)							// Looking for this one
-				msgAction[i].do();												// Run callback
-	}
- 
+
 	function ShivaPostInit()
  	{
 		var url="https://docs.google.com/spreadsheet/pub?key=0AohdE1_3ZElJdDhIbTRVRkhHSWNBWUUtYS1rZmJoSEE&output=html";
@@ -63,10 +55,6 @@
 	
      $(document).ready(function() {
 		mps=new MapScholar();
-		if (window.addEventListener) 
-			window.addEventListener("message",shivaEventHandler,false);
-		else
-			window.attachEvent("message",shivaEventHandler);	
 });
 
 
@@ -83,6 +71,7 @@ function MapScholar()													// CONSTRUCTOR
 	mps=this;																// Point to this
 	this.showBoxes=true;													// Show boxes
 	shivaLib=new SHIVA_Show("containerDiv");								// Alloc SHIVA_Show
+	shivaLib.ShivaEventHandler("init");										// Init shivaevent listener
 	shivaLib.options={ 	shivaGroup:"Earth", height:"600", width:"800", 
  						mapcenter:"29.36,-80.49", range:"1000000", tilt:"42", heading:"0",
  						panControl:"true", draggable:"true", scrollwheel:"true", overviewMapControl:"false",
@@ -396,7 +385,7 @@ MapScholar.prototype.ShowSound=function(num, mode)						// HIDE/SHOW AUDIO
 		shivaLib.ShowIframe(m.north,m.south-0,m.east-0,m.west-0,url,"iframe-"+num,"black");	// Show iframe
 		if (mps.sh.inPlay)													// If playing until end
 			mps.sh.soundPause=true;											// Pause changing until done
-		msgAction=[{ id:"ShivaPlayer=done", do:function() { mps.sh.soundPause=false; }}];
+		shivaLib.msgAction=[{ id:"ShivaPlayer=done", do:function() { mps.sh.soundPause=false; }}];
 		}
 	else{																	// If hiding
 		shivaLib.ShowIframe(0,0,0,0,"","iframe-"+num);						// Hide iframe
