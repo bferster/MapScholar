@@ -40,13 +40,17 @@
 
 	function ShivaPostInit()
  	{
-		var url="https://docs.google.com/spreadsheet/pub?key=0AohdE1_3ZElJdDhIbTRVRkhHSWNBWUUtYS1rZmJoSEE&output=html";
+		var url=window.location.search.substring(1);							// Get query string
+		if (!url)																// Nothing on query line
+			url="https://docs.google.com/spreadsheet/pub?key=0AohdE1_3ZElJdDhIbTRVRkhHSWNBWUUtYS1rZmJoSEE";
 		mps.dr.InitEvents();													// Init draw events
-		if (url.indexOf("docs.google.com") != -1)								// On a goodle doc
+		if (url.indexOf("docs.google.com") != -1) {								// On a goodle doc
+			url+="&unq="+Math.floor(Math.random()*9999);						// Add unique id to thwart caching
 			shivaLib.GetGoogleSpreadsheet(url,function(data) {					// Get from docs
-			mps.InitProject("",data);											// Init project from file
-			mps.AddMapBoxes();													// Add boxes
-			});
+				mps.InitProject("",data);										// Init project from file
+				mps.AddMapBoxes();												// Add boxes
+				});
+			}
 		else{																	// From file
 			mps.InitProject(url);												// Init project from file
 			mps.AddMapBoxes();													// Add boxes
@@ -67,7 +71,6 @@ var lastClick=0;
 
 function MapScholar()													// CONSTRUCTOR
 {
-	
 	mps=this;																// Point to this
 	this.showBoxes=true;													// Show boxes
 	shivaLib=new SHIVA_Show("containerDiv");								// Alloc SHIVA_Show
@@ -444,7 +447,7 @@ function MapScholar_Shelf()												// CONSTRUCTOR
 
 MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLIGHT MOB OBJECT
 {
-	var j,o;
+	var j,k,o,bases;
 	var i=Math.max(this.curMob,0);											// Start point
 	var n=mps.mobs.length-1;												// Last mob
 	if ((this.inPlay) && (i >= this.playEnd)) {								// At end when playing
@@ -500,6 +503,14 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 				mps.ShowMapBoxes(j,"on");									// Reset box
 			if (j != this.curMob)											// If not this one
 				this.mobVis[j]=0;											// Hide mob
+			}
+		}
+	if (o.base) {															// If base(s) defined
+		bases=(""+o.base).split(".");										// Get base array
+		for (j=0;j<n+1;++j)	{												// For each mob
+			for (k=0;k<bases.length;++k)									// For each base
+				if (bases[k] == j)											// If a base defined													
+					this.mobVis[j]=100;										// Show base mob
 			}
 		}
 	if (this.mobVis[i] < 50)												// If off
