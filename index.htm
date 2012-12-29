@@ -40,27 +40,38 @@
 
 	function ShivaPostInit()
  	{
-		var url=window.location.search.substring(1);							// Get query string
-		if (!url)																// Nothing on query line
+		var url=window.location.search.substring(1);						// Get query string
+		if (!url)															// Nothing on query line
 			url="https://docs.google.com/spreadsheet/pub?key=0AohdE1_3ZElJdDhIbTRVRkhHSWNBWUUtYS1rZmJoSEE";
-		url+="&unq="+Math.floor(Math.random()*9999);							// Add unique id to thwart caching
-		mps.dr.InitEvents();													// Init draw events
-		if (url.indexOf("docs.google.com") != -1) {								// On a goodle doc
-			shivaLib.GetGoogleSpreadsheet(url,function(data) {					// Get from docs
-				mps.InitProject("",data);										// Init project from file
-				mps.AddMapBoxes();												// Add boxes
+		url+="&unq="+Math.floor(Math.random()*9999);						// Add unique id to thwart caching
+		mps.dr.InitEvents();												// Init draw events
+		if (url.indexOf("docs.google.com") != -1) {							// On a goodle doc
+			shivaLib.GetGoogleSpreadsheet(url,function(data) {				// Get from docs
+				mps.InitProject("",data);									// Init project from file
+				mps.AddMapBoxes();											// Add boxes
 				});
 			}
-		else{																	// From file
-			mps.InitProject(url);												// Init project from file
-			mps.AddMapBoxes();													// Add boxes
+		else{																// From file
+			mps.InitProject(url);											// Init project from file
+			mps.AddMapBoxes();												// Add boxes
 			}
 	}
 	
-     $(document).ready(function() {
-		mps=new MapScholar();
-});
+     $(document).ready(function() {										// ON JQUERY LOADED
+		mps=new MapScholar();												// Main object
+		if (window.addEventListener) 										// WC3	
+			window.addEventListener("message",shivaEventHandler,false);		// Add listener	
+		else																// IE
+			window.attachEvent("message",shivaEventHandler);				// Add listener	
+		});
 
+	function shivaEventHandler(e)										// ON SHIVA MESSAGE
+	{
+		if (e.data.indexOf("MPS-Load") == 0) {								// If load
+			var data=$.parseJSON(e.data.substr(9));							// String -> JSON
+			mps.InitProject("",data);										// Init project
+			}
+}
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
