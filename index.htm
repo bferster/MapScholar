@@ -540,8 +540,6 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 		this.mobVis[i]=0;													// Turn it off
 	this.FillShelf();														// Redraw shelf
 	mps.ShowMapBoxes(-1,"on");												// Show visible boxes
-	if (mps.showBoxes)														// If showing boxes
-		mps.ShowMapBoxes(i,"select");										// Highlight box
 }
 
 MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
