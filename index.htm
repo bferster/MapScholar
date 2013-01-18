@@ -324,6 +324,7 @@ MapScholar.prototype.ShowMapBoxes=function(num, mode)					// HIDE/SHOW WIREFRAME
 
 MapScholar.prototype.Goto=function(pos)									// SET EARTH VIEWPOINT
 {
+	var speed=1;															// Default speed
 	if ((!pos) || (pos.length < 5))											// No where to go
 		return;																// Quit
 	var ge=shivaLib.map;													// Point to earth												
@@ -338,7 +339,12 @@ MapScholar.prototype.Goto=function(pos)									// SET EARTH VIEWPOINT
 		lookAt.setTilt(v[3]-0);												// Set tilt
 	if (v[4] != undefined)													// If set
 		lookAt.setHeading(v[4]-0);											// Set heading
+	if (v[5] != undefined)													// If set
+		speed=v[5]-0;														// Set speed value
+	ge.getOptions().setFlyToSpeed(speed-0);									// Set speed
 	ge.getView().setAbstractView(lookAt);									// Go there
+
+
 }
 
 MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
@@ -490,6 +496,11 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 		}
 	i=this.curMob=Math.min(Math.max(i,0),n);								// Set indexer and cap
 	o=mps.mobs[i];   														// Point at mob
+	if (o.type == "boxes") {												// A boxes command
+		mps.showBoxes=(o.status == "on");									// Set flag
+		mps.ShowMapBoxes(-1,o.status);										// Set boxes
+		return;																// Quit
+		}
 	mps.Goto(o.goto);														// Position
 	if ((!$("#mobPos"+i).position()) && (o.type != "chapter") && (o.type != "header")) {	// If not visible
 		for (j=i;j>=0;--j) {												// Walk backwards													
@@ -532,7 +543,6 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 	if (mps.showBoxes)														// If showing boxes
 		mps.ShowMapBoxes(i,"select");										// Highlight box
 }
-
 
 MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 {
@@ -665,6 +675,8 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 		}
 	for (i=0;i<n;++i) {                                                     // For each mob
 		o=mps.mobs[i];      												// Point at mob
+		if (o.type == "boxes")												// If a box
+			continue;														// Don't show it
 		if ((o.type == "chapter") || (o.type == "header")) {				// A header													
 			str+="<tr id='heading"+i+"' valign='top' height='30'><td colspan='2'><div class='"+o.type+"bar'>"; // Start
 			str+="<img id='mob"+i+"' src='img/";							// Img base
@@ -728,6 +740,8 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			str+="<span style='color:#770000'><b>"+o.start+"</b></span> ";	// Add date
 		if ((o.desc)&& ((o.type == "map") || (o.type == "chapter") || (o.type == "header"))) // If desc spec'd
 			str+=o.desc+"<br/>";											// Add desc
+		if ((o.desc)&& ((o.type == "goto")&& (this.curMob == i) && (this.mobVis[i] > 0)))  // If desc on an open goto
+			str+=o.desc+"<br/>";											// Add desc
 		str+="<br/></td></tr>";												// Close entry
 		if ((this.curMob == i) && (this.mobVis[i] > 0) && ((o.type == "map") || (o.type == "layer"))){	// If selected and visible
 			str+="<tr style='background-color:#ccccff'><td valign='top' style='color:#009900' align='center'><b>Visibility</b></td><td>";
@@ -748,11 +762,14 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
   	for (i=0;i<dates.length;++i){											// For each map
 		if (dates[i].part > 1) {											// If multi
 	  		a=0;
-	  		for (j=i;j<dates.length;++j)									// For each map
+	  		for (j=i;j<dates.length;++j) {									// For each map
 				if (dates[i].date == dates[j].date) {						// One of the set
 					$("#timedot"+dates[j].index).css("top",a++*7+"px");		// Position it
 					dates[j].part=1;										// Skip it
 					}
+				if (a >= 6)													// If past max
+					break;													// Quit
+				}
 			}
 		}
 	for (i=0;i<n;++i) {														// For each mob
