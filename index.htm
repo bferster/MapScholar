@@ -107,6 +107,7 @@ MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT
 		for (i=0;i<data.length;++i) 										// For each row
 			this.mobs.push(data[i]);										// Add new mob to project
 		this.dr.DrawControlBar(false);										// Draw control bar and shelf
+		this.Goto(this.mobs[0].goto);										// Go to 1st pos
 		return;
 		}
 	var mobs=shivaLib.GetTextFile(url);										// Load data
@@ -125,6 +126,7 @@ MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT
 				o[fields[j]]=v[j];											// Set it
 		this.mobs.push(o);													// Add new mob to project
 		}
+	this.Goto(mobs[0].goto);												// Got to 1st pos
 	this.dr.DrawControlBar(false);											// Draw control bar and shelf
 }
 
@@ -343,8 +345,6 @@ MapScholar.prototype.Goto=function(pos)									// SET EARTH VIEWPOINT
 		speed=v[5]-0;														// Set speed value
 	ge.getOptions().setFlyToSpeed(speed-0);									// Set speed
 	ge.getView().setAbstractView(lookAt);									// Go there
-
-
 }
 
 MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
@@ -488,8 +488,11 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 			o=mps.mobs[which];   											// Point at mob
 			var cy=o.north-0+(o.south-o.north)/2;							// Lat				
 			var cx=o.east-0+(o.west-o.east)/2;								// Lon
+			var alt=0;														// Assume no change
+			if (o.alt)														// If an altitude set
+				alt=o.alt;													// Use it
 			if (o.type == "map")											// If a map
-				mps.Goto(cy+","+cx+","+",0,0");								// Got to center of map
+				mps.Goto(cy+","+cx+","+","+alt+",0");						// Go to center of map
 			this.mobVis[which]=0;											// Turn off (toggle)
 			}
 		i=Number(which);													// Get number
@@ -672,6 +675,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
    		tim+="<div style='position:absolute;left:"+x+"px;height:16px;width:1px;top:2px;background-color:#999'/>";
 		}
 	for (i=0;i<n;++i) {                                                     // For each mob
+		pic="";																// Assume no pic
 		o=mps.mobs[i];      												// Point at mob
 		if (o.type == "boxes")												// If a box
 			continue;														// Don't show it
@@ -718,8 +722,8 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			else															// Use icon
 				pic="img/layericon.png";									// Set
 			}
-		else if (o.type == "goto")											// A goto													
-			pic="img/gotoicon.png";											// Use icon
+//		else if (o.type == "goto")											// A goto													
+//			pic="img/gotoicon.png";											// Use icon
 		else if (o.type == "link")											// A shiva element													
 			pic="img/linkicon.png";											// Use icon
 		else if (o.type == "sound")											// A sound													
@@ -729,10 +733,14 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 		str+="<tr id='mob"+i+"'";											// Row start
 		if (this.mobVis[i] > 0) 											// If visible
 			str+="' style='background-color:#ccccff'";						// Color background
-		str+="><td valign='top' width='70'><img "; 							// Img start								
-			if (o.type == "map")											// If a map                                                    
+		str+="><td valign='top' width='70'>";
+		if (pic) {															// Ifb a pic defined
+				str+="<img "; 												// Img start								
+				if (o.type == "map")										// If a map                                                    
             str+=" style='border: 1px solid #999' ";						// Add border
-		str+=" width='64' src='"+pic+"'>&nbsp;&nbsp;</td>";					// Add pic
+			str+=" width='64' src='"+pic+"'>";								// Rest og img
+			}
+		str+="&nbsp;&nbsp;</td>";											// End col
 		str+="<td valign='top'><span id='mobPos"+ i+"'><b>"+o.title+"</b><br/></span>";	// Add title
 		if ((o.type == "map") && (o.start))									// If a map and a date
 			str+="<span style='color:#770000'><b>"+o.start+"</b></span> ";	// Add date
