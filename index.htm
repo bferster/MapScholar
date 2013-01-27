@@ -9,7 +9,7 @@
 	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
 	<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?sensor=false"></script>
  	<script type="text/javascript" src='//www.google.com/jsapi?autoload={"modules":[{"name":"earth","version":"1"},{"name":"visualization","version":"1"}]}'></script>
- 	<script type="text/javascript" src="//www.viseyes.org/shiva/SHIVA_Show.js"></script>
+ 	<script type="text/javascript" src="//www.viseyes.org/shiva/shivalib-min.js"></script>
  	<script type="text/javascript" src="MapScholar_Draw.js"></script>
 	<style type="text/css">
 		body { font-family:Verdana,Geneva,sans-serif; font-size:xx-small}
@@ -37,7 +37,6 @@
 	var mps=null;
 	var shivaLib=null;
 	var geocoder=geocoder=new google.maps.Geocoder();
-
 
 	function ShivaPostInit()
  	{
@@ -405,7 +404,7 @@ MapScholar.prototype.ShowSound=function(num, mode)						// HIDE/SHOW AUDIO
 		shivaLib.ShowIframe(m.north,m.south-0,m.east-0,m.west-0,url,"iframe-"+num,"black");	// Show iframe
 		if (mps.sh.inPlay)													// If playing until end
 			mps.sh.soundPause=true;											// Pause changing until done
-		shivaLib.msgAction=[{ id:"ShivaPlayer=done", do:function() { mps.sh.soundPause=false; }}];
+		shivaLib.msgAction=[{ id:"ShivaVideo=done", Do:function() { mps.sh.soundPause=false; }}];
 		}
 	else{																	// If hiding
 		shivaLib.ShowIframe(0,0,0,0,"","iframe-"+num);						// Hide iframe
