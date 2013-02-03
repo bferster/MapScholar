@@ -248,10 +248,11 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 			icon.setHref(m.url);											// Set url
 		else if (m.small)													// If a small
 			icon.setHref(m.small);											// Set url
+		seg.setAltitudeMode(ge.ALTITUDE_CLAMP_TO_GROUND);
+		seg.setAltitude(0);
 		seg.setDrawOrder(-1);												// Allow overlays on it
 		seg.setIcon(icon);													// Attach to seg
 		seg.setVisibility(false);											// Hide it
-		
 		ge.getFeatures().appendChild(seg);									// Add seg to EDOM
 		}
 }
@@ -315,7 +316,7 @@ MapScholar.prototype.ShowMapBoxes=function(num, mode)					// HIDE/SHOW WIREFRAME
 			seg.setVisibility(false);										// Hide it
 			continue;														// Next map
 			}
-		seg.setVisibility(true);											// Show it 
+			seg.setVisibility(!(mps.sh.mobVis[i] > 0));						// Show it 
 		sty=seg.getStyleSelector().getLineStyle();							// Get line style
 //		if (mode == "select")												// If selecting
 //			sty.getColor().set("ff0000ff");  								// Red
