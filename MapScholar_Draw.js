@@ -406,12 +406,22 @@ MapScholar_Draw.prototype.AddSegsToEarth=function(num)						// ADD SEGMENTS TO E
 		else if (s.type == "Image") {											// If an image
 			seg=ge.createGroundOverlay(s.id);									// Create holder
 			var latLonBox=ge.createLatLonBox('');								// Create box
-			latLonBox.setBox(s.lats[0],s.lats[1],s.lons[0],s.lons[1],0);		// Set coords
+			latLonBox.setBox(s.lats[0],s.lats[1],s.lons[0],s.lons[1],1000);		// Set coords
 			seg.setLatLonBox(latLonBox);										// Set geometry
 			var icon=ge.createIcon('');											// Create icon
 			seg.setDrawOrder(-1);												// Allow overlays on it
 			seg.setIcon(icon);													// Attach to seg
 			s.asp=0;															// No aspect yet
+/* 	var region=ge.createRegion('');
+ 	var box=ge.createLatLonAltBox('');
+ 	box.setAltBox(s.lats[0],s.lats[1],s.lons[0],s.lons[1],0,0,10000,ge.ALTITUDE_CLAMP_TO_GROUND);
+	region.setLatLonAltBox(box);
+	var lod=ge.createLod('');
+	lod.set(-1,-1,-1,256);
+	region.setLod(lod);
+	seg.setRegion(region);
+*/
+
 			}
 		ge.getFeatures().appendChild(seg);										// Add seg to EDOM
 		this.StyleSeg(i);														// Style it
