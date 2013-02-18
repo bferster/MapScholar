@@ -63,6 +63,14 @@ MapScholar_Draw.prototype.DrawShelf=function()							// DRAW DRAWING SHELF
 		str+="<br/><br/>Click on the trash can icon to remove box";
 		str+="</td></tr>"
 		}
+	else if (type == "Circle") {
+		str+="<tr><td>Popup<br/>text&nbsp;</td><td><textarea rows='3' style='width:130px;font-size:x-small' id='annText2'></textarea></td></tr>";
+		str+="<tr><td colspan='2'><p><hr/></p>";
+		str+="Drag corner dots to resize circle. Drag center to move the whole circle.";
+		str+="<br/><br/>Undo actions by clicking on the undo button to the left of the Save/Load button.";
+		str+="<br/><br/>Click on the trash can icon to remove circle";
+		str+="</td></tr>"
+		}
 	else if (type == "Arrow") {
 		str+="<tr><td>Popup<br/>text&nbsp;</td><td><textarea rows='3' style='width:130px;font-size:x-small' id='annText2'></textarea></td></tr>";
 		str+="<tr><td colspan='2'><p><hr/></p>";
@@ -115,8 +123,8 @@ MapScholar_Draw.prototype.DrawControlBar=function(mode)						// DRAW MAP CONTROL
 		str+="&nbsp;&nbsp;<img width='18' height='18' src='img/globe.gif' style='vertical-align:bottom' title='Back to map' onclick='mps.dr.DrawControlBar(false)'>";		
 		str+="&nbsp;&nbsp;&nbsp;<select id='annType' style='font-size:x-small' onchange='mps.dr.AddNewSeg()'>";
 		str+="<option>Draw</option>";		str+="<option>Line</option>";		str+="<option>Shape</option>";
-		str+="<option>Box</option>";		str+="<option>Arrow</option>";		str+="<option>Marker</option>";		
-		str+="<option>Image</option>";		str+="</select>&nbsp;&nbsp;"; 
+		str+="<option>Box</option>";		str+="<option>Arrow</option>";		str+="<option>Circle</option>";	
+		str+="<option>Marker</option>";		str+="<option>Image</option>";		str+="</select>&nbsp;&nbsp;"; 
 		if (type != "Draw") {													// If drawing/editng
 			str+="Color&nbsp; <input type='text' size='1' style='font-size:x-small' id='annCol'/>&nbsp;&nbsp;&nbsp;";
 			str+="Edge&nbsp; <input type='text' size='1' style='font-size:x-small;text-align:center;border:1px solid #999' id='annEwid'/>";
@@ -292,7 +300,7 @@ MapScholar_Draw.prototype.AddNewSeg=function()								// ADD NEW SEGMENT
 		o.lats.push(lookAt.getLatitude());										// Add center lat
 		o.lons.push(lookAt.getLongitude());										// Add lon
 		}
-	else if ((type == "Box") || (type == "Image")) {							// Box/Image
+	else if ((type == "Box") || (type == "Circle") || (type == "Image")) {		// Box/Image/Circle
 		o.lats.push(lookAt.getLatitude()+w);									// Add lat
 		o.lons.push(lookAt.getLongitude()+w);									// Add lon
 		o.lats.push(lookAt.getLatitude()-w);									// Add lat
@@ -373,7 +381,7 @@ MapScholar_Draw.prototype.AddSegsToEarth=function(num)						// ADD SEGMENTS TO E
 			seg=ge.createPlacemark(s.id);										// Create holder
 			seg.setStyleSelector(ge.createStyle(''));							// Create style
 			}
-		if ((s.type == "Shape") || (s.type == "Box") || (s.type == "Arrow")) {	// If a polygon, box, or arrow
+		if ((s.type == "Shape") || (s.type == "Box") || (s.type == "Circle") ||(s.type == "Arrow")) {	// If a polygon, box, circle, or arrow
 			polygon=ge.createPolygon('');										// Add it
 			coords=ge.createLinearRing('');										// Holds coords
 			seg.setGeometry(polygon);											// Set coords in seg
@@ -400,9 +408,10 @@ MapScholar_Draw.prototype.AddSegsToEarth=function(num)						// ADD SEGMENTS TO E
 			coords.getCoordinates().pushLatLngAlt(s.lats[1],s.lons[1],0);		// BR
 			coords.getCoordinates().pushLatLngAlt(s.lats[1],s.lons[0],0);		// BL
 			}
-		else if (s.type == "Arrow") {											// If an arrow
+		else if (s.type == "Circle") 											// If a circle
+			this.MakeCircle(s.lons,s.lats,s.ewid,coords.getCoordinates());		// Create circle
+		else if (s.type == "Arrow") 											// If an arrow
 			this.MakeArrow(s.lons,s.lats,s.ewid,coords.getCoordinates());		// Create arrow
-			}
 		else if (s.type == "Image") {											// If an image
 			seg=ge.createGroundOverlay(s.id);									// Create holder
 			var latLonBox=ge.createLatLonBox('');								// Create box
@@ -500,14 +509,56 @@ MapScholar_Draw.prototype.StyleSeg=function(num)							// SET SEGMENT STYLING
 		if (a > 180) a=-(360-a);												// Convert -180 -> +180
 		latLonBox.setRotation(Number(a));										// Set rotation
 		}
-	else if (s.type == "Arrow") {												// If an arrow
+	else if (s.type == "Arrow") 												// If an arrow
 		this.MakeArrow(s.lons,s.lats,s.ewid,seg.getGeometry().getOuterBoundary().getCoordinates());		// Reset arrow
-		}
+	else if (s.type == "Circle") 												// If an arrow
+		this.MakeCircle(s.lons,s.lats,s.ewid,seg.getGeometry().getOuterBoundary().getCoordinates());	// Reset circle
 	if (s.text)																	// If exists
 		seg.setName(s.text);													// Set label
 	if (s.text2)																// If exists
 		seg.setDescription(s.text2);											// Set balloon contents
 }
+
+MapScholar_Draw.prototype.MakeCircle=function(xs, ys, wid, coords)			// CONSTRUCT ARROW
+{		
+	var x=new Array();
+	var y=new Array();
+	var dx=xs[0]-xs[1];															// Delta x
+	var dy=ys[0]-ys[1];															// Delta y
+	var aa=Math.atan2(dy,dx);													// Angle of line -pi - +pi
+	var cos=Math.cos(aa-1.5707);												// +90 degree cos
+	var sin=Math.sin(aa-1.5707);												// +90 degree sin
+	var cos2=Math.cos(aa);														// 0 degree cos
+	var sin2=Math.sin(aa);														// 0 degree sin
+	wid/=10;																	// Use only .1 of width
+	var wid2=wid*3;																// Tip width
+	
+	if ((coords) && (!coords.getLength()))										// If coords not added yet
+		for (i=0;i<7;++i)														// For each point in arrow
+			coords.pushLatLngAlt(0,0,0);										// Add coord
+
+	var pct=1-wid/Math.sqrt(dx*dx+dy*dy);										// Pct of shaft
+	x.push(wid*cos+xs[1]);		y.push(wid*sin+ys[1]);							// TLC								
+	x.push(wid*cos+xs[0]);		y.push(wid*sin+ys[0]);							// Arrow start		
+	x.push(wid2*cos+xs[0]);		y.push(wid2*sin+ys[0]);							// Arrow top		
+	x.push(wid2*cos2+xs[0]);	y.push(wid2*sin2+ys[0]);						// Arrow tip		
+	x.push(-wid2*cos+xs[0]);	y.push(-wid2*sin+ys[0]);						// Arrow bot		
+	x.push(-wid*cos+xs[0]);		y.push(-wid*sin+ys[0]);							// Arrow End		
+	x.push(-wid*cos+xs[1]);		y.push(-wid*sin+ys[1]);							// BLC							
+	if (coords) {																// If saving to Earth
+		for (i=0;i<7;++i)														// For each point in arrow
+			coords.setLatLngAlt(i,y[i]-0,x[i]-0,0);								// Set point
+			}
+	else{																		// Saving to array
+		coords=new Array();														// Alloc array
+		for (i=0;i<7;++i) {														// For each point in arrow
+			coords[i*2]=x[i];													// Lon
+			coords[i*2+1]=y[i];													// Lat
+			}	
+		return coords;															// Return array
+		}
+} 	
+	
 
 MapScholar_Draw.prototype.MakeArrow=function(xs, ys, wid, coords)			// CONSTRUCT ARROW
 {		
@@ -742,7 +793,7 @@ MapScholar_Draw.prototype.InitEvents=function()								// INIT EVENTS
 						_this.DrawControlBar(true);								// Update control bar
 						break;													// Quit looking
 						}
-		    	if ((s.type == "Shape") || (s.type == "Box") || (s.type == "Arrow")) // A polygon, box, or arrow
+		    	if ((s.type == "Shape") || (s.type == "Box") || (s.type == "Circle") || (s.type == "Arrow")) // A polygon, box, circle, or arrow
 		    		_this.dragInfo.coords=_this.dragInfo.seg.getGeometry().getOuterBoundary().getCoordinates();	
 				else
 					_this.dragInfo.coords=_this.dragInfo.seg.getGeometry().getCoordinates()
@@ -771,7 +822,7 @@ MapScholar_Draw.prototype.InitEvents=function()								// INIT EVENTS
 					else if (_this.segs[i].id == id) {							// If id matches
 						_this.curSeg=i;											// This is curseg
 							_this.dragInfo.seg=shivaLib.map.getElementById(_this.segs[_this.curSeg].id)
-				    	if ((s.type == "Shape") || (s.type == "Box") || (s.type == "Arrow")) // A polygon, box, or arrow
+				    	if ((s.type == "Shape") || (s.type == "Box") || (s.type == "Circle") || (s.type == "Arrow")) // A polygon, box, circle, or arrow
 		    				_this.dragInfo.coords=_this.dragInfo.seg.getGeometry().getOuterBoundary().getCoordinates();	
 						else													// A line
 							_this.dragInfo.coords=_this.dragInfo.seg.getGeometry().getCoordinates();
@@ -833,6 +884,11 @@ MapScholar_Draw.prototype.InitEvents=function()								// INIT EVENTS
 						s.lats[1]-=dlat;		s.lons[1]-=dlon;				// Set pos
 						_this.MakeArrow(s.lons,s.lats,s.ewid,_this.dragInfo.coords);	// Redraw arrow
 						}
+					else if (s.type == "Circle") {								// Circle
+						s.lats[0]-=dlat;		s.lons[0]-=dlon;				// Set pos
+						s.lats[1]-=dlat;		s.lons[1]-=dlon;				// Set pos
+						_this.MakeCircle(s.lons,s.lats,s.ewid,_this.dragInfo.coords);	// Redraw circle
+						}
 					else if (s.type == "Image") {								// Image
 						s.lats[0]-=dlat;		s.lons[0]-=dlon;				// Set pos
 						s.lats[1]-=dlat;		s.lons[1]-=dlon;				// Set pos
@@ -867,6 +923,8 @@ MapScholar_Draw.prototype.InitEvents=function()								// INIT EVENTS
 						_this.dragInfo.coords.setLatLngAlt(3,lat,s.lons[0],0);	// Set coord
 						}
 					}
+				else if (s.type == "Circle") 									// Arrow
+					_this.MakeCircle(s.lons,s.lats,s.ewid,_this.dragInfo.coords);// Redraw circle
 				else if (s.type == "Arrow") 									// Arrow
 					_this.MakeArrow(s.lons,s.lats,s.ewid,_this.dragInfo.coords);// Redraw arrow
 				else if (s.type == "Image") {									// Image
@@ -956,7 +1014,7 @@ MapScholar_Draw.prototype.CreateKML=function()								// CREATE KML FILE
 				str+=a+s.ecol.substring(5,7)+s.ecol.substring(3,5)+s.ecol.substring(1,3);	// ABGR		
 			str+="</color>\n";													// Color end
 			str+="\t\t\t<width>"+s.ewid+"</width>\n\t\t</LineStyle>\n";			// Width 
-			if ((s.type == "Shape") || (s.type == "Box") || (s.type == "Arrow")){	// A polygon
+			if ((s.type == "Shape") || (s.type == "Box") || (s.type == "Circle") || (s.type == "Arrow")){	// A polygon
 				str+="\t\t<PolyStyle><color>";									// Color start
 				if (s.col == "")												// If no color
 					str+="00000000";											// No alpha
@@ -975,6 +1033,11 @@ MapScholar_Draw.prototype.CreateKML=function()								// CREATE KML FILE
 				str+="\t\t"+s.lons[1]+","+s.lats[1]+",0\n";						// SE
 				str+="\t\t"+s.lons[0]+","+s.lats[1]+",0\n";						// SW
 				str+="\t\t"+s.lons[0]+","+s.lats[0]+",0\n";						// Last coord
+				}
+			if (s.type == "Citcle") {											// Circle
+				coords=this.MakeCircle(s.lons,s.lats,s.ewid,null);				// Make circle into array
+				for (j=0;j<coords.length;j+=2)									// Go by 2s
+					str+="\t\t"+coords[j]+","+coords[j+1]+",0\n";				// Add coord
 				}
 			else if (s.type == "Arrow") {										// Arrow
 				coords=this.MakeArrow(s.lons,s.lats,s.ewid,null);				// Make arrow into array
@@ -1074,6 +1137,9 @@ MapScholar_Draw.prototype.ParseKML=function(data)							// PARSE KML FILE
 					o.lons[1]=lons[0]+(lons[6]-lons[0])/2;						// Bisect	
 					o.lats[1]=lats[0]+(lats[6]-lats[0])/2;						// Bisect	
 					o.type="Arrow";												// Set type
+					}
+				else if (id.indexOf("Circle") != -1)	{						// Is it an circle?
+					o.type="Circle";											// Set type
 					}
 				else{
 					GetCoords(i,e,o.lats,o.lons);								// Get all the coords
