@@ -66,7 +66,7 @@ MapScholar_Draw.prototype.DrawShelf=function()							// DRAW DRAWING SHELF
 	else if (type == "Circle") {
 		str+="<tr><td>Popup<br/>text&nbsp;</td><td><textarea rows='3' style='width:130px;font-size:x-small' id='annText2'></textarea></td></tr>";
 		str+="<tr><td colspan='2'><p><hr/></p>";
-		str+="Drag corner dots to resize circle. Drag center to move the whole circle.";
+		str+="Drag outer dot to resize circle. Use the Shift key to create elipses. Drag center to move the whole circle.";
 		str+="<br/><br/>Undo actions by clicking on the undo button to the left of the Save/Load button.";
 		str+="<br/><br/>Click on the trash can icon to remove circle";
 		str+="</td></tr>"
