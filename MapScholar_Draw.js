@@ -523,35 +523,24 @@ MapScholar_Draw.prototype.MakeCircle=function(xs, ys, wid, coords)			// CONSTRUC
 {		
 	var x=new Array();
 	var y=new Array();
-	var dx=xs[0]-xs[1];															// Delta x
-	var dy=ys[0]-ys[1];															// Delta y
-	var aa=Math.atan2(dy,dx);													// Angle of line -pi - +pi
-	var cos=Math.cos(aa-1.5707);												// +90 degree cos
-	var sin=Math.sin(aa-1.5707);												// +90 degree sin
-	var cos2=Math.cos(aa);														// 0 degree cos
-	var sin2=Math.sin(aa);														// 0 degree sin
-	wid/=10;																	// Use only .1 of width
-	var wid2=wid*3;																// Tip width
+	var dx=Math.abs(xs[0]-xs[1]);												// Delta x
+	var dy=Math.abs(ys[0]-ys[1]);												// Delta y
+	var n=64;																	// Number of steps
 	
 	if ((coords) && (!coords.getLength()))										// If coords not added yet
-		for (i=0;i<7;++i)														// For each point in arrow
+		for (i=0;i<n;++i)														// For each point
 			coords.pushLatLngAlt(0,0,0);										// Add coord
-
-	var pct=1-wid/Math.sqrt(dx*dx+dy*dy);										// Pct of shaft
-	x.push(wid*cos+xs[1]);		y.push(wid*sin+ys[1]);							// TLC								
-	x.push(wid*cos+xs[0]);		y.push(wid*sin+ys[0]);							// Arrow start		
-	x.push(wid2*cos+xs[0]);		y.push(wid2*sin+ys[0]);							// Arrow top		
-	x.push(wid2*cos2+xs[0]);	y.push(wid2*sin2+ys[0]);						// Arrow tip		
-	x.push(-wid2*cos+xs[0]);	y.push(-wid2*sin+ys[0]);						// Arrow bot		
-	x.push(-wid*cos+xs[0]);		y.push(-wid*sin+ys[0]);							// Arrow End		
-	x.push(-wid*cos+xs[1]);		y.push(-wid*sin+ys[1]);							// BLC							
-	if (coords) {																// If saving to Earth
-		for (i=0;i<7;++i)														// For each point in arrow
+	for (i=0;i<n;++i) {															// For each point	
+  		x.push(xs[1]+dx*Math.cos(2*Math.PI*i/n));
+   		y.push(ys[1]+dy*Math.sin(2*Math.PI*i/n));
+   		}
+   	if (coords) {																// If saving to Earth
+		for (i=0;i<n;++i)														// For each point
 			coords.setLatLngAlt(i,y[i]-0,x[i]-0,0);								// Set point
 			}
 	else{																		// Saving to array
 		coords=new Array();														// Alloc array
-		for (i=0;i<7;++i) {														// For each point in arrow
+		for (i=0;i<n;++i) {														// For each point
 			coords[i*2]=x[i];													// Lon
 			coords[i*2+1]=y[i];													// Lat
 			}	
@@ -923,8 +912,18 @@ MapScholar_Draw.prototype.InitEvents=function()								// INIT EVENTS
 						_this.dragInfo.coords.setLatLngAlt(3,lat,s.lons[0],0);	// Set coord
 						}
 					}
-				else if (s.type == "Circle") 									// Arrow
+				else if (s.type == "Circle") {									// Arrow
+					if (num == 1) {												// If center
+						lat=s.lats[1];											// Set lat
+						lon=s.lons[1];											// Set lon
+						}
+					else if (!e.getShiftKey()) {								// Not skewing
+						var dx=Math.abs(lon-s.lons[1]);							// Get delta
+						s.lats[0]=lat=s.lats[1]+dx;								// Set lat
+						s.lons[0]=lon=s.lons[1]+dx;								// Set lon
+						}
 					_this.MakeCircle(s.lons,s.lats,s.ewid,_this.dragInfo.coords);// Redraw circle
+					}
 				else if (s.type == "Arrow") 									// Arrow
 					_this.MakeArrow(s.lons,s.lats,s.ewid,_this.dragInfo.coords);// Redraw arrow
 				else if (s.type == "Image") {									// Image
