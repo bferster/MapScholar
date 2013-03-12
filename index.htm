@@ -83,6 +83,7 @@ function MapScholar()													// CONSTRUCTOR
 {
 	mps=this;																// Point to this
 	this.showBoxes=true;													// Show boxes
+	this.showRoads=false;													// Hide Roads/borders
 	shivaLib=new SHIVA_Show("containerDiv");								// Alloc SHIVA_Show
 	shivaLib.ShivaEventHandler("init");										// Init shivaevent listener
 	shivaLib.options={ 	shivaGroup:"Earth", height:"600", width:"800", 
@@ -289,6 +290,13 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 		else																// Not visible
 			seg.setVisibility(false);										// Hide it
 		}
+}
+
+MapScholar.prototype.ShowMapRoads=function(mode)						// HIDE/SHOW ROADS/BORDER
+{
+	var ge=shivaLib.map;													// Point to earth												
+	ge.getLayerRoot().enableLayerById(ge.LAYER_BORDERS,mode);				// Set borders
+	ge.getLayerRoot().enableLayerById(ge.LAYER_ROADS,mode);					// Set roads
 }
 
 MapScholar.prototype.ShowMapBoxes=function(num, mode)					// HIDE/SHOW WIREFRAMES
@@ -622,6 +630,10 @@ MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 	if (mps.showBoxes)														// If set
 		str+=" checked='checked'"											// Check it			
 	str+=" style='vertical-align:middle' id='wireframes'></td></tr>";		// End box
+	str+="<tr><td>Show Roads? </td><td><input type='checkbox'";				// Roads
+	if (mps.showRoads)														// If set
+		str+=" checked='checked'"											// Check it			
+	str+=" style='vertical-align:middle' id='roads'></td></tr>";		// End box
 	str+="<tr><td>Current position:</td><td><input type='text' style='width:130px' value='"+pos+"'/></td></tr>";	// Current pos
 	str+="</table><div align='right' style='font-size:x-small'><br/>";		// End table			
 	str+=" <button id='OKBut'>OK</button>";									// OK
@@ -635,6 +647,11 @@ MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 			mps.ShowMapBoxes(-1,"on");										// Show them
 		else																// If unchecked
 			mps.ShowMapBoxes(-1,"off");										// Hide
+		});
+	$("#roads").click(function(e) {										// SHOW ROADS?
+		shivaLib.Sound("click");											// Click
+		mps.showRoads=e.target.checked;										// Set var
+		mps.ShowMapRoads(mps.showRoads);									// Show/hide them
 		});
 }
 
