@@ -472,7 +472,7 @@ function MapScholar_Shelf()												// CONSTRUCTOR
 
 MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLIGHT MOB OBJECT
 {
-	var j,k,o,bases;
+	var j,k,o,bases,defAlpha=100;
 	var i=Math.max(this.curMob,0);											// Start point
 	var n=mps.mobs.length-1;												// Last mob
 	if ((this.inPlay) && (i >= this.playEnd)) {								// At end when playing
@@ -546,8 +546,12 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 					this.mobVis[j]=100;										// Show base mob
 			}
 		}
+	if (((o.type == "map") || (o.type == "layer")) && o.status)				// If an opacity set
+		defAlpha=o.status													// Set opacity to status
+	else																	// Not set
+		defAlpha=100;														// Full value
 	if (this.mobVis[i] < 50)												// If off
-		this.mobVis[i]=100;													// Turn it on
+		this.mobVis[i]=defAlpha;											// Turn it on
 	else																	// If on
 		this.mobVis[i]=0;													// Turn it off
 	this.FillShelf();														// Redraw shelf
