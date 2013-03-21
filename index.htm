@@ -84,6 +84,7 @@ function MapScholar()													// CONSTRUCTOR
 	mps=this;																// Point to this
 	this.showBoxes=true;													// Show boxes
 	this.showRoads=false;													// Hide Roads/borders
+	this.popupOpen=-1;														// Popup not open
 	shivaLib=new SHIVA_Show("containerDiv");								// Alloc SHIVA_Show
 	shivaLib.ShivaEventHandler("init");										// Init shivaevent listener
 	shivaLib.options={ 	shivaGroup:"Earth", height:"600", width:"800", 
@@ -360,14 +361,23 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 {
 	var l,t,h,w;
 	var m=this.mobs[num];													// Point at mob
-	if (m.east) 															// If spec'ing pos												
+	var txt=m.desc;															// Use desc field
+	var pos=m.north-0;														// get north
+	if (m.type != "text") {													// If not a text mob
+		txt=m.text;															// Get text from text field
+		
+		
+		pos=3;
+		mps.popupOpen=num;													// Set popup flag
+		}
+	if ((m.east) && (m.type == "text"))										// If spec'ing pos												
 		l=m.north,t=m.south,w=m.east,h=m.west;								// Use it		
 	else{ 
-		switch(m.north-0) {													// Route on north
+		switch(pos) {														// Route on pos
 			case 1:		l=220;	t=170;	w=400;		h=300;		break;		// Half centered
 			case 2:		l=320;	t=245;	w=200;		h=150;		break;		// Quarter centered
-			case 3:		l=40;	t=40;	w=750;		h=120;		break;		// Top
-			case 4:		l=40;	t=470;	w=750;		h=120;		break;		// Bottom
+			case 3:		l=40;	t=40;	w=750;		h=100;		break;		// Top
+			case 4:		l=40;	t=490;	w=750;		h=100;		break;		// Bottom
 			case 5:		l=40;	t=40;	w=400;		h=300;		break;		// Half top left
 			case 6:		l=390;	t=40;	w=400;		h=300;		break;		// Half top right
 			case 7:		l=40;	t=290;	w=400;		h=300;		break;		// Half bot left
@@ -378,15 +388,17 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 	if (mode) {																// If showing
 		str="<div style='font-family:sans-serif;font-size:small'>";			// Div
 		str+="<p style='text-align:center;font-weight:bold'>"+m.title+"<br/>";	// Add title
-		if (m.small)														// If an image spec's
+		if ((m.small) && (m.type != "map"))									// If an image spec'd
 			str+="<br/><img style='border:1px solid #999' src='"+m.small+"' width='"+w/3+"'><br/>";		// Add it		
-		str+="</p>"+m.desc+"<div>";											// Add desc
-		if (m.url)															// If a link
+		str+="</p>"+txt+"<div>";											// Add desc
+		if ((m.url) && (m.type != "map"))									// If a link
 			str+="<br/>Click <a href='"+m.url+" ' target='_blank'>here</a> for more information";	// Add it		
 		shivaLib.ShowIframe(l,t,w,h,"blank.htm","iframe-"+num,"white",str);	// Show iframe
 		}
-	else																	// If hiding
+	else{																	// If hiding
 		shivaLib.ShowIframe(0,0,0,0,"","iframe-"+num);						// Hide iframe
+		mps.popupOpen=-1;													// No popup open
+		}
 }
 
 MapScholar.prototype.ShowLink=function(num, mode)						// HIDE/SHOW LINK
@@ -696,6 +708,8 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
    		tim+="<div style='position:absolute;text-align:center;color:#aaa;left:"+(x-17)+"px;width:30px;top:18px'><i>"+i+"</i></div>";
    		tim+="<div style='position:absolute;left:"+x+"px;height:16px;width:1px;top:2px;background-color:#999'/>";
 		}
+	if (mps.popupOpen != -1)												// If popup is open
+		mps.ShowText(mps.popupOpen,false);									// Close it
 	for (i=0;i<n;++i) {                                                     // For each mob
 		pic="";																// Assume no pic
 		o=mps.mobs[i];      												// Point at mob
@@ -734,8 +748,8 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				pic=o.small;												// Use it
 			else if (o.med)													// Else if a med defined															
 				pic=o.med;													// Use it
-			else if (o.url)												// Else if a large defined															
-			pic=o.med;														// Use it
+			else if (o.url)													// Else if a large defined															
+				pic=o.med;													// Use it
 			tim+=AddMapToTimeline(o,i);										// Add map to timeline
 			}
 		else if (o.type == "layer") {										// A layer													
@@ -756,18 +770,22 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 		if (this.mobVis[i] > 0) 											// If visible
 			str+="' style='background-color:#ccccff'";						// Color background
 		str+="><td valign='top' width='70'>";
-		if (pic) {															// Ifb a pic defined
-				str+="<img "; 												// Img start								
-				if (o.type == "map")										// If a map                                                    
-            str+=" style='border: 1px solid #999' ";						// Add border
+		if (pic) {															// If a pic defined
+			str+="<img "; 													// Img start								
+			if (o.type == "map")											// If a map                                                    
+      			str+=" style='border: 1px solid #999' ";					// Add border
 			str+=" width='64' src='"+pic+"'>";								// Rest og img
 			}
 		str+="&nbsp;&nbsp;</td>";											// End col
 		str+="<td valign='top'><span id='mobPos"+ i+"'><b>"+o.title+"</b><br/></span>";	// Add title
 		if ((o.type == "map") && (o.start))									// If a map and a date
 			str+="<span style='color:#770000'><b>"+o.start+"</b></span> ";	// Add date
-		if ((o.desc)&& ((o.type == "map") || (o.type == "chapter") || (o.type == "header"))) // If desc spec'd
-			str+=o.desc+"<br/>";											// Add desc
+		if ((o.desc)&& ((o.type == "map") || (o.type == "chapter") || (o.type == "header"))) { // If desc spec'd
+			str+=o.desc;													// Add desc
+			if ((o.text)&& (this.mobVis[i] > 0))							// If text defined and visible
+				str+="&nbsp;&nbsp;<img id='showpopup' title='Show popup info' src='img/popupbutton.gif'/>";
+			str+="<br/>";													// Add desc
+			}
 		if ((o.desc)&& ((o.type == "goto")&& (this.curMob == i) && (this.mobVis[i] > 0)))  // If desc on an open goto
 			str+=o.desc+"<br/>";											// Add desc
 		str+="<br/></td></tr>";												// Close entry
@@ -867,6 +885,13 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 		shivaLib.Sound("click");											// Click
 		mps.SetHiResMapImage(mps.sh.curMob);								// Set hi-res map
 		});
+
+	$("#showpopup").click( function(e) {									// CLICK ON POPUP
+		e.stopPropagation();												// Don'tr edraw
+		shivaLib.Sound("click");											// Click
+		mps.ShowText(mps.sh.curMob,true);									// Show it
+		});
+
 
 	if ((this.curMob != -1) && (this.mobVis[this.curMob] > 0)) {			// If selected and visible
 		var val=this.mobVis[this.curMob];									// Get def

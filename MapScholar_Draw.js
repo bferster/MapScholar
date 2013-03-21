@@ -1033,7 +1033,7 @@ MapScholar_Draw.prototype.CreateKML=function()								// CREATE KML FILE
 				str+="\t\t"+s.lons[0]+","+s.lats[1]+",0\n";						// SW
 				str+="\t\t"+s.lons[0]+","+s.lats[0]+",0\n";						// Last coord
 				}
-			if (s.type == "Citcle") {											// Circle
+			if (s.type == "Circle") {											// Circle
 				coords=this.MakeCircle(s.lons,s.lats,s.ewid,null);				// Make circle into array
 				for (j=0;j<coords.length;j+=2)									// Go by 2s
 					str+="\t\t"+coords[j]+","+coords[j+1]+",0\n";				// Add coord
@@ -1139,6 +1139,8 @@ MapScholar_Draw.prototype.ParseKML=function(data)							// PARSE KML FILE
 					}
 				else if (id.indexOf("Circle") != -1)	{						// Is it an circle?
 					o.type="Circle";											// Set type
+					o.lats[0]=lats[16];		o.lons[0]=lons[0];					// Add coord			
+					o.lats[1]=lats[0];		o.lons[1]=lons[48];					// Add coord			
 					}
 				else{
 					GetCoords(i,e,o.lats,o.lons);								// Get all the coords
