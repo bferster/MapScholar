@@ -367,10 +367,11 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 		txt=m.text;															// Get text from text field
 		pos=4;																// Assume top
 		var s=txt.match(/pos\([^\(]*\)/i);									// Extract position	
-		if (s)																// If found
+		if (s) {															// If found
 			pos=s[0].substring(4,s[0].length-1)-0;							// Get new pos
+			txt=txt.replace(s[0],"");										// Remove it
+			}
 		mps.popupOpen=num;													// Set popup flag
-		txt=txt.replace(s[0],"");												// Remove it
 		}
 	if ((m.east) && (m.type == "text"))										// If spec'ing pos												
 		l=m.north,t=m.south,w=m.east,h=m.west;								// Use it		
