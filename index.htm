@@ -365,10 +365,12 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 	var pos=m.north-0;														// get north
 	if (m.type != "text") {													// If not a text mob
 		txt=m.text;															// Get text from text field
-		
-		
-		pos=3;
+		pos=4;																// Assume top
+		var s=txt.match(/pos\([^\(]*\)/i);									// Extract position	
+		if (s)																// If found
+			pos=s[0].substring(4,s[0].length-1)-0;							// Get new pos
 		mps.popupOpen=num;													// Set popup flag
+		txt=txt.replace(s[0],"");												// Remove it
 		}
 	if ((m.east) && (m.type == "text"))										// If spec'ing pos												
 		l=m.north,t=m.south,w=m.east,h=m.west;								// Use it		
@@ -692,6 +694,8 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 	var min=3000,max=0;
 	var dates=new Array();
  	var n=mps.mobs.length;                            						// Number of mobs
+	if (mps.popupOpen != -1)												// If popup is open
+		mps.ShowText(mps.popupOpen,false);									// Close it
 	var str="<table cellspacing='0'>";                                      // Table start
 	for (i=0;i<n;++i) {                                                     // For each mob
 		o=mps.mobs[i];     													// Point at mob
@@ -708,8 +712,6 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
    		tim+="<div style='position:absolute;text-align:center;color:#aaa;left:"+(x-17)+"px;width:30px;top:18px'><i>"+i+"</i></div>";
    		tim+="<div style='position:absolute;left:"+x+"px;height:16px;width:1px;top:2px;background-color:#999'/>";
 		}
-	if (mps.popupOpen != -1)												// If popup is open
-		mps.ShowText(mps.popupOpen,false);									// Close it
 	for (i=0;i<n;++i) {                                                     // For each mob
 		pic="";																// Assume no pic
 		o=mps.mobs[i];      												// Point at mob
