@@ -463,11 +463,11 @@ function MapScholar_Shelf()												// CONSTRUCTOR
 	this.soundPause=false;													// Pause while playing sound flag
 	
 	$("body").keydown(function(e) {										// KEY DOWN HANDLER
-		if (e.keyCode == 40) {												// Down arrow
+		if ((e.keyCode == 40) ||(e.keyCode == 34)) {						// Down arrow, pg-dn
 			mps.sh.HighlightMob("next",false,true);							// Next mob
 			shivaLib.Sound("click");										// Click
 			}
-		else if (e.keyCode == 38) {											// Up arrow
+		else if ((e.keyCode == 38) || (e.keyCode == 33)){					// Up arrow, pg-up
 			mps.sh.HighlightMob("last",false,true);							// Previous mob
 			shivaLib.Sound("click");										// Click
 			}
@@ -799,7 +799,8 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			str+="<tr><td colspan='2' id='mobCite'></td></tr>";
 			}
 		}
-	$("#timeline").html(tim);												// Add timeline data
+   	str+="<tr><td colspan='2' align='center'><img width='160' height='174' src='img/MapScholarLogo.png'/></td></tr>";
+ 	$("#timeline").html(tim);												// Add timeline data
 	$("#contentShelf").html("</table>"+str);								// Add mobs
 	if (this.curMob != -1) {												// If a current
 		$("#visControl").show();											// Show it
