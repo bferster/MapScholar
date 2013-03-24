@@ -553,8 +553,9 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 				this.mobVis[j]=0;											// Hide mob
 			}
 		}
+	
 	if (o.base) {															// If base(s) defined
-		bases=(""+o.base).split(".");										// Get base array
+		bases=(""+o.base).split(",");										// Get base array
 		for (j=0;j<n+1;++j)	{												// For each mob
 			for (k=0;k<bases.length;++k)									// For each base
 				if (bases[k] == j)											// If a base defined													
