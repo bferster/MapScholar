@@ -702,6 +702,7 @@ MapScholar_Draw.prototype.AddPointToLine=function(num, lat, lon)			// ADD NEW PO
 	o.pushLatLngAlt(lat,lon,0);													// Add a new coord
 	for (i=0;i<s.lats.length;++i)												// For each coord
 		o.setLatLngAlt(i,s.lats[i],s.lons[i],0);								// Set it
+	shivaLib.Sound("click");													// Click
 	this.DrawControlDots(true);													// Redraw control dots
 }
 
