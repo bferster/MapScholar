@@ -553,8 +553,16 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 				this.mobVis[j]=0;											// Hide mob
 			}
 		}
-	
+	if (((o.type == "map") || (o.type == "layer")) && o.status)				// If an opacity set
+		defAlpha=o.status													// Set opacity to status
+	else																	// Not set
+		defAlpha=100;														// Full value
+	if (this.mobVis[i] < 50)												// If off
+		this.mobVis[i]=defAlpha;											// Turn it on
+	else																	// If on
+		this.mobVis[i]=0;													// Turn it off
 	if (o.base) {															// If base(s) defined
+		this.mobVis[i]=defAlpha;											// Turn it on
 		bases=(""+o.base).split(",");										// Get base array
 		for (k=0;k<bases.length;++k)										// For each base
 			bases[k]=mps.FindMobByID(bases[k]);								// Get index from id
@@ -564,14 +572,6 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 					this.mobVis[j]=100;										// Show base mob
 			}
 		}
-	if (((o.type == "map") || (o.type == "layer")) && o.status)				// If an opacity set
-		defAlpha=o.status													// Set opacity to status
-	else																	// Not set
-		defAlpha=100;														// Full value
-	if (this.mobVis[i] < 50)												// If off
-		this.mobVis[i]=defAlpha;											// Turn it on
-	else																	// If on
-		this.mobVis[i]=0;													// Turn it off
 	this.FillShelf();														// Redraw shelf
 	mps.ShowMapBoxes(-1,"on");												// Show visible boxes
 }
@@ -824,7 +824,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 					$("#timedot"+dates[j].index).css("top",a++*7+"px");		// Position it
 					dates[j].part=1;										// Skip it
 					}
-				if (a >= 6)													// If past max
+				if (a >= 4)													// If past max
 					break;													// Quit
 				}
 			}
