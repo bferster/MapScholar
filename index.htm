@@ -655,12 +655,13 @@ MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 	str+="<tr><td>Show Roads? </td><td><input type='checkbox'";				// Roads
 	if (mps.showRoads)														// If set
 		str+=" checked='checked'"											// Check it			
-	str+=" style='vertical-align:middle' id='roads'></td></tr>";		// End box
+	str+=" style='vertical-align:middle' id='roads'></td></tr>";			// End box
 	str+="<tr><td>Current position:</td><td><input type='text' style='width:130px' value='"+pos+"'/></td></tr>";	// Current pos
 	str+="</table><div align='right' style='font-size:x-small'><br/>";		// End table			
 	str+=" <button id='OKBut'>OK</button>";									// OK
-	shivaLib.ShowLightBox(-350,20,"MapScholar settings",str)				// Create light box
-	$("#OKBut").button().click(function() { $("#shivaLightBoxDiv").remove();});  // OK
+	$("#containerDiv").height($("#containerDiv").height()/100);				// Shrink it
+	shivaLib.ShowLightBox(-400,20,"MapScholar settings",str)				// Create light box
+	$("#OKBut").button().click(function() { $("#shivaLightBoxDiv").remove(); $("#containerDiv").height($("#containerDiv").height()*100); });  // OK
 
 	$("#wireframes").click(function(e) {								// SHOW BOXES?
 		shivaLib.Sound("click");											// Click
