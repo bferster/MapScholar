@@ -32,6 +32,14 @@
 		<div id="containerDiv" style="position:absolute;width:800px;height:600px;left:20px;top:20px;"></div>
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:820px;top:20px;background-color:#eee;"> </div>
 		<div id="controlBarDiv" style="position:absolute;width:800px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
+		<div id="infoPanelDiv" style="display:none;position:absolute;width:300px;height:599px;left:520px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
+			<div style="position:absolute;width:300px;height:27px;left:-1px;top:0px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#eee;"/>
+				<img src="closedot.gif" onclick="mps.sh.DrawInfoPanel('close')" style="position:absolute;left:4px;top:5px">
+				<div id="infoPanelTitle" style="position:absolute;;left:24px;top:8px">Information</div>
+			</div>
+			<div id="infoPanelText" style="position:absolute;width:284px;height:555px;left:0px;top:28px;padding:8px;background-color:#fafafa;overflow-x:hidden;overflow-y:auto;"> 
+		</div>
+		
 <script>
 
 	var mps=null;
@@ -528,6 +536,10 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 		mps.ShowMapBoxes(-1,o.status);										// Set boxes
 		return;																// Quit
 		}
+	else if (o.type == "info") {											// An info command
+		this.DrawInfoPanel("info");											// Draw info panel
+		return;																// Quit
+		}
 	mps.Goto(o.goto);														// Position
 	if ((!$("#mobPos"+i).position()) && (o.type != "chapter") && (o.type != "header")) {	// If not visible
 		for (j=i;j>=0;--j) {												// Walk backwards													
@@ -701,6 +713,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
  	var n=mps.mobs.length;                            						// Number of mobs
 	if (mps.popupOpen != -1)												// If popup is open
 		mps.ShowText(mps.popupOpen,false);									// Close it
+	this.DrawInfoPanel("close");											// Close infopanel, if open
 	var str="<table cellspacing='0'>";                                      // Table start
 	for (i=0;i<n;++i) {                                                     // For each mob
 		o=mps.mobs[i];     													// Point at mob
@@ -756,7 +769,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			else if (o.med)													// Else if a med defined															
 				pic=o.med;													// Use it
 			else if (o.url)													// Else if a large defined															
-				pic=o.med;													// Use it
+				pic=o.url;													// Use it
 			tim+=AddMapToTimeline(o,i);										// Add map to timeline
 			}
 		else if (o.type == "layer") {										// A layer													
@@ -773,9 +786,11 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			pic="img/audioicon.png";										// Use icon
 		else if (o.type == "text")											// A text													
 			pic="img/texticon.png";											// Use icon
+		else if (o.type == "info")											// An info													
+			pic="img/texticon.png";											// Use icon
 		str+="<tr id='mob"+i+"'";											// Row start
 		if (this.mobVis[i] > 0) 											// If visible
-			str+="' style='background-color:#ccccff'";						// Color background
+			str+="' style='background-color:#d0e1ec'";						// Color background
 		if (o.type == "map") {												// If a map pic defined
 			str+="><td valign='top' width='70'>";							// Double column
 			if (pic)														// If a pic
@@ -801,13 +816,12 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			str+=o.desc+"<br/>";											// Add desc
 		str+="<br/></td></tr>";												// Close entry
 		if ((this.curMob == i) && (this.mobVis[i] > 0) && ((o.type == "map") || (o.type == "layer"))){	// If selected and visible
-			str+="<tr style='background-color:#ccccff'><td valign='top' style='color:#009900' align='center'><b>Visibility</b></td><td>";
+			str+="<tr style='background-color:#d0e1ec'><td valign='top' style='color:#009900' align='center'><b>Visibility</b></td><td>";
 			str+="<div id='mobVis' style='width:60%;display:inline-block'></div>";		// Add div for vis
 			str+="&nbsp;&nbsp;&nbsp;&nbsp;<img id='mobInfo' title='See citation' src='img/infobutton.gif'/>";
 			if ((o.url) && (o.type == "map"))
 				str+="&nbsp;&nbsp;<img id='hiresmap' title='See hi-res map' src='img/viewdot.gif'/>";
 			str+="<br/><br/></td></tr>";
-			str+="<tr><td colspan='2' id='mobCite'></td></tr>";
 			}
 		}
    	str+="<tr><td colspan='2' align='center'><img width='160' height='174' src='img/MapScholarLogo.png'/></td></tr>";
@@ -870,27 +884,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
    
 	$("#mobInfo").click( function(e) {									// CLICK ON INFO BUTTON
 		shivaLib.Sound("click");											// Click
-		var o=mps.mobs[mps.sh.curMob];										// Point at mob
-		if ($("#mobCite").html()) {											// If something there already
-			$("#mobCite").html("");											// Clear it
-			$("#mobCite").css("padding","0px");								// No padding
-			}
-		else{																// Nothing there yet
-			var str="<hr/><b>";
-			str+=o.type.substr(0,1).toUpperCase()+o.type.substr(1)+" ";		// Set type
-			str+=o.id+"</b>";												// Add map id
-			if (o.start) {													// If a start set
-				str+="&nbsp;&nbsp;&nbsp;("+o.start;							// Add it
-				if (o.end)													// If an end set
-					str+=" - "+o.end;										// Add it
-				str+=")";													// Close date paren
-				}
-			if (o.citation)													// If a citation set
-				str+="<br/>"+o.citation;									// Add it
-			$("#mobCite").html(str);										// Set text
-			$("#mobCite").css("background-color","#ccccff");				// Color
-			$("#mobCite").css("padding","6px");								// Add padding
-			}
+		mps.sh.DrawInfoPanel("cite");										// Show citation
 		});
 
 	$("#hiresmap").click( function(e) {									// CLICK ON HIRES MAP
@@ -904,7 +898,6 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 		mps.ShowText(mps.sh.curMob,true);									// Show it
 		});
 
-
 	if ((this.curMob != -1) && (this.mobVis[this.curMob] > 0)) {			// If selected and visible
 		var val=this.mobVis[this.curMob];									// Get def
 		var ops={ min:0, max:100, value:val,								// Slider options
@@ -916,7 +909,52 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 		$("#mobVis" ).slider(ops);											// Init slider
 		}
 }
-	
+
+MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
+{
+	var str="";
+	$("#infoPanelText").html("");											// Clear text
+	if ((mode == "cite") && ($("#containerDiv").width() != 800))			// If panel is already open in cite
+		mode="close";														// Close it
+	if (mode == "close") {													// If closing
+		$("#containerDiv").width(800);										// Full size
+		$("#infoPanelDiv").hide();											// Hide info panel
+		return;
+		}
+	var o=mps.mobs[mps.sh.curMob];											// Point at mob
+	$("#containerDiv").width(500);											// Half size
+	$("#infoPanelDiv").show();												// Show info panel
+	if (o.title) {															// If it has a title
+		str+="<b>"+o.title;													// Add it
+		if ((o.start) && (mode == "cite")) {								// If a start set for citation
+			str+="<span style='color:#990000'>";							// Red
+			str+="&nbsp;&nbsp;&nbsp;("+o.start;								// Add it
+			if (o.end)														// If an end set
+				str+=" - "+o.end;											// Add it
+			str+=")</span>";												// Close date paren
+			}
+		str+="</b><br/><br/>";												// Close title
+		}
+	if (o.desc)																// If it has a desc
+		str+=o.desc+"<br/><br/>";											// Add it
+	if ((o.type == "map") || (mode == "info")) { 							// A map													
+		var pic="";															// Assume no pic
+		if (o.med)                                                 	   		// If a med defined															
+			pic=o.med;														// Use it
+		else if (o.url)														// Else if a large defined															
+			pic=o.url;														// Use it
+		else if (o.small)													// Else if a small defined															
+			pic=o.small;													// Use it
+		if (pic)															// If a pic
+			str+="<img style='border: 1px solid #999' width='100%' src='"+pic+"'>"; // Add it
+		if (mode == "cite")													// If a citation
+			str+="Map "+o.id+"<br/>";										// Add map id
+		}
+	if (o.citation)															// If a citation set
+		str+="<br/><b>Citation:</b><br/>"+o.citation;						// Add it
+	$("#infoPanelText").html(str);											// Set text
+}
+
 MapScholar_Shelf.prototype.Play=function(again, chapter)				// PLAY
 {
 	var _this=mps.sh;														// Point here
