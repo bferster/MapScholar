@@ -362,6 +362,7 @@ MapScholar_Draw.prototype.ColorPicker=function(which, x, y)					// COLOR PICKER
 // EARTH 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
+
 MapScholar_Draw.prototype.DrawMap=function()								// DRAW MAP
 {		
   	this.DrawControlDots((this.curSeg != -1));									// Add control dots	if editing
