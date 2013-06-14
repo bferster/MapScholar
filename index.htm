@@ -29,13 +29,13 @@
 	</style>
 </head>
 <body>
-		<div id="containerDiv" style="position:absolute;width:800px;height:600px;left:20px;top:20px;"></div>
-		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:820px;top:20px;background-color:#eee;"> </div>
-		<div id="controlBarDiv" style="position:absolute;width:800px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
-		<div id="infoPanelDiv" style="display:none;position:absolute;width:300px;height:599px;left:520px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
+		<div id="containerDiv" style="position:absolute;width:900px;height:600px;left:20px;top:20px;"></div>
+		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> </div>
+		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
+		<div id="infoPanelDiv" style="display:none;position:absolute;width:300px;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
 			<div style="position:absolute;width:300px;height:27px;left:-1px;top:0px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#eee;"/>
 				<img src="closedot.gif" onclick="mps.sh.DrawInfoPanel('close')" style="position:absolute;left:4px;top:5px">
-				<div id="infoPanelTitle" style="position:absolute;;left:24px;top:8px">Information</div>
+				<div id="infoPanelTitle" style="position:absolute;left:24px;top:8px">Information</div>
 			</div>
 			<div id="infoPanelText" style="position:absolute;width:284px;height:555px;left:0px;top:28px;padding:8px;background-color:#fafafa;overflow-x:hidden;overflow-y:auto;"> 
 		</div>
@@ -49,6 +49,12 @@
 	function ShivaPostInit()
  	{
 		var url=window.location.search.substring(1);						// Get query string
+		if (url) {															// Somthing on query line
+			var regex=/[?&]mob=([^&]+)/i;									// Extractor
+			var s=regex.exec(url);											// Get mob id, if one
+			if (s) 															// If there was one
+				mps.sh.curMob=s[1];											// Set mob
+			}
 		if (!url)															// Nothing on query line
 			url="https://docs.google.com/spreadsheet/pub?key=0AohdE1_3ZElJdDhIbTRVRkhHSWNBWUUtYS1rZmJoSEE";
 		url+="&unq="+Math.floor(Math.random()*9999);						// Add unique id to thwart caching
@@ -57,11 +63,19 @@
 			shivaLib.GetGoogleSpreadsheet(url,function(data) {				// Get from docs
 				mps.InitProject("",data);									// Init project from file
 				mps.AddMapBoxes();											// Add boxes
+				if (mps.sh.curMob != -1) {									// If going somewhere particular
+					mps.sh.curMob=mps.FindMobByID(mps.sh.curMob);			// Convert id to index
+					mps.sh.HighlightMob(mps.sh.curMob,false,true);			// Highlight mob
+					}
 				});
 			}
 		else{																// From file
 			mps.InitProject(url);											// Init project from file
 			mps.AddMapBoxes();												// Add boxes
+			if (mps.sh.curMob != -1) {										// If going somewhere particular
+				mps.sh.curMob=mps.FindMobByID(mps.sh.curMob);				// Convert id to index
+				mps.sh.HighlightMob(mps.sh.curMob,false,true);				// Highlight mob
+				}
 			}
 	}
 	
@@ -95,7 +109,7 @@ function MapScholar()													// CONSTRUCTOR
 	this.popupOpen=-1;														// Popup not open
 	shivaLib=new SHIVA_Show("containerDiv");								// Alloc SHIVA_Show
 	shivaLib.ShivaEventHandler("init");										// Init shivaevent listener
-	shivaLib.options={ 	shivaGroup:"Earth", height:"600", width:"800", 
+	shivaLib.options={ 	shivaGroup:"Earth", height:"600", width:"900", 
  						mapcenter:"29.36,-80.49", range:"1000000", tilt:"42", heading:"0",
  						panControl:"true", draggable:"true", scrollwheel:"true", overviewMapControl:"false",
  						terrainexag:"1", borders:"false", roads:"false"
@@ -291,6 +305,8 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 		m=this.mobs[i];														// Point at mob
 		if (((m.type != "map") && (m.type != "layer")) || !(m.mid))			// If not a map or layer
 			continue;														// Continue
+		if (!m.west)														// If not west set, must be a poster
+			this.SetPoster(i);												// Reset coords
 		seg=ge.getElementById(m.mid);										// Get object
 		if (mps.sh.mobVis[i]) {												// If active
 			seg.setOpacity(mps.sh.mobVis[i]/100);							// Set alpha
@@ -457,6 +473,28 @@ MapScholar.prototype.ClickHandler=function(e)							// HANDLE CLICKS TO EARTH
 			}
 }
 
+MapScholar.prototype.SetPoster=function(num)							// SET IMAGE COORDS
+{
+	var m=this.mobs[num];													// Point at mob
+	if ((!m.mid) || (m.type != "map"))										// If not a map
+		return;																// Quit
+	var ge=shivaLib.map;													// Point to earth												
+	var seg=ge.getElementById(m.mid);										// Get object
+	var	latLonBox=ge.getView().getViewportGlobeBounds();					// Get viewport	
+	var n=latLonBox.getNorth();												// Get coord
+	var s=latLonBox.getSouth();												// Get coord
+	var e=latLonBox.getEast();												// Get coord
+	var w=latLonBox.getWest();												// Get coord
+	var wid=e-w;															// Get screen width																	
+	var hgt=n-s;															// Height
+	n=n-(hgt*m.north/100);													// Set north
+	w=w+(wid*m.south/100);													// West
+	s=n-(wid*m.east/100);													// South								
+	e=w+(wid*m.east/100);													// East ------------- Replace wid with real hgt
+	latLonBox.setBox(n-0,s-0,e-0,w,m.rotation-0);							// Set coords
+	seg.setLatLonBox(latLonBox);											// Set geometry
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // SHELF 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -586,6 +624,22 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 		}
 	this.FillShelf();														// Redraw shelf
 	mps.ShowMapBoxes(-1,"on");												// Show visible boxes
+	this.ShowPrompt(o.prompt,2000);											// Show timed prompt
+}
+
+MapScholar_Shelf.prototype.ShowPrompt=function(msg, time)				// SHOW PROMPT
+{
+	if (!msg)																// If no prompt
+		return;																// Quit
+	var v=msg.split("|");													// Split into parts
+	var str="<p><b>"+v[0]+" </b>";											// Title
+	if (v[1])																// If a subtitle
+		str+=v[1];															// Add it
+	$("#promptBar").html(str+"</p>");										// Show message
+	if ((this.inPlay) || (!time))											// If playing, or simply showing a prompt
+		$("#promptBar").fadeIn(200);										// Show it
+	else																	// If clicking
+		$("#promptBar").fadeIn(200).delay(time).fadeOut(200);				// Flash it up
 }
 
 MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
@@ -594,16 +648,17 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 	var str="<p>";
 	str+="&nbsp;&nbsp;<img src='img/annotate.gif' style='vertical-align:bottom' title='Annotate' onclick='mps.dr.DrawControlBar(true)'>";		
 	str+="<label>&nbsp; Find: </label ><input id='mpsFind' style='font-size:x-small;width:80px' type='text'/>";
-	str+="<div id='timeline' style='position:absolute;left:152px;width:646px;top:5px;height:26px'></div></p>";
-	str+="<div style='position:absolute;left:887px;top:24px;font-size:8px;width:80px;color:#999'>Play speed</div>";
-	str+="<div id='playSpeed' style='position:absolute;left:874px;top:11px;width:70px'></div>";
-	str+="<img id='playbut' style='position:absolute;left:954px;top:8px'"; 
+	str+="<div id='timeline' style='position:absolute;left:152px;width:746px;top:5px;height:26px'></div></p>";
+	str+="<div id='promptBar' style='position:absolute;left:152px;width:746px;top:4px;height:29px;background:#eee;overflow:hidden'></div>";
+	str+="<div style='position:absolute;left:987px;top:24px;font-size:8px;width:80px;color:#999'>Play speed</div>";
+	str+="<div id='playSpeed' style='position:absolute;left:974px;top:11px;width:70px'></div>";
+	str+="<img id='playbut' style='position:absolute;left:1054px;top:8px'"; 
 	if (this.inPlay)
 		str+="src='img/stopbut.gif' title='Stop'";
 	else
 	 	str+="src='img/playbut.gif' title='Play'";
 	str+="onclick='mps.sh.Play()'>";		
-	str+="<img src='img/againbut.gif' style='position:absolute;left:850px;top:9px' title='Start over' onclick='mps.sh.Play(\"1\")'>";		
+	str+="<img src='img/againbut.gif' style='position:absolute;left:950px;top:9px' title='Start over' onclick='mps.sh.Play(\"1\")'>";		
   
 	$("#controlBarDiv").html(str+"");                                    // Add to DOM
 	str="<img src='img/helpicon.gif' style='position:absolute;left:214px;top:7px' onclick='mps.ShowHelp(\"shelf\")'>";		
@@ -615,6 +670,7 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 		str+="collapse2.gif'> Collapse all";								// Collapse all button
 	str+="<img src='img/settingsbut.gif' style='position:absolute;left:196px;top:7px' onclick='mps.sh.Settings()'></p>";		
 	$("#shelfDiv").html(str);												// Add div
+	$("#promptBar").hide(0);												// Hide prompt bar
 	var n=mps.mobs.length;													// Number of mobs to add
 	this.mobVis=[];															// Remove old array
 	for (i=0;i<n;++i)														// For each mob
@@ -914,15 +970,15 @@ MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 {
 	var str="";
 	$("#infoPanelText").html("");											// Clear text
-	if ((mode == "cite") && ($("#containerDiv").width() != 800))			// If panel is already open in cite
+	if ((mode == "cite") && ($("#containerDiv").width() != 900))			// If panel is already open in cite
 		mode="close";														// Close it
 	if (mode == "close") {													// If closing
-		$("#containerDiv").width(800);										// Full size
+		$("#containerDiv").width(900);										// Full size
 		$("#infoPanelDiv").hide();											// Hide info panel
 		return;
 		}
 	var o=mps.mobs[mps.sh.curMob];											// Point at mob
-	$("#containerDiv").width(500);											// Half size
+	$("#containerDiv").width(600);											// Half size
 	$("#infoPanelDiv").show();												// Show info panel
 	if (o.title) {															// If it has a title
 		str+="<b>"+o.title;													// Add it
