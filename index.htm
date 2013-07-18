@@ -1011,7 +1011,7 @@ MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 	$("#infoPanelDiv").show();												// Show info panel
 	if (o.title) {															// If it has a title
 		str+="<b>"+o.title;													// Add it
-		if ((o.start) && (mode == "cite")) {								// If a start set for citation
+		if (o.start) {														// If a start set
 			str+="<span style='color:#990000'>";							// Red
 			str+="&nbsp;&nbsp;&nbsp;("+o.start;								// Add it
 			if (o.end)														// If an end set
@@ -1032,8 +1032,7 @@ MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 			pic=o.small;													// Use it
 		if (pic)															// If a pic
 			str+="<img style='border: 1px solid #999' width='100%' src='"+pic+"'>"; // Add it
-		if (mode == "cite")													// If a citation
-			str+="Map "+o.id+"<br/>";										// Add map id
+		str+="Map "+o.id+"<br/>";										// Add map id
 		}
 	if (o.citation)															// If a citation set
 		str+="<br/><b>Citation:</b><br/>"+o.citation;						// Add it
