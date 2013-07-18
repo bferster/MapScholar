@@ -33,11 +33,11 @@
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> </div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;width:300px;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
-			<div style="position:absolute;width:300px;height:27px;left:-1px;top:0px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#eee;"/>
+			<div id="infoPanelBar" style="position:absolute;width:300px;height:27px;left:-1px;top:0px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#eee;"/>
 				<img src="closedot.gif" onclick="mps.sh.DrawInfoPanel('close')" style="position:absolute;left:4px;top:5px">
 				<div id="infoPanelTitle" style="position:absolute;left:24px;top:8px">Information</div>
 			</div>
-			<div id="infoPanelText" style="position:absolute;width:284px;height:555px;left:0px;top:28px;padding:8px;background-color:#fafafa;overflow-x:hidden;overflow-y:auto;"> 
+			<div id="infoPanelText" style="position:absolute;width:284px;height:555px;left:0px;top:27px;padding:8px;background-color:#fafafa;overflow-x:hidden;overflow-y:auto;border-top:1px solid #ccc;"> 
 		</div>
 		
 <script>
@@ -511,6 +511,7 @@ function MapScholar_Shelf()												// CONSTRUCTOR
 	this.playStart=0;														// Mob to start playing on
 	this.playEnd=0;															// Mob to stop playing on
 	this.soundPause=false;													// Pause while playing sound flag
+	this.presentMode=false;													// In regular mode
 	
 	$("body").keydown(function(e) {										// KEY DOWN HANDLER
 		if ((e.keyCode == 40) ||(e.keyCode == 34)) {						// Down arrow, pg-dn
@@ -626,6 +627,8 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 	this.FillShelf();														// Redraw shelf
 	mps.ShowMapBoxes(-1,"on");												// Show visible boxes
 	this.ShowPrompt(o.prompt,2000);											// Show timed prompt
+	if (this.presentMode)													// If in present mode
+		this.DrawInfoPanel("show");											// Show it
 }
 
 MapScholar_Shelf.prototype.ShowPrompt=function(msg, time)				// SHOW PROMPT
@@ -662,14 +665,15 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 	str+="<img src='img/againbut.gif' style='position:absolute;left:950px;top:9px' title='Start over' onclick='mps.sh.Play(\"1\")'>";		
   
 	$("#controlBarDiv").html(str+"");                                    // Add to DOM
-	str="<img src='img/helpicon.gif' style='position:absolute;left:214px;top:7px' onclick='mps.ShowHelp(\"shelf\")'>";		
-	str+="<div id='contentShelf' style='position:absolute;width:216px;top:27px;height:559px;background-color:#fafafa;margin:0px;padding:6px;overflow-x:hidden;overflow-y:scroll;border:1px solid #ccc;'/></div>";
+//	str="<img src='img/helpicon.gif' style='position:absolute;left:214px;top:7px' onclick='mps.ShowHelp(\"shelf\")' title='Help'>";		
+	str="<div id='contentShelf' style='position:absolute;width:216px;top:27px;height:559px;background-color:#fafafa;margin:0px;padding:6px;overflow-x:hidden;overflow-y:scroll;border:1px solid #ccc;'/></div>";
 	str+="<p>&nbsp;&nbsp;&nbsp;<img id='expandAll' src='img/";				// Image base
 	if (this.expandAll)														// If expand
 		str+="expand2.gif'> Expand all";									// Expand all button
 	else																	// Collaspe
 		str+="collapse2.gif'> Collapse all";								// Collapse all button
-	str+="<img src='img/settingsbut.gif' style='position:absolute;left:196px;top:7px' onclick='mps.sh.Settings()'></p>";		
+	str+="<img src='img/settingsbut.gif' style='position:absolute;left:196px;top:7px' onclick='mps.sh.Settings()' title='Settings'>";		
+	str+="<img src='img/presentbut.gif' style='position:absolute;left:214px;top:7px' onclick='mps.sh.PresentView(true)' title='Presentation view'></p>";		
 	$("#shelfDiv").html(str);												// Add div
 	$("#promptBar").hide(0);												// Hide prompt bar
 	var n=mps.mobs.length;													// Number of mobs to add
@@ -711,6 +715,18 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 	
 }
 
+MapScholar_Shelf.prototype.PresentView=function(mode)					// PRESENTATION MODE
+{
+	if (!$("#containerDiv").width()) {										// If already in presentation mode
+		this.presentMode=false;												// Set flag
+		this.DrawInfoPanel("close");										// Close panel
+			}
+	else{																	// In regular mode
+		this.presentMode=true;												// Set flag
+		this.DrawInfoPanel("show");											// Show it
+		}
+}	
+	
 MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 {
 	var la=shivaLib.map.getView().copyAsLookAt(shivaLib.map.ALTITUDE_RELATIVE_TO_GROUND);
@@ -978,8 +994,20 @@ MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 		$("#infoPanelDiv").hide();											// Hide info panel
 		return;
 		}
-	var o=mps.mobs[mps.sh.curMob];											// Point at mob
-	$("#containerDiv").width(600);											// Half size
+	
+	var o=mps.mobs[Math.max(mps.sh.curMob,0)];								// Point at mob
+	if (this.presentMode) {													// Present mode
+		$("#containerDiv").width(0);										// Hide GE
+		$("#infoPanelDiv").css({left:"20px",width:"900px"});				// Resize infobox
+		$("#infoPanelText").css({width:"499px","padding-left":"200px","padding-right":"200px","padding-top":"16px",top:"0px"});	// Resize textbox
+		$("#infoPanelBar").hide();											// Hide info bar
+		}
+	else{	
+		$("#containerDiv").width(600);										// Half size
+		$("#infoPanelDiv").css({left:"620px",width:"300px"});				// Resize infobox
+		$("#infoPanelBar").show();											// Show info bar
+		$("#infoPanelText").css({width:"284px","padding":"8px",top:"27px"}); // Resize textbox
+		}
 	$("#infoPanelDiv").show();												// Show info panel
 	if (o.title) {															// If it has a title
 		str+="<b>"+o.title;													// Add it
