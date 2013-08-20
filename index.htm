@@ -413,9 +413,11 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 			default:	l=20;	t=20;	w=794;		h=594;		break;		// Full
 			}
 		}
-	if (mode) {																// If showing
+	if ((mode) && (mps.sh.presentMode == false)) {							// If showing in normal GE mode
 		str="<div style='font-family:sans-serif;font-size:small'>";			// Div
-		str+="<p style='text-align:center;font-weight:bold'>"+m.title+"<br/>";	// Add title
+		str+="<p style='text-align:center;font-weight:bold'>";				// Center & bold
+		if (m.title)														// If a title set
+			str+=m.title+"<br/>";											// Add title
 		if ((m.small) && (m.type != "map"))									// If an image spec'd
 			str+="<br/><img style='border:1px solid #999' src='"+m.small+"' width='"+w/3+"'><br/>";		// Add it		
 		str+="</p>"+txt+"<div>";											// Add desc
@@ -578,6 +580,8 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 		}
 	else if (o.type == "info") {											// An info command
 		this.DrawInfoPanel("info");											// Draw info panel
+		for (i=0;i<mps.mobs.length;++i)										// For each mob
+		$("#iframe-"+i).remove();											// Delete any iframes														
 		return;																// Quit
 		}
 	mps.Goto(o.goto);														// Position
@@ -994,7 +998,6 @@ MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 		$("#infoPanelDiv").hide();											// Hide info panel
 		return;
 		}
-	
 	var o=mps.mobs[Math.max(mps.sh.curMob,0)];								// Point at mob
 	if (this.presentMode) {													// Present mode
 		$("#containerDiv").width(0);										// Hide GE
@@ -1019,6 +1022,12 @@ MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 			str+=")</span>";												// Close date paren
 			}
 		str+="</b><br/><br/>";												// Close title
+		}
+	if ((o.type == "link") || (o.type == "text")) {							// If a link or text
+		if (o.small)														// If an image spec'd 
+			str+="<br/><img style='border:1px solid #999' width='300px' src='"+o.small+"'><br/>";		// Add it		
+		if (o.url)															// If a link
+			str+="<br/>Click <a href='"+o.url+" ' target='_blank'>here</a> for more information<br/><br/>";	// Add it		
 		}
 	if (o.desc)																// If it has a desc
 		str+=o.desc+"<br/><br/>";											// Add it
