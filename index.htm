@@ -130,7 +130,10 @@ MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT
 	this.mobs=new Array();													// Holds map objects data
 	if (data) {																// If loading from data
 		for (i=0;i<data.length;++i) 										// For each row
-			this.mobs.push(data[i]);										// Add new mob to project
+			if (data[i].type == "timeline") 								// A timeline command
+				mps.sh.showTimeline=(data[i].status == "on");				// Set flag
+			else															// Normal command
+				this.mobs.push(data[i]);									// Add new mob to project
 		this.dr.DrawControlBar(false);										// Draw control bar and shelf
 		this.Goto(this.mobs[0].goto);										// Go to 1st pos
 		return;
@@ -514,6 +517,7 @@ function MapScholar_Shelf()												// CONSTRUCTOR
 	this.playEnd=0;															// Mob to stop playing on
 	this.soundPause=false;													// Pause while playing sound flag
 	this.presentMode=false;													// In regular mode
+	this.showTimeline=true;													// Show timeline
 	
 	$("body").keydown(function(e) {										// KEY DOWN HANDLER
 		if ((e.keyCode == 40) ||(e.keyCode == 34)) {						// Down arrow, pg-dn
@@ -810,7 +814,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 	for (i=0;i<n;++i) {                                                     // For each mob
 		pic="";																// Assume no pic
 		o=mps.mobs[i];      												// Point at mob
-		if (o.type == "boxes")												// If a box
+		if ((o.type == "boxes") || (o.type == "timeline"))					// If a box or timeline
 			continue;														// Don't show it
 		if ((o.type == "chapter") || (o.type == "header")) {				// A header													
 			str+="<tr id='heading"+i+"' valign='top' height='30'><td colspan='2'><div class='"+o.type+"bar'>"; // Start
@@ -902,7 +906,8 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			}
 		}
    	str+="<tr><td colspan='2' align='center'><img width='160' height='174' src='img/MapScholarLogo.png'/></td></tr>";
- 	$("#timeline").html(tim);												// Add timeline data
+ 	if (this.showTimeline)													// If showing timeline
+ 		$("#timeline").html(tim);											// Add timeline data
 	$("#contentShelf").html("</table>"+str);								// Add mobs
 	if (this.curMob != -1) {												// If a current
 		$("#visControl").show();											// Show it
@@ -967,6 +972,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 	$("#hiresmap").click( function(e) {									// CLICK ON HIRES MAP
 		shivaLib.Sound("click");											// Click
 		mps.SetHiResMapImage(mps.sh.curMob);								// Set hi-res map
+		mps.sh.ShowPrompt("<span style='color:#990000;font-size:12px'>High-resolution map is loading</span>| &nbsp;<i>Please wait...</i>",4000);				// Show timed prompt
 		});
 
 	$("#showpopup").click( function(e) {									// CLICK ON POPUP
