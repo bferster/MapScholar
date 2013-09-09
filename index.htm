@@ -370,20 +370,63 @@ MapScholar.prototype.Goto=function(pos)									// SET EARTH VIEWPOINT
 	var ge=shivaLib.map;													// Point to earth												
 	pos=pos.replace(/"/g,"");												// Remove quotes
 	var v=pos.split(",");													// Split up
-	var lookAt=ge.getView().copyAsLookAt(ge.ALTITUDE_RELATIVE_TO_GROUND);	// Lookat object
-	lookAt.setLatitude(v[0]-0);												// Set lat
-	lookAt.setLongitude(v[1]-0);											// Set lon
-	if (v[2] > 0)															// If set
-		lookAt.setRange(v[2]-0);											// Set range
-	if (v[3] != undefined)													// If set
-		lookAt.setTilt(v[3]-0);												// Set tilt
-	if (v[4] != undefined)													// If set
-		lookAt.setHeading(v[4]-0);											// Set heading
 	if (v[5] != undefined)													// If set
 		speed=v[5]-0;														// Set speed value
+	this.gotoLookAt=ge.getView().copyAsLookAt(ge.ALTITUDE_RELATIVE_TO_GROUND);	// LookAt object
+	if ((""+v[0]).charAt(0) == "*") {										// If animating point directly
+		v[0]=v[0].replace(/\*/,"");											// Remove *
+		var sv=[];															// Holds start
+		sv[0]=this.gotoLookAt.getLatitude();								// Start lat
+		sv[1]=this.gotoLookAt.getLongitude();								// Start lon
+		sv[2]=this.gotoLookAt.getRange();									// Start range
+		sv[3]=this.gotoLookAt.getTilt();									// Start tilt
+		sv[4]=this.gotoLookAt.getHeading();									// Start heading
+		this.gotoStartPos=sv;												// Start
+		this.gotoEndPos=v;													// End
+		this.gotoStartTime=new Date().getTime();							// Start time
+		this.gotoPosDur=speed;												// Duration
+		this.gotoPosTimer=setInterval(function(){mps.GoToPos()},42);		// Set up timer to play ~24fps
+		ge.getOptions().setFlyToSpeed(ge.SPEED_TELEPORT);					// Set speed to immediate
+		return;																// Quit			
+		}
+	this.gotoLookAt.setLatitude(v[0]-0);									// Set lat
+	this.gotoLookAt.setLongitude(v[1]-0);									// Set lon
+	if (v[2] > 0)															// If set
+		this.gotoLookAt.setRange(v[2]-0);									// Set range
+	if (v[3] != undefined)													// If set
+		this.gotoLookAt.setTilt(v[3]-0);									// Set tilt
+	if (v[4] != undefined)													// If set
+		this.gotoLookAt.setHeading(v[4]-0);									// Set heading
 	ge.getOptions().setFlyToSpeed(speed-0);									// Set speed
-	ge.getView().setAbstractView(lookAt);									// Go there
+	ge.getView().setAbstractView(this.gotoLookAt);							// Go there
 }
+
+
+MapScholar.prototype.GoToPos=function() 								// SET GE TO A POSITION OVER TIME
+{
+	var pct=(new Date().getTime()-mps.gotoStartTime)/(mps.gotoPosDur*1000);	// Get percentage
+	if (pct >= 1) {															// If done
+		window.clearInterval(mps.gotoPosTimer);								// Stop timer
+		pct=1;																// Go to end
+		}
+	var start=mps.gotoStartPos;												// Point at start
+	var end=mps.gotoEndPos;													// Point at end
+	pct=1.0-((Math.cos(3.1414*pct)+1)/2.0);									// Full cosine curve
+	if (start[0] != end[0])													// If different
+		mps.gotoLookAt.setLatitude((start[0]+((end[0]-start[0])*pct))-0);	// Calc lat
+	if (start[1] != end[1])													// If different
+		mps.gotoLookAt.setLongitude((start[1]+((end[1]-start[1])*pct))-0);	// Calc lon
+	if (start[2] != end[2])													// If different
+		mps.gotoLookAt.setRange((start[2]+((end[2]-start[2])*pct))-0);		// Calc range
+	if (start[3] != end[3])													// If different
+		mps.gotoLookAt.setTilt((start[3]+((end[3]-start[3])*pct))-0);		// Calc tilt
+	if (start[4] != end[4])													// If different
+		mps.gotoLookAt.setHeading((start[4]+((end[4]-start[4])*pct))-0);	// Calc heading
+	shivaLib.map.getView().setAbstractView(mps.gotoLookAt);					// Go there
+}
+
+
+
 
 MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 {
