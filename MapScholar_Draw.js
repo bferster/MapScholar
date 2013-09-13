@@ -1078,7 +1078,7 @@ MapScholar_Draw.prototype.CreateKML=function()								// CREATE KML FILE
 
 MapScholar_Draw.prototype.ParseKML=function(data)							// PARSE KML FILE
 {
-	var type,s=0,e,i,j,k,o,id;
+	var type,s=0,e,i,j,k,o,id,vis;
 	var kml=data.kml;															// Point at kml data
 	var _this=mps.dr;															// Point at draw module
 	while (_this.segs.length)													// For each seg

@@ -448,15 +448,16 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 		l=m.north,t=m.south,w=m.east,h=m.west;								// Use it		
 	else{ 
 		switch(pos) {														// Route on pos
-			case 1:		l=220;	t=170;	w=400;		h=300;		break;		// Half centered
-			case 2:		l=320;	t=245;	w=200;		h=150;		break;		// Quarter centered
-			case 3:		l=40;	t=40;	w=750;		h=100;		break;		// Top
-			case 4:		l=40;	t=490;	w=750;		h=100;		break;		// Bottom
-			case 5:		l=40;	t=40;	w=400;		h=300;		break;		// Half top left
-			case 6:		l=390;	t=40;	w=400;		h=300;		break;		// Half top right
-			case 7:		l=40;	t=290;	w=400;		h=300;		break;		// Half bot left
-			case 8:		l=390;	t=290;	w=400;		h=300;		break;		// Half bot right
-			default:	l=20;	t=20;	w=794;		h=594;		break;		// Full
+			case 1:		l=225;	t=150;	w=450;		h=300;		break;		// Half centered
+			case 2:		l=338;	t=225;	w=230;		h=150;		break;		// Quarter centered
+			case 3:		l=112;	t=75;	w=675;		h=450;		break;		// Three-Quarter centered
+			case 4:		l=20;	t=20;	w=854;		h=100;		break;		// Top
+			case 5:		l=20;	t=475;	w=854;		h=100;		break;		// Bottom
+			case 6:		l=20;	t=20;	w=450;		h=300;		break;		// Half top-left
+			case 7:		l=426;	t=20;	w=450;		h=300;		break;		// Half top-right
+			case 8:		l=20;	t=280;	w=450;		h=300;		break;		// Half bot left
+			case 9:		l=426;	t=280;	w=450;		h=300;		break;		// Half bot right
+			default:	l=0;	t=0;	w=894;		h=594;		break;		// Full
 			}
 		}
 	if ((mode) && (mps.sh.presentMode == false)) {							// If showing in normal GE mode
@@ -469,7 +470,7 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 		str+="</p>"+txt+"<div>";											// Add desc
 		if ((m.url) && (m.type != "map"))									// If a link
 			str+="<br/>Click <a href='"+m.url+" ' target='_blank'>here</a> for more information";	// Add it		
-		shivaLib.ShowIframe(l,t,w,h,"blank.htm","iframe-"+num,"white",str);	// Show iframe
+		shivaLib.ShowIframe((l+20-0),(t+20-0),w,h,"blank.htm","iframe-"+num,"white",str);	// Show iframe
 		}
 	else{																	// If hiding
 		shivaLib.ShowIframe(0,0,0,0,"","iframe-"+num);						// Hide iframe
@@ -480,8 +481,25 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 MapScholar.prototype.ShowLink=function(num, mode)						// HIDE/SHOW LINK
 {
 	var m=this.mobs[num];													// Point at mob
-	if (mode)																// If showing
-		shivaLib.ShowIframe(m.north-0,m.south-0,m.east-0,m.west-0,m.url,"iframe-"+num);	// Show iframe
+	if (mode) {																// If showing			
+		if (m.east) 														// If spec'ing pos												
+			l=m.north,t=m.south,w=m.east,h=m.west;							// Use it		
+		else{ 
+			switch(m.north) {												// Route on pos
+				case 1:		l=225;	t=150;	w=450;		h=300;		break;	// Half centered
+				case 2:		l=338;	t=225;	w=230;		h=150;		break;	// Quarter centered
+				case 3:		l=112;	t=75;	w=675;		h=450;		break;	// Three-Quarter centered
+				case 4:		l=20;	t=20;	w=854;		h=100;		break;	// Top
+				case 5:		l=20;	t=475;	w=854;		h=100;		break;	// Bottom
+				case 6:		l=20;	t=20;	w=450;		h=300;		break;	// Half top-left
+				case 7:		l=426;	t=20;	w=450;		h=300;		break;	// Half top-right
+				case 8:		l=20;	t=280;	w=450;		h=300;		break;	// Half bot left
+				case 9:		l=426;	t=280;	w=450;		h=300;		break;	// Half bot right
+				default:	l=0;	t=0;	w=894;		h=594;		break;	// Full
+				}
+			}
+		shivaLib.ShowIframe((l+20-0),(t+20-0),w-0,h-0,m.url,"iframe-"+num);	// Show iframe
+		}
 	else
 		shivaLib.ShowIframe(0,0,0,0,"","iframe-"+num);						// Hide iframe
 }
@@ -489,7 +507,7 @@ MapScholar.prototype.ShowLink=function(num, mode)						// HIDE/SHOW LINK
 MapScholar.prototype.ShowSound=function(num, mode)						// HIDE/SHOW AUDIO
 {
 	var m=this.mobs[num];													// Point at mob
-	var url="http://www.viseyes.org/shiva/go.htm?shivaGroup=Video&dataSourceUrl="
+	var url="http://www.viseyes.org/shiva/go.htm?shivaGroup=Video&dataSourceUrl=";
 	url+=m.url+"&volume=50&height=30&width=290";
 	url+="&start="+(m.start?m.start:0)+"&end="+(m.end?m.end:"");			// Start, end
 	url+="&autoplay="+(m.status == "play")+"&volume="+(m.rotation?m.rotation:50);		// Autoplay, volume
@@ -497,7 +515,7 @@ MapScholar.prototype.ShowSound=function(num, mode)						// HIDE/SHOW AUDIO
 		url=url.replace(/\.mp3/g,".ogg");									// Needs oggs
 	if (mode) {																// If showing
 		if (!m.west)														// If no position defined
-			m.north=270,m.south=579,m.east=302,m.west=32;					// Set at bottom
+			m.north=320,m.south=579,m.east=302,m.west=32;					// Set at bottom
 		shivaLib.ShowIframe(m.north,m.south-0,m.east-0,m.west-0,url,"iframe-"+num,"black");	// Show iframe
 		if (mps.sh.inPlay)													// If playing until end
 			mps.sh.soundPause=true;											// Pause changing until done
