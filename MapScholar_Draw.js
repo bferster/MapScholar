@@ -1181,7 +1181,10 @@ MapScholar_Draw.prototype.ParseKML=function(data)							// PARSE KML FILE
 		var e=kml.indexOf("|*"+tag+"*|",s);										// End 
 		if ((e == -1) || (e > end))												// No start	or past end														
 			return "";															// Return null
-		return kml.substring(s,e);												// Extract string
+		var str=kml.substring(s,e);												// Extract string
+		str=str.replace(/\|\*/g,"<");											// Replace <
+		str=str.replace(/\*\|/g,">");											// Replace >
+		return str;																// Return contents
 		}
 
 	function GetColor(start) {												// EXTRACT COLOR
