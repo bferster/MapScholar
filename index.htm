@@ -268,6 +268,7 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 						break;												// Quit looking
 				mobs[j].seg=seg;											// Save ptr to seg
 				ge.getFeatures().appendChild(seg);							// Add it to display list
+//mps.SetChorplethFeature(seg,2,"ff00ff00","ff0000ff",40)
 				seg.setVisibility(false);									// Hide it
 	    		});	
 /*			var link=ge.createLink('');										// Create link object	
@@ -349,6 +350,17 @@ MapScholar.prototype.ShowMapRoads=function(mode)						// HIDE/SHOW ROADS/BORDER
 	ge.getLayerRoot().enableLayerById(ge.LAYER_ROADS,mode);					// Set roads
 }
 
+MapScholar.prototype.SetChorplethFeature=function(seg, num, col, ecol, ewid)	// SET CHOROPLETH FEATURE
+{
+	seg=seg.getFeatures().getChildNodes().item(num).getComputedStyle();		// Point at seg style
+	if (col != -1)															// If setting
+		seg.getPolyStyle().getColor().set(col);								// Set it
+	if (ecol != -1)															// If setting
+		seg.getLineStyle().getColor().set(ecol);							// Set it
+	if (ewid != -1)															// If setting
+		seg.getLineStyle().setWidth(ewid);									// Set it
+}
+	
 MapScholar.prototype.ShowMapBoxes=function(num, mode)					// HIDE/SHOW WIREFRAMES
 {
 	var i,seg,m,sty;
@@ -376,10 +388,6 @@ MapScholar.prototype.ShowMapBoxes=function(num, mode)					// HIDE/SHOW WIREFRAME
 			}
 			seg.setVisibility(!(mps.sh.mobVis[i] > 0));						// Show it 
 		sty=seg.getStyleSelector().getLineStyle();							// Get line style
-//		if (mode == "select")												// If selecting
-//			sty.getColor().set("ff0000ff");  								// Red
-//		else																// Regular
-//			sty.getColor().set("ff00ffff");  								// Yellow
 		}
 }
 
