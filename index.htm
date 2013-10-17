@@ -371,7 +371,7 @@ MapScholar.prototype.SetChorplethFeature=function(seg, num, col, ecol, ewid) // 
 
 MapScholar.prototype.SetChorplethFeatures=function(seg, features)		// SET CHOROPLETH FEATURES
 {
-	var i,s,d;
+	var i,s,d,a,c;
  	if (!seg)																// If invalid seg
  		return;																// Quit
 	var f=seg.getFeatures().getChildNodes();								// Point at seg 
@@ -382,13 +382,19 @@ MapScholar.prototype.SetChorplethFeatures=function(seg, features)		// SET CHOROP
 		}
 	for (i=0;i<features.length;++i) {										// For each feature
 		d=features[i];							 	 			  	 	  	// Point at data data
+		trace(d)
 		s=f.item(d[0]-0).getComputedStyle(); 				 	 	 	 	// Get style
-		if (d[1] != undefined) 			  	 	 				 	 	  	// If setting
-			s.getPolyStyle().getColor().set(d[1]);							// Set it
-		if (d[2] != undefined)												// If setting
-			s.getLineStyle().getColor().set(d[2]);							// Set it
-		if (d[3] != undefined)												// If setting
-			s.getLineStyle().setWidth(d[3]-0);								// Set it
+		a=""+parseInt(d[1],16);												// Convert 0-100 to 0-ff
+		if (d[2] != undefined) {		  	 	 				 	 	  	// If setting
+			c=a+d[2].substr(4,2)+d[2].substr(2,2)+d[2].substr(0,2);			// Reorder guns
+			s.getPolyStyle().getColor().set(c);								// Set it
+			}
+		if (d[3] != undefined) {											// If setting
+			c=a+d[3].substr(4,2)+d[3].substr(2,2)+d[3].substr(0,2);			// Reorder guns
+			s.getLineStyle().getColor().set(c);								// Set it
+			}
+		if (d[4] != undefined)												// If setting
+			s.getLineStyle().setWidth(d[4]-0);								// Set it
 		}
 };
 
