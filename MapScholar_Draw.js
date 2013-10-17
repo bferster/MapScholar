@@ -38,7 +38,7 @@ MapScholar_Draw.prototype.DrawShelf=function()							// DRAW DRAWING SHELF
 	else if ((type == "Line") || (type == "Shape")) {
 		str+="<tr><td>Popup text&nbsp;</td><td><textarea rows='1' style='width:110px;font-size:x-small' id='annText2'></textarea></td></tr>";
 		str+="<tr><td colspan='2'><p><hr/></p>";
-		str+="<Drag a point's icon to move that point. Drag the segment itself to move the whole segment.";
+		str+="Drag a point's icon to move that point on the map. If the CONTROL key is down, the point will snap to the nearest point near it.<br/><br/>Drag the segment itself to move the whole segment.";
 		str+="<br/><br/>Click on a (+) icon in the segment to icon to insert a new point there.<br/><br/>Right-clicking will add a new point to the end of the line where you clicked.<br/><br/>Click on point icon with SHIFT key down to remove point.";
 		str+="<br/><br/>Undo actions by clicking on the undo button to the left of the Save/Load button.";
 		str+="<br/><br/>Click on the trash can icon to remove the complete segment.";
@@ -728,6 +728,28 @@ MapScholar_Draw.prototype.RemoveSeg=function(num)							// REMOVE SEGMENT
 	this.segs.splice(num,1);													// Remove from segs
 }
 
+MapScholar_Draw.prototype.GetNearestPoint=function(lat, lon)				// GET CLOSEST POINT
+{
+	var i,j,s,d;
+	var closest=99999999999;													// Init far away
+	var newLat=lat;																// Init to target
+	var newLon=lon;																// Init to target
+	for (i=0;i<this.segs.length;++i) {											// For each seg
+		s=this.segs[i];															// Point at it
+		for (j=0;j<s.lats.length;++j) {											// For each coord
+			d=(lon-s.lons[j])*(lon-s.lons[j]);									// Calc
+			d+=(lat-s.lats[j])*(lat-s.lats[j]);									// Euclidean distance
+			if ((d < closest) && (d)) {											// A new closest, but not this point
+				closest=d*d;													// Set closest, squared to avoid sqrt
+				newLat=s.lats[j];												// Set new lat
+				newLon=s.lons[j];												// Set new lat
+				}
+			}
+		}		
+	return [newLat,newLon];														// Return new point	
+}
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // EVENTS 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -942,8 +964,10 @@ MapScholar_Draw.prototype.InitEvents=function()								// INIT EVENTS
 					if (a > 180) a=-(360-a);									// Convert -180 -> +180
 					latLonBox.setBox(s.lats[0],s.lats[1],s.lons[0],s.lons[1],Number(a));	// Set coords						
 					}
-				else															// Point
+				else{															// Point
 					_this.dragInfo.coords.setLatLngAlt(num,lat,lon,0);			// Set coord
+					_this.dragInfo.index=num;									// Save index
+					}
 				if (!e.getAltKey()) {											// If not rotating
 					if ((!e.getShiftKey()) && (s.type == "Image") && (s.asp)) {	// If maintaining aspect
 						lat=((s.lats[1-num]-(s.lons[1-num]-s.lons[num])*s.asp))	// Remake lat
@@ -957,7 +981,16 @@ MapScholar_Draw.prototype.InitEvents=function()								// INIT EVENTS
 
   	google.earth.addEventListener(ge.getGlobe(),'mouseup', 					// ON MOUSE UP
   		function(e) {
-			if (_this.dragInfo.clicked) {										// If dragging
+			if (_this.dragInfo.clicked) {										// If clicked
+  				if ((_this.dragInfo.dragged) && (_this.dragInfo.point) && e.getCtrlKey()) {
+ 					var i=_this.dragInfo.index;									// Index
+ 					var p=_this.dragInfo.coords.get(i);							// Point at coord
+					var a=_this.GetNearestPoint(p.getLatitude(),p.getLongitude());  // Find closest point
+					_this.dragInfo.coords.setLatLngAlt(i,a[0],a[1],0);			// Set coord
+					_this.segs[_this.curSeg].lats[i]=a[0];						// Set lat
+					_this.segs[_this.curSeg].lons[i]=a[1];						// Set lon
+					shivaLib.Sound("click");									// Click
+	 				}
   				if (_this.dragInfo.dragged) 	e.preventDefault();				// Stop propagation
 		    	_this.dragInfo.clicked=_this.dragInfo.dragged=false;			// Disable drag obj
 				_this.DrawControlDots(true);									// Redraw control dots
