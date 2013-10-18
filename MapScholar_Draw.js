@@ -22,11 +22,14 @@ function MapScholar_Draw()												// CONSTRUCTOR
 MapScholar_Draw.prototype.DrawShelf=function()							// DRAW DRAWING SHELF
 {
 	var type="Draw";
-	if (this.curSeg != -1)
+	var ss="";
+	if (this.curSeg != -1) {
 		type=this.segs[this.curSeg].type;
+		ss=" - "+this.curSeg;
+		}
     str="<div align='center'><img width='160' height='174' src='img/MapScholarLogo.png'/></div>";
     str+="<div id='contentShelf' style='width:200px;height:401px;background-color:#fff;border:1px solid #999;margin:6px;padding:8px' class='rounded-corners'>";
-	str+="<br/><div style='text-align:center'><b>"+type+"</b></div><br/><table>";
+	str+="<br/><div style='text-align:center'><b>"+type+"</b>"+ss+"</div><br/><table>";
 	if (type == "Draw") {
 		str+="<tr><td>To add a new segment, choose a type of segment to draw from the Draw selector pulldown menu. A segment will be added that can be edited."
 		str+="<br/><br/><div style='text-align:center'><b>To edit</b></div>";
@@ -422,16 +425,6 @@ MapScholar_Draw.prototype.AddSegsToEarth=function(num)						// ADD SEGMENTS TO E
 			seg.setDrawOrder(-1);												// Allow overlays on it
 			seg.setIcon(icon);													// Attach to seg
 			s.asp=0;															// No aspect yet
-/* 	var region=ge.createRegion('');
- 	var box=ge.createLatLonAltBox('');
- 	box.setAltBox(s.lats[0],s.lats[1],s.lons[0],s.lons[1],0,0,10000,ge.ALTITUDE_CLAMP_TO_GROUND);
-	region.setLatLonAltBox(box);
-	var lod=ge.createLod('');
-	lod.set(-1,-1,-1,256);
-	region.setLod(lod);
-	seg.setRegion(region);
-*/
-
 			}
 		ge.getFeatures().appendChild(seg);										// Add seg to EDOM
 		this.StyleSeg(i);														// Style it
