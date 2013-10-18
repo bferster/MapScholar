@@ -275,8 +275,16 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 				seg.setVisibility(false);									// Hide it
 	    		});	
 			}
-		if (m.type == "choro")												// If a choropleth
+		if (m.type == "choro") {											// If a choropleth
 			m.mid="CHORO-"+Math.floor(Math.random()*99999999);				// Make random #
+			if (m.url.match(/http/)) {										// If a valis url
+				var s=m.url;												// Save url
+				m.url=null;													// Null it out
+				shivaLib.GetSpreadsheet(s,false,null,function(data) {		// Get from docs
+					m.url=data;												// Sert new data					
+					});
+				}
+			}
 		if (m.type != "map")												// If not a map
 			continue;														// Continue
 		m.mid="MAP-"+Math.floor(Math.random()*99999999);					// Make random #
@@ -354,34 +362,23 @@ MapScholar.prototype.ShowMapRoads=function(mode)						// HIDE/SHOW ROADS/BORDER
 	ge.getLayerRoot().enableLayerById(ge.LAYER_ROADS,mode);					// Set roads
 }
 
-MapScholar.prototype.SetChorplethFeature=function(seg, num, col, ecol, ewid) // SET CHOROPLETH FEATURE
-{
-	var s=seg.getFeatures().getChildNodes().item(num).getComputedStyle();	// Point at seg style
-	if (col != -1)															// If setting
-		s.getPolyStyle().getColor().set(col);								// Set it
-	if (ecol != -1)															// If setting
-		s.getLineStyle().getColor().set(ecol);								// Set it
-	if (ewid != -1)															// If setting
-		s.getLineStyle().setWidth(ewid);									// Set it
-}
-
-
 MapScholar.prototype.SetChorplethFeatures=function(seg, features)		// SET CHOROPLETH FEATURES
 {
 	var i,s,d,a,c;
  	if (!seg)																// If invalid seg
  		return;																// Quit
 	var f=seg.getFeatures().getChildNodes();								// Point at seg 
+	if (f.item(0).getType() == "KmlFolder")									// If a folder
+		f=f.item(0).getFeatures().getChildNodes();							// Recurse into it
 	if (typeof(features) == "string") {										// If set literally
 		features=features.split(";");										// Divide into features array
 		for (i=0;i<features.length;++i)										// For each feature
 			features[i]=features[i].split(",");								// Split by comma
 		}
-
 	for (i=0;i<features.length;++i) {										// For each feature
 		d=features[i];							 	 			  	 	  	// Point at data data
 		s=f.item(d[0]-0).getComputedStyle(); 				 	 	 	 	// Get style
-		a=""+parseInt(d[1],16);												// Convert 0-100 to 0-ff
+		a=Math.round(d[1]*2.55).toString(16);								// Convert 0-100 to 0-ff
 		if (d[2] != undefined) {		  	 	 				 	 	  	// If setting
 			c=a+d[2].substr(4,2)+d[2].substr(2,2)+d[2].substr(0,2);			// Reorder guns
 			s.getPolyStyle().getColor().set(c);								// Set it
