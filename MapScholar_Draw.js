@@ -36,6 +36,8 @@ MapScholar_Draw.prototype.DrawShelf=function()							// DRAW DRAWING SHELF
 		str+="<br/>To edit an existing segment, click on that segment on the map to select it.";
 		str+="<br/><br/>You can undo actions by clicking on the undo button to the left of the Save/Load button.";
 		str+="<br/><br/>Click on the trashcan icon to remove the complete segment.";
+		str+="<br/><br/><div style='text-align:center'><b>To save or load KML file</b></div>";
+		str+="<br/>Click on the Save/Load button and enter your email. To save, give the KML file a title and click the Save button.<br/><br/>To load, choose the KML line and click the Load button. To append to the segments already drawn or loaded, hold the CONTROL key and click the Load button.";
 		str+="</td></tr>"
 		}
 	else if ((type == "Line") || (type == "Shape")) {
