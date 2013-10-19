@@ -105,6 +105,7 @@ var lastClick=0;
 function MapScholar()													// CONSTRUCTOR
 {
 	mps=this;																// Point to this
+	this.controlKey=this.shiftKey=false;									// Shift/control key flags
 	this.showBoxes=true;													// Show boxes
 	this.showRoads=false;													// Hide Roads/borders
 	this.popupOpen=-1;														// Popup not open
@@ -644,6 +645,11 @@ function MapScholar_Shelf()												// CONSTRUCTOR
 	this.presentMode=false;													// In regular mode
 	this.showTimeline=true;													// Show timeline
 	
+	$("body").keyup(function(e) {										// KEY DOWN HANDLER
+		mps.controlKey=false;												// Control key off
+		mps.shiftKey=false;													// Shift key off
+		});
+
 	$("body").keydown(function(e) {										// KEY DOWN HANDLER
 		if ((e.keyCode == 40) ||(e.keyCode == 34)) {						// Down arrow, pg-dn
 			mps.sh.HighlightMob("next",false,true);							// Next mob
@@ -660,6 +666,12 @@ function MapScholar_Shelf()												// CONSTRUCTOR
 		else if (e.keyCode == 35) {											// End
 			mps.sh.HighlightMob(mps.mobs.length-1,false,true);				// Last mob
 			shivaLib.Sound("click");										// Click
+			}
+		else if (e.keyCode == 16) {											// Shift key
+			mps.shiftKey=true;												// Shift key on
+			}
+		else if (e.keyCode == 17) {											// Control key
+			mps.controlKey=true;											// Control key on
 			}
 		});
 }

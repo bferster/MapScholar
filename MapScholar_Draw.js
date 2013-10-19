@@ -1107,8 +1107,10 @@ MapScholar_Draw.prototype.ParseKML=function(data)							// PARSE KML FILE
 	var type,s=0,e,i,j,k,o,id,vis;
 	var kml=data.kml;															// Point at kml data
 	var _this=mps.dr;															// Point at draw module
-	while (_this.segs.length)													// For each seg
-		_this.RemoveSeg(0);														// Remove it
+	if (!mps.controlKey) {														// If not appending (ie. control key is not pressed)
+		while (_this.segs.length)												// For each seg
+			_this.RemoveSeg(0);													// Remove it
+		}
 	while (1) {																	// Loop
 		j=kml.indexOf("|*GroundOverlay*|",s);									// Next ground
 		i=kml.indexOf("|*Placemark",s);											// Next place		
