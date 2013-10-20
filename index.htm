@@ -267,8 +267,8 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 			    	setTimeout(function(){},0);								// C;lear timeout
 		     		return;													// Quit
 		     		}
-				var url=seg.getUrl();										// Get fetched url
-				for (j=0;j<n;++j) 											// For each seg
+				var url=""+(seg.getUrl().split("#")[0]);					// Get fetched url, lop off #????
+				for (var j=0;j<n;++j) 										// For each seg
 					if (mobs[j].url == url)									// If a match
 						break;												// Quit looking
 				mobs[j].seg=seg;											// Save ptr to seg
@@ -279,10 +279,11 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 		if (m.type == "choro") {											// If a choropleth
 			m.mid="CHORO-"+Math.floor(Math.random()*99999999);				// Make random #
 			if (m.url.match(/http/)) {										// If a valis url
-				var s=m.url;												// Save url
-				m.url=null;													// Null it out
-				shivaLib.GetSpreadsheet(s,false,null,function(data) {		// Get from docs
-					m.url=data;												// Sert new data					
+				shivaLib.GetSpreadsheet(m.url,false,null,function(data,url){// Get from docs
+				for (var j=0;j<mps.mobs.length;++j) 						// For each seg
+					if (mps.mobs[j].url == url)								// If a match
+						break;												// Quit looking
+					mps.mobs[j].url=data;									// Save data to url
 					});
 				}
 			}
@@ -354,7 +355,7 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 			var b=mps.FindMobByID(m.base);									// Get index from id
 			if (b != -1)													// If a valid base set
 				seg=this.mobs[b].seg;										// Use layer's saved seg
-			if (mps.sh.mobVis[i])											// If active
+			if ((mps.sh.mobVis[i]) && (mps.sh.curMob == i))					// If visible and active
 				this.SetChorplethFeatures(seg,m.url);						// Set features
 			}
 		if ((mps.sh.mobVis[i]) && (seg)) {									// If active
@@ -374,19 +375,26 @@ MapScholar.prototype.ShowMapRoads=function(mode)						// HIDE/SHOW ROADS/BORDER
 MapScholar.prototype.SetChorplethFeatures=function(seg, features)		// SET CHOROPLETH FEATURES
 {
 	var i,s,d,a,c;
- 	if (!seg)																// If invalid seg
+ 	if (!seg || !features)													// If invalid seg or nor features
  		return;																// Quit
 	var f=seg.getFeatures().getChildNodes();								// Point at seg 
 	if (f.item(0).getType() == "KmlFolder")									// If a folder
 		f=f.item(0).getFeatures().getChildNodes();							// Recurse into it
 	if (typeof(features) == "string") {										// If set literally
+		if (features.match(/http/))											// If data still not loaded
+			return;															// Quit
 		features=features.split(";");										// Divide into features array
 		for (i=0;i<features.length;++i)										// For each feature
 			features[i]=features[i].split(",");								// Split by comma
 		}
 	for (i=0;i<features.length;++i) {										// For each feature
 		d=features[i];							 	 			  	 	  	// Point at data data
-		s=f.item(d[0]-0).getComputedStyle(); 				 	 	 	 	// Get style
+/*		if (f.item(d[0]-0).getStyleUrl()) {
+			var sty="<Style id=\"sty\""+i+"><LineStyle><color>ff00ffff</color><width>2</width></LineStyle><PolyStyle><color>ffff0000</color></PolyStyle></Style>";
+			trace(f.item(d[0]-0).getType())
+			f.item(d[0]-0).appendChild(sty);								// Get object
+			}
+*/		s=f.item(d[0]-0).getComputedStyle(); 				 	 	 		// Get style
 		a=Math.round(d[1]*2.55).toString(16);								// Convert 0-100 to 0-ff
 		if (d[2] != undefined) {		  	 	 				 	 	  	// If setting
 			c=a+d[2].substr(4,2)+d[2].substr(2,2)+d[2].substr(0,2);			// Reorder guns
