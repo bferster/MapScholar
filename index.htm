@@ -389,12 +389,11 @@ MapScholar.prototype.SetChorplethFeatures=function(seg, features)		// SET CHOROP
 		}
 	for (i=0;i<features.length;++i) {										// For each feature
 		d=features[i];							 	 			  	 	  	// Point at data data
-/*		if (f.item(d[0]-0).getStyleUrl()) {
-			var sty="<Style id=\"sty\""+i+"><LineStyle><color>ff00ffff</color><width>2</width></LineStyle><PolyStyle><color>ffff0000</color></PolyStyle></Style>";
-			trace(f.item(d[0]-0).getType())
-			f.item(d[0]-0).appendChild(sty);								// Get object
+		if (f.item(d[0]-0).getStyleUrl()) {									// Id has a StyleUrl tag
+			if.item(d[0]-0).setStyleUrl("");								// Remove StyleUrl style							
+//			f.item(d[0]-0).appendChild("<Style id=\"mSty"+i+"\"></Style>");	// Add style tag to placemarker
 			}
-*/		s=f.item(d[0]-0).getComputedStyle(); 				 	 	 		// Get style
+		s=f.item(d[0]-0).getComputedStyle(); 				 	 	 		// Get style
 		a=Math.round(d[1]*2.55).toString(16);								// Convert 0-100 to 0-ff
 		if (d[2] != undefined) {		  	 	 				 	 	  	// If setting
 			c=a+d[2].substr(4,2)+d[2].substr(2,2)+d[2].substr(0,2);			// Reorder guns
