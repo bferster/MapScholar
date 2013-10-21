@@ -390,7 +390,7 @@ MapScholar.prototype.SetChorplethFeatures=function(seg, features)		// SET CHOROP
 	for (i=0;i<features.length;++i) {										// For each feature
 		d=features[i];							 	 			  	 	  	// Point at data data
 		if (f.item(d[0]-0).getStyleUrl()) {									// Id has a StyleUrl tag
-			if.item(d[0]-0).setStyleUrl("");								// Remove StyleUrl style							
+			f.item(d[0]-0).setStyleUrl("");									// Remove StyleUrl style							
 //			f.item(d[0]-0).appendChild("<Style id=\"mSty"+i+"\"></Style>");	// Add style tag to placemarker
 			}
 		s=f.item(d[0]-0).getComputedStyle(); 				 	 	 		// Get style
