@@ -58,9 +58,13 @@
 			}
 		if (!url)															// Nothing on query line
 			url="https://docs.google.com/spreadsheet/pub?key=0AohdE1_3ZElJdDhIbTRVRkhHSWNBWUUtYS1rZmJoSEE";
-		url+="&unq="+Math.floor(Math.random()*9999);						// Add unique id to thwart caching
+		if (url.match(/\?/))												// Has a ? param
+			url+="&";														// Use &
+		else																// Naive
+			url+="?";														// Use ?
+		url+="unq="+Math.floor(Math.random()*9999);							// Add unique id to thwart caching
 		mps.dr.InitEvents();												// Init draw events
-		if (url.indexOf("docs.google.com") != -1) {							// On a goodle doc
+		if (url.indexOf("http") != -1) {									// Is a url
 			shivaLib.GetSpreadsheet(url,true,null,function(data) {			// Get from docs
 				mps.InitProject("",data);									// Init project from file
 				mps.AddMapBoxes();											// Add boxes
@@ -847,6 +851,24 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 
     $("#mpsFind").autocomplete({										// FIND ON EARTH
       source: function(request, response) {
+			var val=$("#mpsFind").val();									// Get val
+			if ((val.length > 1) && (val.match(/=/))) {						// If looking for a kml feature
+ 		      	var id=val.substr(1);										// Get id
+	   			if ((mps.sh.curMob == -1) || (mps.mobs[mps.sh.curMob].type != "layer"))	// If not a layer
+						return;												// Quit
+	  			var str="";
+	   			var seg=mps.mobs[mps.sh.curMob].seg;						// Get seg from saved seg
+				var f=seg.getFeatures().getChildNodes();					// Point at seg 
+				if (f.item(0).getType() == "KmlFolder")						// If a folder
+					f=f.item(0).getFeatures().getChildNodes();				// Recurse into it
+				f=f.getLength();											// Get number of features
+				for (var i=0;i<f;++i)										// For each feature
+					str+=i+",50,cccccc,000000,1;";							// Make it bland
+				mps.SetChorplethFeatures(seg,str);							// Set feature
+				str=val.substr(1)+",50,ff0000,00ff00,3;";					// Make it stand out
+				mps.SetChorplethFeatures(seg,str);							// Set feature
+	       		return;														// Quit
+	       		}
         geocoder.geocode( {'address': request.term }, function(results, status) {
           response($.map(results, function(item) {
             return {
