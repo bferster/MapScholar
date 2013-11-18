@@ -446,7 +446,6 @@ MapScholar.prototype.ChoroQuery=function(query, color)					// SHOW RESULTS OF QU
 	str="";																	// Clear
 	for (i=1;i<results.length;++i)											// For each match
 		str+=results[i][0]+",50,"+color+",ffffff,2;";						// Make it stand out
-	trace(str)
 	mps.SetChoroplethFeatures(seg,str,null);								// Set feature
 }
 
