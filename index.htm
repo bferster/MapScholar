@@ -360,7 +360,7 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 			if (b != -1)													// If a valid base set
 				seg=this.mobs[b].seg;										// Use layer's saved seg
 			if ((mps.sh.mobVis[i]) && (mps.sh.curMob == i))					// If visible and active
-				this.SetChorplethFeatures(seg,m.url,m.med);					// Set features
+				this.SetChoroplethFeatures(seg,m.url,m.med);					// Set features
 			}
 		if ((mps.sh.mobVis[i]) && (seg)) {									// If active
 			seg.setOpacity(mps.sh.mobVis[i]/100);							// Set alpha
@@ -376,7 +376,7 @@ MapScholar.prototype.ShowMapRoads=function(mode)						// HIDE/SHOW ROADS/BORDER
 	ge.getLayerRoot().enableLayerById(ge.LAYER_ROADS,mode);					// Set roads
 }
 
-MapScholar.prototype.SetChorplethFeatures=function(seg, features, query) // SET CHOROPLETH FEATURES
+MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query) // SET CHOROPLETH FEATURES
 {
 	var i,s,d,a,c;
  	if (!seg || !features)													// If invalid seg or nor features
@@ -416,6 +416,39 @@ MapScholar.prototype.SetChorplethFeatures=function(seg, features, query) // SET 
 			s.getLineStyle().setWidth(d[4]-0);								// Set it
 		}
 };
+
+MapScholar.prototype.ChoroQuery=function(query, color)					// SHOW RESULTS OF QUERY ON CHOROPLETH
+{
+	var i;
+	var str="";
+	if ((mps.sh.curMob == -1) || (mps.mobs[mps.sh.curMob].type != "choro"))	// If not a choro
+			return;															// Quit
+	var o=mps.mobs[mps.sh.curMob];											// Point at mob
+	var seg=mps.mobs[mps.FindMobByID(o.base)].seg;							// Get seg from saved seg of base
+	var f=seg.getFeatures().getChildNodes();								// Point at seg 
+	if (f.item(0).getType() == "KmlFolder")									// If a folder
+		f=f.item(0).getFeatures().getChildNodes();							// Recurse into it
+	f=f.getLength();														// Get number of features
+	for (i=0;i<f;++i)														// For each feature
+		str+=i+",50,cccccc,000000,1;";										// Make it bland
+	mps.SetChoroplethFeatures(seg,str,null);								// Set feature
+	var results=[];															// Blank array
+	var features=o.url;														// Point at data
+	if (typeof(o.url) == "string") {										// If set literally
+		if (features.match(/http/))											// If data still not loaded
+			return;															// Quit
+		features=features.split(";");										// Divide into features array
+		for (i=0;i<features.length;++i)										// For each feature
+			features[i]=features[i].split(",");								// Split by comma
+		features.splice(0,0,["id","opacity","col","ecol","ewid"]);			// Add default header
+		}
+	mps.Query(features,results,query,"id+opacity+col+ecol+ewid");			// Run it
+	str="";																	// Clear
+	for (i=1;i<results.length;++i)											// For each match
+		str+=results[i][0]+",50,"+color+",ffffff,2;";						// Make it stand out
+	trace(str)
+	mps.SetChoroplethFeatures(seg,str,null);								// Set feature
+}
 
 MapScholar.prototype.ShowMapBoxes=function(num, mode)					// HIDE/SHOW WIREFRAMES
 {
@@ -869,34 +902,14 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 				f=f.getLength();											// Get number of features
 				for (var i=0;i<f;++i)										// For each feature
 					str+=i+",50,cccccc,000000,1;";							// Make it bland
-				mps.SetChorplethFeatures(seg,str,null);						// Set feature
+				mps.SetChoroplethFeatures(seg,str,null);					// Set feature
 				str=val.substr(1)+",50,ff0000,00ff00,3;";					// Make it stand out
-				mps.SetChorplethFeatures(seg,str,null);						// Set feature
+				mps.SetChoroplethFeatures(seg,str,null);					// Set feature
 	       		return;														// Quit
 	       		}
-  			if ((val.length > 1) && (val.match(/\?/))) {					// If querying a choro
- 		      	var id=val.substr(1);										// Get id
-		   			if ((mps.sh.curMob == -1) || (mps.mobs[mps.sh.curMob].type != "choro"))	// If not a choro
-						return;												// Quit
-	  			var str="";
-   				var o=mps.mobs[mps.sh.curMob];								// Point at mob
-	   			var seg=mps.mobs[mps.FindMobByID(o.base)].seg;				// Get seg from saved seg of base
-				var f=seg.getFeatures().getChildNodes();					// Point at seg 
-				if (f.item(0).getType() == "KmlFolder")						// If a folder
-					f=f.item(0).getFeatures().getChildNodes();				// Recurse into it
-				f=f.getLength();											// Get number of features
-				for (i=0;i<f;++i)											// For each feature
-					str+=i+",50,cccccc,000000,1;";							// Make it bland
-				mps.SetChorplethFeatures(seg,str,null);						// Set feature
-				var results=[];												// Blank array
-				mps.Query(o.url,results,id,"id+opacity+col+ecol+ewid");		// Run it
-				str="";														// Clear
-				for (var i=1;i<results.length;++i)							// For each match
-					str+=results[i][0]+",50,ff0000,ffffff,3;";				// Make it stand out
-				mps.SetChorplethFeatures(seg,str,null);						// Set feature
-	       		return;														// Quit
-	       		}
-     
+ 			if ((val.length > 1) && (val.match(/\?/))) 						// If querying a choro
+ 		      	mps.ChoroQuery(val.substr(1),"ff0000");						// Do it
+ 		      	     
         geocoder.geocode( {'address': request.term }, function(results, status) {
           response($.map(results, function(item) {
             return {
@@ -1097,11 +1110,15 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			str+=o.desc+"<br/>";											// Add desc
 		str+="<br/></td></tr>";												// Close entry
 		if ((this.curMob == i) && (this.mobVis[i] > 0) && ((o.type == "map") || (o.type == "layer")|| (o.type == "choro"))){	// If selected and visible
-			str+="<tr style='background-color:#d0e1ec'><td valign='top' style='color:#009900' align='center'><b>Visibility</b></td><td>";
+			str+="<tr style='background-color:#d0e1ec'><td valign='top' style='color:#009900;padding-left:8px'><b>Visibility";
+			if (o.type == "choro")		str+="</br></br>Query"; 
+			str+="</b></td><td>";
 			str+="<div id='mobVis' style='width:60%;display:inline-block'></div>";		// Add div for vis
 			str+="&nbsp;&nbsp;&nbsp;&nbsp;<img id='mobInfo' title='See citation' src='img/infobutton.gif'/>";
 			if ((o.url) && (o.type == "map"))
 				str+="&nbsp;&nbsp;<img id='hiresmap' title='See hi-res map' src='img/viewdot.gif'/>";
+			if (o.type == "choro") 
+				str+="</br></br><input type='text' id='chorQuery'style='width:80%;font-size:x-small;height:12px' onchange='mps.ChoroQuery(this.value,\"ff0000\")'>";
 			str+="<br/><br/></td></tr>";
 			}
 		}
