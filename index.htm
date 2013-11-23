@@ -399,9 +399,8 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query) // SET
 		}
 	for (i=1;i<features.length;++i) {										// For each feature
 		d=features[i];							 	 			  	 	  	// Point at data data
-		if (f.item(d[0]-0).getStyleUrl()) {									// Id has a StyleUrl tag
+		if (f.item(d[0]-0).getStyleUrl()) 									// Id has a StyleUrl tag
 			f.item(d[0]-0).setStyleUrl("");									// Remove StyleUrl style							
-			}
 		s=f.item(d[0]-0).getComputedStyle(); 				 	 	 		// Get style
 		a=Math.round(d[1]*2.55).toString(16);								// Convert 0-100 to 0-ff
 		if (d[2] != undefined) {		  	 	 				 	 	  	// If setting
@@ -545,10 +544,10 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 {
 	var l,t,h,w;
 	var m=this.mobs[num];													// Point at mob
-	var txt=m.desc;															// Use desc field
+	var txt=shivaLib.LinkToAnchor(m.desc);									// Use desc field
 	var pos=m.north-0;														// get north
 	if (m.type != "text") {													// If not a text mob
-		txt=m.text;															// Get text from text field
+		txt=shivaLib.LinkToAnchor(m.text);									// Get text from text field
 		pos=4;																// Assume top
 		var s=txt.match(/pos\([^\(]*\)/i);									// Extract position	
 		if (s) {															// If found
@@ -577,7 +576,7 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 		str="<div style='font-family:sans-serif;font-size:small'>";			// Div
 		str+="<p style='text-align:center;font-weight:bold'>";				// Center & bold
 		if (m.title)														// If a title set
-			str+=m.title+"<br/>";											// Add title
+			str+=shivaLib.LinkToAnchor(m.title)+"<br/>";					// Add title
 		if ((m.small) && (m.type != "map"))									// If an image spec'd
 			str+="<br/><img style='border:1px solid #999' src='"+m.small+"' width='"+w/3+"'><br/>";		// Add it		
 		str+="</p>"+txt+"<div>";											// Add desc
@@ -1031,12 +1030,12 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				str+="collapse";											// Collapse
 			if (o.type == "header")											// If a header
 				str+="2";													// Use dark icons
-			str+=".gif'><b>"+o.title+"</div>";								// Title
+			str+=".gif'><b>"+shivaLib.LinkToAnchor(o.title)+"</div>";		// Title
 			if (o.type == "chapter")
 				str+="<img src='img/cplaybut.gif' style='position:relative;left:182px;top:-16px' title='Play chapter' onclick='mps.sh.Play(\"0\",\""+i+"\")'>";		
 			str+="</td><tr>";												// End 
 			if ((o.desc)&& (o.status != "closed"))							// If a description
-				str+="<tr><td colspan='2'><i>"+o.desc+"</i><br/><br/></td></tr>";	// Add it
+				str+="<tr><td colspan='2'><i>"+shivaLib.LinkToAnchor(o.desc)+"</i><br/><br/></td></tr>";	// Add it
 			if (o.status == "closed")	{									// If closed
 				var type=o.type;											// Search type
 				for (j=i+1;j<n;++j) {										// For each mob
@@ -1089,7 +1088,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			if (pic)														// If a pic
 				str+="<img style='border: 1px solid #999' width='64' src='"+pic+"'>"; // Add it
 			str+="&nbsp;&nbsp;</td>";											// End col
-			str+="<td valign='top'><span id='mobPos"+ i+"'><b>"+o.title+"</b><br/></span>";	// Add title
+			str+="<td valign='top'><span id='mobPos"+ i+"'><b>"+shivaLib.LinkToAnchor(o.title)+"</b><br/></span>";	// Add title
 			if (o.start)													// If a date
 				str+="<span style='color:#770000'><b>"+o.start+"</b></span> ";	// Add date
 			}
@@ -1097,16 +1096,16 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			str+="><td colspan='2'>";										// Single column
 			if (pic)														// If a pic
 				str+="<img src='"+pic+"'>"; 								// Add it
-			str+="&nbsp;&nbsp;<span id='mobPos"+ i+"'><b>"+o.title+"</b><br/></span>";	// Add title
+			str+="&nbsp;&nbsp;<span id='mobPos"+ i+"'><b>"+shivaLib.LinkToAnchor(o.title)+"</b><br/></span>";	// Add title
 			}
 		if ((o.desc)&& ((o.type == "map") || (o.type == "chapter") || (o.type == "header"))) { // If desc spec'd
-			str+=o.desc;													// Add desc
+			str+=shivaLib.LinkToAnchor(o.desc);								// Add desc
 			if ((o.text)&& (this.mobVis[i] > 0))							// If text defined and visible
 				str+="&nbsp;&nbsp;<img id='showpopup' title='Show popup info' src='img/popupbutton.gif'/>";
 			str+="<br/>";													// Add desc
 			}
 		if ((o.desc)&& ((o.type == "goto")&& (this.curMob == i) && (this.mobVis[i] > 0)))  // If desc on an open goto
-			str+=o.desc+"<br/>";											// Add desc
+			str+=shivaLib.LinkToAnchor(o.desc)+"<br/>";						// Add desc
 		str+="<br/></td></tr>";												// Close entry
 		if ((this.curMob == i) && (this.mobVis[i] > 0) && ((o.type == "map") || (o.type == "layer")|| (o.type == "choro"))){	// If selected and visible
 			str+="<tr style='background-color:#d0e1ec'><td valign='top' style='color:#009900;padding-left:8px'><b>Visibility";
@@ -1235,7 +1234,7 @@ MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 		}
 	$("#infoPanelDiv").show();												// Show info panel
 	if (o.title) {															// If it has a title
-		str+="<b>"+o.title;													// Add it
+		str+="<b>"+shivaLib.LinkToAnchor(o.title);							// Add it
 		if (o.start) {														// If a start set
 			str+="<span style='color:#990000'>";							// Red
 			str+="&nbsp;&nbsp;&nbsp;("+o.start;								// Add it
@@ -1252,7 +1251,7 @@ MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 			str+="<br/>Click <a href='"+o.url+" ' target='_blank'>here</a> for more information<br/><br/>";	// Add it		
 		}
 	if (o.desc)																// If it has a desc
-		str+=o.desc+"<br/><br/>";											// Add it
+		str+=shivaLib.LinkToAnchor(o.desc)+"<br/><br/>";					// Add it
 	if ((o.type == "map") || (mode == "info")) { 							// A map													
 		var pic="";															// Assume no pic
 		if (o.med)                                                 	   		// If a med defined															
@@ -1263,10 +1262,10 @@ MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 			pic=o.small;													// Use it
 		if (pic)															// If a pic
 			str+="<img style='border: 1px solid #999' width='100%' src='"+pic+"'>"; // Add it
-		str+="Map "+o.id+"<br/>";										// Add map id
+		str+="Map "+o.id+"<br/>";											// Add map id
 		}
 	if (o.citation)															// If a citation set
-		str+="<br/><b>Citation:</b><br/>"+o.citation;						// Add it
+		str+="<br/><b>Citation:</b><br/>"+shivaLib.LinkToAnchor(o.citation);	// Add it
 	$("#infoPanelText").html(str);											// Set text
 }
 
