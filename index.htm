@@ -33,11 +33,8 @@
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> </div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;width:300px;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
-			<div id="infoPanelBar" style="position:absolute;width:300px;height:27px;left:-1px;top:0px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#eee;"/>
-				<img src="closedot.gif" onclick="mps.sh.DrawInfoPanel('close')" style="position:absolute;left:4px;top:5px">
-				<div id="infoPanelTitle" style="position:absolute;left:24px;top:8px">Information</div>
-			</div>
-			<div id="infoPanelText" style="position:absolute;width:284px;height:555px;left:0px;top:27px;padding:8px;background-color:#fafafa;overflow-x:hidden;overflow-y:auto;border-top:1px solid #ccc;"> 
+			<div id="infoPanelBar" style="position:absolute;width:300px;height:27px;left:-1px;top:0px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#eee;"> </div>
+			<div id="infoPanelText" style="position:absolute;width:284px;height:555px;left:0px;top:27px;padding:8px;background-color:#fafafa;overflow-x:hidden;overflow-y:auto;border-top:1px solid #ccc;"> </div> 
 		</div>
 		
 <script>
@@ -572,7 +569,7 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 			default:	l=0;	t=0;	w=894;		h=594;		break;		// Full
 			}
 		}
-	if ((mode) && (mps.sh.presentMode == false)) {							// If showing in normal GE mode
+	if ((mode) && (mps.sh.presentMode == "Atlas")) {						// If showing in normal GE mode
 		str="<div style='font-family:sans-serif;font-size:small'>";			// Div
 		str+="<p style='text-align:center;font-weight:bold'>";				// Center & bold
 		if (m.title)														// If a title set
@@ -689,8 +686,9 @@ function MapScholar_Shelf()												// CONSTRUCTOR
 	this.playStart=0;														// Mob to start playing on
 	this.playEnd=0;															// Mob to stop playing on
 	this.soundPause=false;													// Pause while playing sound flag
-	this.presentMode=false;													// In regular mode
+	this.presentMode="Atlas";												// In regular mode
 	this.showTimeline=true;													// Show timeline
+	this.startBook=-1;														// Start of book pages
 	
 	$("body").keyup(function(e) {										// KEY DOWN HANDLER
 		mps.controlKey=false;												// Control key off
@@ -728,6 +726,7 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 	var j,k,o,bases,defAlpha=100;
 	var i=Math.max(this.curMob,0);											// Start point
 	var n=mps.mobs.length-1;												// Last mob
+	
 	if ((this.inPlay) && (i >= this.playEnd)) {								// At end when playing
 		this.Play();														// Turn off playing
 		return;																// Quit
@@ -735,14 +734,25 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 	if (which == "next") {													// Going forward										
 		if ((this.inPlay) && (this.soundPause)) 							// If pausing for sound to finish
 			return;															// Don't change
+		if (this.presentMode != "Book")										// If not a book
+			while (mps.mobs[i].type == "page")								// If a page
+				++i;														// Skip over it		
 		i=Math.min(i+1,n);													// Cap at end
 		while (((mps.mobs[i].type == "header") || (mps.mobs[i].type == "chapter")) && (i < n))  // Skip over nav mobs
 			mps.Goto(mps.mobs[i++].goto);									// Set position
+		this.curMob=i;														// Set curMob
 		}
 	else if (which == "last") {												// Going backward										
-		i=Math.max(i-1,0);													// Cap at end
+		if (this.presentMode != "Book")										// If not a book
+			while (mps.mobs[i].type == "page")								// If a page
+				--i;														// Skip over it		
+		--i;																// Back up
+		if (this.presentMode == "Book")										// If a book
+			i=Math.max(i,this.startBook);									// Cap at book start 
+		i=Math.max(i,0);													// Cap at end
 		while (((mps.mobs[i].type == "header") || (mps.mobs[i].type == "chapter")) && (i > 0))  // Skip over nav mobs
 			mps.Goto(mps.mobs[i--].goto);									// Set position
+		this.curMob=i;														// Set curMob
 		}
 	else{																	// Absolute
 		if (which < 0) {
@@ -759,7 +769,9 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 			}
 		i=Number(which);													// Get number
 		}
-	i=this.curMob=Math.min(Math.max(i,0),n);								// Set indexer and cap
+	i=Math.min(Math.max(i,0),n);											// Set indexer and cap
+	if (this.presentMode != "Book")											// If not a book
+		this.curMob=i;														// Set curmob
 	o=mps.mobs[i];   														// Point at mob
 	if (o.type == "boxes") {												// A boxes command
 		mps.showBoxes=(o.status == "on");									// Set flag
@@ -819,7 +831,7 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 	this.FillShelf();														// Redraw shelf
 	mps.ShowMapBoxes(-1,"on");												// Show visible boxes
 	this.ShowPrompt(o.prompt,2000);											// Show timed prompt
-	if (this.presentMode)													// If in present mode
+	if (this.presentMode == "Slides")										// If in present mode
 		this.DrawInfoPanel("show");											// Show it
 }
 
@@ -846,26 +858,33 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 	str+="<label>&nbsp; Find: </label ><input id='mpsFind' style='font-size:x-small;width:80px' type='text'/>";
 	str+="<div id='timeline' style='position:absolute;left:152px;width:746px;top:5px;height:26px'></div></p>";
 	str+="<div id='promptBar' style='position:absolute;left:152px;width:746px;top:4px;height:29px;background:#eee;overflow:hidden'></div>";
-	str+="<div style='position:absolute;left:987px;top:24px;font-size:8px;width:80px;color:#999'>Play speed</div>";
-	str+="<div id='playSpeed' style='position:absolute;left:974px;top:11px;width:70px'></div>";
-	str+="<img id='playbut' style='position:absolute;left:1054px;top:8px'"; 
-	if (this.inPlay)
-		str+="src='img/stopbut.gif' title='Stop'";
+	if (this.presentMode != "Book") {
+		str+="<div style='position:absolute;left:987px;top:24px;font-size:8px;width:80px;color:#999'>Play speed</div>";
+		str+="<div id='playSpeed' style='position:absolute;left:974px;top:11px;width:70px'></div>";
+		}
 	else
-	 	str+="src='img/playbut.gif' title='Play'";
-	str+="onclick='mps.sh.Play()'>";		
-	str+="<img src='img/againbut.gif' style='position:absolute;left:950px;top:9px' title='Start over' onclick='mps.sh.Play(\"1\")'>";		
-  
+		str+="<div style='position:absolute;left:980px;top:12px;font-size:8px;width:80px;color:#999'>Last/next page</div>";
+	str+="<img id='playbut' style='position:absolute;left:1054px;top:8px'"; 
+	if (this.presentMode == "Book") 
+		str+="src='img/playbut.gif' title='Next page' onclick='mps.sh.HighlightMob(\"next\")'>";
+	else if (this.inPlay)
+		str+="src='img/stopbut.gif' title='Stop' onclick='mps.sh.Play()'>";
+	else
+	 	str+="src='img/playbut.gif' title='Play' onclick='mps.sh.Play()'>";
+	if (this.presentMode != "Book") 
+		str+="<img src='img/againbut.gif' style='position:absolute;left:950px;top:9px' title='Start over' onclick='mps.sh.Play(\"1\")'>";		
+  	else
+		str+="<img src='img/revbut.gif' style='position:absolute;left:950px;top:9px' title='Last page' onclick='mps.sh.HighlightMob(\"last\")'>";		
 	$("#controlBarDiv").html(str+"");                                    // Add to DOM
-//	str="<img src='img/helpicon.gif' style='position:absolute;left:214px;top:7px' onclick='mps.ShowHelp(\"shelf\")' title='Help'>";		
 	str="<div id='contentShelf' style='position:absolute;width:216px;top:27px;height:559px;background-color:#fafafa;margin:0px;padding:6px;overflow-x:hidden;overflow-y:scroll;border:1px solid #ccc;'/></div>";
 	str+="<p>&nbsp;&nbsp;&nbsp;<img id='expandAll' src='img/";				// Image base
 	if (this.expandAll)														// If expand
 		str+="expand2.gif'> Expand all";									// Expand all button
 	else																	// Collaspe
 		str+="collapse2.gif'> Collapse all";								// Collapse all button
-	str+="<img src='img/settingsbut.gif' style='position:absolute;left:196px;top:7px' onclick='mps.sh.Settings()' title='Settings'>";		
-	str+="<img src='img/presentbut.gif' style='position:absolute;left:214px;top:7px' onclick='mps.sh.PresentView(true)' title='Presentation view'></p>";		
+	str+="<img src='img/settingsbut.gif' style='position:absolute;left:214px;top:8px' onclick='mps.sh.Settings()' title='Settings'>";		
+	str+=shivaLib.MakeSelect("setViewMode",false,["Atlas","Slides","Book"],mps.sh.presentMode," onchange='mps.sh.PresentView(this)' style='position:absolute;left:150px;top:6px;font-size:x-small'");
+	
 	$("#shelfDiv").html(str);												// Add div
 	$("#promptBar").hide(0);												// Hide prompt bar
 	var n=mps.mobs.length;													// Number of mobs to add
@@ -928,16 +947,24 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 	
 }
 
-MapScholar_Shelf.prototype.PresentView=function(mode)					// PRESENTATION MODE
+MapScholar_Shelf.prototype.PresentView=function(select)					// PRESENTATION MODE
 {
-	if (!$("#containerDiv").width()) {										// If already in presentation mode
-		this.presentMode=false;												// Set flag
-		this.DrawInfoPanel("close");										// Close panel
+	this.presentMode=select.value;											// Set flag
+	select.blur();															// Remove focus
+	if (this.presentMode == "Book")	{										// If a book		
+		var n=mps.mobs.length;                            					// Number of mobs
+		for (var i=0;i<n;++i) {                                             // For each mob
+			if (mps.mobs[i].type == "page")	{								// Found 1st page
+				this.startBook=this.curMob=i;								// Point at page
+				break;														// Quit looking
+				}
 			}
-	else{																	// In regular mode
-		this.presentMode=true;												// Set flag
-		this.DrawInfoPanel("show");											// Show it
 		}
+	this.Draw();															// Redraw shelf
+	if (select.value == "Slides")											// In slide mode	
+		this.DrawInfoPanel("show");											// Show it
+	else																	// Other node
+		this.DrawInfoPanel("close");										// Close panel
 }	
 	
 MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
@@ -990,6 +1017,7 @@ MapScholar_Shelf.prototype.ToggleExpandCollapse=function()				// EXPAND/COLLAPSE
 	mps.ShowMapBoxes(-1,"on");												// Show visible boxes
 }
 
+
 MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 {
 	var tim="<div style='position:absolute;width:"+$("#timeline").width()+"px;height:1px;top:10px;' class='timelinebar'/>";
@@ -1016,11 +1044,98 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
    		tim+="<div style='position:absolute;text-align:center;color:#aaa;left:"+(x-17)+"px;width:30px;top:18px'><i>"+i+"</i></div>";
    		tim+="<div style='position:absolute;left:"+x+"px;height:16px;width:1px;top:2px;background-color:#999'/>";
 		}
-	for (i=0;i<n;++i) {                                                     // For each mob
-		pic="";																// Assume no pic
-		o=mps.mobs[i];      												// Point at mob
-		if ((o.type == "boxes") || (o.type == "timeline"))					// If a box or timeline
-			continue;														// Don't show it
+	if (this.presentMode == "Book") {										// If book mode										
+		if (mps.mobs[this.curMob].type == "page")							// If a page
+			str+=AddPageToShelf(this.curMob);								// Add it
+		}
+	else{
+		for (i=0;i<n;++i)                                                   // For each mob
+			str+=AddMobToShelf(i);											// Add it
+		}
+   	str+="<tr><td colspan='2' align='center'><img width='160' height='174' src='img/MapScholarLogo.png'/></td></tr>";
+ 	if (this.showTimeline)													// If showing timeline
+ 		$("#timeline").html(tim);											// Add timeline data
+	$("#contentShelf").html("</table>"+str);								// Add mobs
+	if (this.curMob != -1) {												// If a current
+		$("#visControl").show();											// Show it
+		$("#mobVis").val(this.mobVis[this.curMob]);							// Set value
+		}
+  
+  	for (i=0;i<dates.length;++i){											// For each map
+		if (dates[i].part > 1) {											// If multi
+	  		a=0;
+	  		for (j=i;j<dates.length;++j) {									// For each map
+				if (dates[i].date == dates[j].date) {						// One of the set
+					$("#timedot"+dates[j].index).css("top",a++*7+"px");		// Position it
+					dates[j].part=1;										// Skip it
+					}
+				if (a >= 4)													// If past max
+					break;													// Quit
+				}
+			}
+		}
+
+	for (i=0;i<n;++i) {														// For each mob
+		$("#timedot"+i).click( function(e) {								// Add click handler
+			var id=this.id.substr(7);										// Get id
+			shivaLib.Sound("click");										// Click
+			mps.sh.HighlightMob(id,e.shiftKey,false);						// Highlight mob
+			});
+		$("#mob"+i).click( function(e) {									// Add click handler
+			var id=this.id.substr(3);										// Get id
+			var now=new Date().getTime();									// Get cur time
+			if (now-lastClick < 500)										// Within double-click time
+				id=-id;
+			else
+				shivaLib.Sound("click");									// Click once
+			mps.sh.HighlightMob(id,e.shiftKey,false);						// Highlight mob
+			lastClick=now;													// Then is now	
+			});
+		$("#heading"+i).click( function(e) {								// Add click handler
+			var id=this.id.substr(7);										// Get id
+			mps.Goto(mps.mobs[id].goto);									// Set pos
+			});
+		}
+		
+ // HELPERS ///////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
+	function AddPageToShelf(num) {	
+		var i,adds=[];
+		var str="<tr><td colspan='2'>";
+		var o=mps.mobs[num];      											// Point at mob
+		var desc=o.desc;													// Get desc
+		if (o.title) 														// If it has a title
+			str+="<center><b>"+shivaLib.LinkToAnchor(o.title)+"</b></center><br>";	// Add it
+		if (desc.match(/mob\(/)) {											// If an embedded mob
+			var vv,url,title,num;
+			var v=(desc+" ").match(/mob\(.*?\s/ig);							// Extract url(s)
+			for (i=0;i<v.length;++i) {										// For each url
+				v[i]=$.trim(v[i])											// Trim it
+				vv=v[i].substring(4,v[i].length-1).split(",");				// Split by comma
+				num=mps.FindMobByID(vv[0]);									// Get mob from id
+				url="javascript:mps.sh.HighlightMob("+num+")";				// Link to highlight
+				title="";													// Assume no title
+				if (vv.length > 1) 											// If a title spec'd
+					title=vv[1];											// Use it
+				desc=desc.replace(RegExp(v[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&"))," <a href='"+url+"' target='_blank'>"+title+"</a> ");	// Replace with anchor tag
+				if (num != -1)												// If valid
+					adds.push(num);											// Add shelf array
+				}
+			}
+		if (desc) 															// If it has a title
+			str+=shivaLib.LinkToAnchor(desc)+"<br>";						// Add it
+		str+="<br><hr><br></td></tr>";										// End
+		for (i=0;i<adds.length;++i)											// For each mob mentioned
+			str+=AddMobToShelf(adds[i]);									// Add it
+		return(str);														// Return html
+	}
+ 
+ 	function AddMobToShelf(num) {	
+		var str=""
+		var pic="";															// Assume no pic
+		var o=mps.mobs[num];      											// Point at mob
+		if ((o.type == "boxes") || (o.type == "timeline")|| (o.type == "page"))	// If not displayable
+			return str;														// Don't show it
 		if ((o.type == "chapter") || (o.type == "header")) {				// A header													
 			str+="<tr id='heading"+i+"' valign='top' height='30'><td colspan='2'><div class='"+o.type+"bar'>"; // Start
 			str+="<img id='mob"+i+"' src='img/";							// Img base
@@ -1047,7 +1162,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 					}
 				i=j-1;														// Set next index
 				}
-			continue;
+			return str;														// No need to do more
 			}
 		if (o.type == "map") { 												// A map													
 			if (o.small)                                                    // If a small defined															
@@ -1080,15 +1195,15 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			pic="img/texticon.png";											// Use icon
 		else if (o.type == "info")											// An info													
 			pic="img/texticon.png";											// Use icon
-		str+="<tr id='mob"+i+"'";											// Row start
-		if (this.mobVis[i] > 0) 											// If visible
+		str+="<tr id='mob"+num+"'";											// Row start
+		if (mps.sh.mobVis[num] > 0) 										// If visible
 			str+="' style='background-color:#d0e1ec'";						// Color background
 		if (o.type == "map") {												// If a map pic defined
 			str+="><td valign='top' width='70'>";							// Double column
 			if (pic)														// If a pic
 				str+="<img style='border: 1px solid #999' width='64' src='"+pic+"'>"; // Add it
 			str+="&nbsp;&nbsp;</td>";											// End col
-			str+="<td valign='top'><span id='mobPos"+ i+"'><b>"+shivaLib.LinkToAnchor(o.title)+"</b><br/></span>";	// Add title
+			str+="<td valign='top'><span id='mobPos"+ num+"'><b>"+shivaLib.LinkToAnchor(o.title)+"</b><br/></span>";	// Add title
 			if (o.start)													// If a date
 				str+="<span style='color:#770000'><b>"+o.start+"</b></span> ";	// Add date
 			}
@@ -1100,14 +1215,14 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			}
 		if ((o.desc)&& ((o.type == "map") || (o.type == "chapter") || (o.type == "header"))) { // If desc spec'd
 			str+=shivaLib.LinkToAnchor(o.desc);								// Add desc
-			if ((o.text)&& (this.mobVis[i] > 0))							// If text defined and visible
+			if ((o.text)&& (mps.sh.mobVis[i] > 0))							// If text defined and visible
 				str+="&nbsp;&nbsp;<img id='showpopup' title='Show popup info' src='img/popupbutton.gif'/>";
 			str+="<br/>";													// Add desc
 			}
-		if ((o.desc)&& ((o.type == "goto")&& (this.curMob == i) && (this.mobVis[i] > 0)))  // If desc on an open goto
+		if ((o.desc)&& ((o.type == "goto")&& (mps.sh.curMob == i) && (mps.sh.mobVis[num] > 0)))  // If desc on an open goto
 			str+=shivaLib.LinkToAnchor(o.desc)+"<br/>";						// Add desc
 		str+="<br/></td></tr>";												// Close entry
-		if ((this.curMob == i) && (this.mobVis[i] > 0) && ((o.type == "map") || (o.type == "layer")|| (o.type == "choro"))){	// If selected and visible
+		if ((mps.sh.curMob == num) && (mps.sh.mobVis[num] > 0) && ((o.type == "map") || (o.type == "layer")|| (o.type == "choro"))){	// If selected and visible
 			str+="<tr style='background-color:#d0e1ec'><td valign='top' style='color:#009900;padding-left:8px'><b>Visibility";
 			if (o.type == "choro")		str+="</br></br>Query"; 
 			str+="</b></td><td>";
@@ -1119,50 +1234,8 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				str+="</br></br><input type='text' id='chorQuery'style='width:80%;font-size:x-small;height:12px' onchange='mps.ChoroQuery(this.value,\"ff0000\")'>";
 			str+="<br/><br/></td></tr>";
 			}
-		}
-   	str+="<tr><td colspan='2' align='center'><img width='160' height='174' src='img/MapScholarLogo.png'/></td></tr>";
- 	if (this.showTimeline)													// If showing timeline
- 		$("#timeline").html(tim);											// Add timeline data
-	$("#contentShelf").html("</table>"+str);								// Add mobs
-	if (this.curMob != -1) {												// If a current
-		$("#visControl").show();											// Show it
-		$("#mobVis").val(this.mobVis[this.curMob]);							// Set value
-		}
-  	for (i=0;i<dates.length;++i){											// For each map
-		if (dates[i].part > 1) {											// If multi
-	  		a=0;
-	  		for (j=i;j<dates.length;++j) {									// For each map
-				if (dates[i].date == dates[j].date) {						// One of the set
-					$("#timedot"+dates[j].index).css("top",a++*7+"px");		// Position it
-					dates[j].part=1;										// Skip it
-					}
-				if (a >= 4)													// If past max
-					break;													// Quit
-				}
-			}
-		}
-	for (i=0;i<n;++i) {														// For each mob
-		$("#timedot"+i).click( function(e) {								// Add click handler
-			var id=this.id.substr(7);										// Get id
-			shivaLib.Sound("click");										// Click
-			mps.sh.HighlightMob(id,e.shiftKey,false);						// Highlight mob
-			});
-		$("#mob"+i).click( function(e) {									// Add click handler
-			var id=this.id.substr(3);										// Get id
-			var now=new Date().getTime();									// Get cur time
-			if (now-lastClick < 500)										// Within double-click time
-				id=-id;
-			else
-				shivaLib.Sound("click");									// Click once
-			mps.sh.HighlightMob(id,e.shiftKey,false);						// Highlight mob
-			lastClick=now;													// Then is now	
-			});
-		$("#heading"+i).click( function(e) {								// Add click handler
-			var id=this.id.substr(7);										// Get id
-			mps.Goto(mps.mobs[id].goto);									// Set pos
-			});
-
-		}
+		return str;
+	}
  
    	function AddMapToTimeline(o,i) {									// ADD MAP TO TIMELINE
   		var j,p=1,a=1;
@@ -1220,7 +1293,7 @@ MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 		return;
 		}
 	var o=mps.mobs[Math.max(mps.sh.curMob,0)];								// Point at mob
-	if (this.presentMode) {													// Present mode
+	if (this.presentMode == "Slides") {										// Present mode
 		$("#containerDiv").width(0);										// Hide GE
 		$("#infoPanelDiv").css({left:"20px",width:"900px"});				// Resize infobox
 		$("#infoPanelText").css({width:"499px","padding-left":"200px","padding-right":"200px","padding-top":"16px",top:"0px"});	// Resize textbox
