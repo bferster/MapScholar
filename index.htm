@@ -949,6 +949,8 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 
 MapScholar_Shelf.prototype.PresentView=function(select)					// PRESENTATION MODE
 {
+	if (this.presentMode == "Book")											// If coming from book
+		this.curMob=0;														// Stsrt from scratch
 	this.presentMode=select.value;											// Set flag
 	select.blur();															// Remove focus
 	if (this.presentMode == "Book")	{										// If a book		
