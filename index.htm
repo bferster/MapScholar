@@ -1135,7 +1135,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 		str+="<tr id='mob"+num+"'";											// Row start
 		if (mps.sh.mobVis[num] > 0) 										// If visible
 			str+="' style='background-color:#d0e1ec'";						// Color background
-		if (o.type == "map") {												// If a map pic defined
+		if ((o.type == "map") || (o.small)) {								// If a map pic defined
 			str+="><td valign='top' width='70'>";							// Double column
 			if (pic)														// If a pic
 				str+="<img style='border: 1px solid #999' width='64' src='"+pic+"'>"; // Add it
@@ -1145,18 +1145,17 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				str+="<span style='color:#770000'><b>"+o.start+"</b></span> ";	// Add date
 			}
 		else{																// Other mob
-			str+="><td colspan='2'>";										// Single column
-			if (pic)														// If a pic
-				str+="<img src='"+pic+"'>"; 								// Add it
+			str+="><td colspan='2' valign='top'>";							// Single column
+			str+="<img src='"+pic+"'>"; 									// Add it
 			str+="&nbsp;&nbsp;<span id='mobPos"+ i+"'><b>"+shivaLib.LinkToAnchor(o.title)+"</b><br/></span>";	// Add title
 			}
-		if ((o.desc) && ((o.type == "map") || (o.type == "chapter") || (o.type == "header"))) { // If desc spec'd
+		if ((o.desc) && ((o.type == "map") || (o.type == "chapter") || (o.type == "header") || (o.small))) { // If desc spec'd
 			str+=shivaLib.LinkToAnchor(o.desc);								// Add desc
 			if ((o.text)&& (mps.sh.mobVis[i] > 0))							// If text defined and visible
 				str+="&nbsp;&nbsp;<img id='showpopup' title='Show popup info' src='img/popupbutton.gif'/>";
 			str+="<br/>";													// Add desc
 			}
-		if ((o.desc)&& ((o.type == "goto")&& (mps.sh.curMob == i) && (mps.sh.mobVis[num] > 0)))  // If desc on an open goto
+		if ((o.desc) && ((o.type == "goto")&& (mps.sh.curMob == i) && (mps.sh.mobVis[num] > 0)))  // If desc on an open goto
 			str+=shivaLib.LinkToAnchor(o.desc)+"<br/>";						// Add desc
 		str+="<br/></td></tr>";												// Close entry
 		if (((mps.sh.curMob == num) || (mps.sh.presentMode == "Book")) && (mps.sh.mobVis[num] > 0) && ((o.type == "map") || (o.type == "layer")|| (o.type == "choro"))){	// If selected and visible
