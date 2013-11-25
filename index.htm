@@ -965,7 +965,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 		mps.ShowText(mps.popupOpen,false);									// Close it
 	this.DrawInfoPanel("close");											// Close infopanel, if open
 	var str="<table cellspacing='0'>";                                      // Table start
-	var thisMob;
+	var thisMob=-1;															// Holds currently active mob
 	for (i=0;i<n;++i) {                                                     // For each mob
 		o=mps.mobs[i];     													// Point at mob
  		if (o.start && !isNaN(o.start) && o.type == "map")	{				// A valid year
@@ -1160,7 +1160,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			str+=shivaLib.LinkToAnchor(o.desc)+"<br/>";						// Add desc
 		str+="<br/></td></tr>";												// Close entry
 		if (((mps.sh.curMob == num) || (mps.sh.presentMode == "Book")) && (mps.sh.mobVis[num] > 0) && ((o.type == "map") || (o.type == "layer")|| (o.type == "choro"))){	// If selected and visible
-			thisMob=num;
+			thisMob=num;													// Set current mob
 			str+="<tr style='background-color:#d0e1ec'><td valign='top' style='color:#009900;padding-left:8px'><b>Visibility";
 			if (o.type == "choro")		str+="</br></br>Query"; 
 			str+="</b></td><td>";
