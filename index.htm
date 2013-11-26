@@ -33,8 +33,7 @@
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> </div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
-			<div id="infoPanelBar" style="position:absolute;height:27px;left:-1px;top:0px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#eee;"> </div>
-			<div id="infoPanelText" style="position:absolute;height:555px;left:0px;top:27px;padding:8px;background-color:#fafafa;overflow-x:hidden;overflow-y:auto;border-top:1px solid #ccc;"> </div> 
+			<div id="infoPanelText" style="position:absolute;height:555px;left:0px;top:0px;padding:8px;background-color:#fafafa;overflow-x:hidden;overflow-y:auto;border-top:1px solid #ccc;"> </div> 
 		</div>
 		
 <script>
@@ -860,7 +859,7 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 			str+="collapse2.gif'> Collapse all";							// Collapse all button
 		}
 	str+="<img src='img/settingsbut.gif' style='position:absolute;left:"+(214-0+sw)+"px;top:8px' onclick='mps.sh.Settings()' title='Settings'>";		
-	str+=shivaLib.MakeSelect("setViewMode",false,["Atlas","Slides","Book"],mps.sh.presentMode," onchange='mps.sh.PresentView(this)' style='position:absolute;left:"+(150-0+sw)+"px;top:6px;font-size:xx-small'");
+	str+=shivaLib.MakeSelect("setViewMode",false,["Atlas","Slides","Book"],mps.sh.presentMode," onchange='mps.sh.PresentView(this)' style='position:absolute;left:"+(156-0+sw)+"px;top:6px;font-size:xx-small'");
 	
 	$("#shelfDiv").html(str);												// Add div
 	$("#shelfDiv").width(230-0+sw);											// Reset width
@@ -936,7 +935,6 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
     });
 	
 }
-
 
 MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 {
@@ -1035,7 +1033,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				v[i]=$.trim(v[i])											// Trim it
 				vv=v[i].substring(4,v[i].length-1).split(",");				// Split by comma
 				num=mps.FindMobByID(vv[0]);									// Get mob from id
-				url="mps.sh.HighlightMob("+num+"); return false;";	// Link to highlight
+				url="mps.sh.HighlightMob("+num+"); return false;";			// Link to highlight
 				title="";													// Assume no title
 				if (vv.length > 1) 											// If a title spec'd
 					title=vv[1];											// Use it
@@ -1314,14 +1312,12 @@ MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 	if (this.presentMode == "Slides") {										// Present mode
 		$("#containerDiv").width(0);										// Hide GE
 		$("#infoPanelDiv").css({left:"20px",width:"900px"});				// Resize infobox
-		$("#infoPanelText").css({width:"499px","padding-left":"200px","padding-right":"200px","padding-top":"16px",top:"0px"});	// Resize textbox
-		$("#infoPanelBar").hide();											// Hide info bar
+		$("#infoPanelText").css({width:"499px","padding-left":"200px","padding-right":"200px","padding-top":"16px"});	// Resize textbox
 		}
 	else{	
 		$("#containerDiv").width(600);										// Half size
 		$("#infoPanelDiv").css({left:"620px",width:"300px"});				// Resize infobox
-		$("#infoPanelBar").show();											// Show info bar
-		$("#infoPanelText").css({width:"284px","padding":"8px",top:"27px"}); // Resize textbox
+		$("#infoPanelText").css({width:"284px","padding":"8px"}); 			// Resize textbox
 		}
 	var o=mps.mobs[Math.max(mps.sh.curMob,0)];								// Point at mob
 	if (this.presentMode == "Book") 										// Book mode
