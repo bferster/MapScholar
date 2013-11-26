@@ -66,18 +66,10 @@
 				mps.InitProject("",data);									// Init project from file
 				mps.AddMapBoxes();											// Add boxes
 				if (mps.sh.curMob != -1) {									// If going somewhere particular
-					mps.sh.curMob=mps.FindMobByID(mps.sh.curMob);			// Convert id to index
-					mps.sh.HighlightMob(mps.sh.curMob,false,true);			// Highlight mob
+//					mps.sh.curMob=mps.FindMobByID(mps.sh.curMob);			// Convert id to index
+//					mps.sh.HighlightMob(mps.sh.curMob,false,true);			// Highlight mob
 					}
 				});
-			}
-		else{																// From file
-			mps.InitProject(url);											// Init project from file
-			mps.AddMapBoxes();												// Add boxes
-			if (mps.sh.curMob != -1) {										// If going somewhere particular
-				mps.sh.curMob=mps.FindMobByID(mps.sh.curMob);				// Convert id to index
-				mps.sh.HighlightMob(mps.sh.curMob,false,true);				// Highlight mob
-				}
 			}
 	}
 	
@@ -128,7 +120,7 @@ function MapScholar()													// CONSTRUCTOR
 
 MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT 
 {
-	var o,i,j,v;
+	var i,o;
 	this.mobs=new Array();													// Holds map objects data
 	if (data) {																// If loading from data
 		for (i=0;i<data.length;++i) { 										// For each row
@@ -141,27 +133,16 @@ MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT
 				this.mobs.push(data[i]);									// Add new mob to project
 			}
 		this.dr.DrawControlBar(false);										// Draw control bar and shelf
-		this.Goto(this.mobs[0].goto);										// Go to 1st pos
+		o=this.mobs[0];														// Point at 1st mob
+		this.Goto(o.goto);													// Go to 1st pos
+		if (o.type == "boxes") {											// If opening on a boxes mob
+			if (o.status == "book")											// If book
+				this.sh.PresentView({value:"Book"});						// Reset view
+			else if (o.status == "slides")									// If slides
+				this.sh.PresentView({value:"Slides"});						// Reset view
+			}
 		return;
 		}
-	var mobs=shivaLib.GetTextFile(url);										// Load data
-	mobs.replace(/\n\r/g,"\n");												// \n\r -> \n
-	mobs.replace(/\r\n/g,"\n");												// \r\n -> \n
-	mobs.replace(/\r/g,"");													// Remove \r's
-	mobs=mobs.split("\n");													// Split into rows
-	var fields=mobs[0].split("\t");											// Get field names
-	for (i=1;i<mobs.length;++i) {											// For each row
-		o={};																// Fresh object
-		v=mobs[i].split("\t");												// Split into fields
-		if (v.length < 4)													// Not enough fields
-			continue;														// Skip it
-		for (j=0;j<=fields.length;++j)										// For each field 
-			if ((fields[j]) && (fields[j].length > 1))						// If a real field
-				o[fields[j]]=v[j];											// Set it
-		this.mobs.push(o);													// Add new mob to project
-		}
-	this.Goto(mobs[0].goto);												// Got to 1st pos
-	this.dr.DrawControlBar(false);											// Draw control bar and shelf
 }
 
 MapScholar.prototype.AddNewMob=function(mob)							// ADD NEW MAP OBJECT TO PROJECT
@@ -677,7 +658,7 @@ MapScholar.prototype.SetPoster=function(num)							// SET IMAGE COORDS
 
 function MapScholar_Shelf()												// CONSTRUCTOR
 {
-	this.curMob=-1;															// Default to none
+	this.curMob=-1;															// Default to first
     this.expandAll=true;													// Expand/collapse button status
     this.mobVis=new Array();                                                // Holds hide/show status
 	this.playSpeed=50;														// Player speed 
@@ -773,6 +754,8 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 	i=Math.min(Math.max(i,0),n);											// Set indexer and cap
 	if (this.presentMode != "Book")											// If not a book
 		this.curMob=i;														// Set curmob
+	else																	// If a book
+		this.curBookMob=i;													// Set curBookmob
 	o=mps.mobs[i];   														// Point at mob
 	if (o.type == "boxes") {												// A boxes command
 		mps.showBoxes=(o.status == "on");									// Set flag
@@ -843,6 +826,7 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 	var sw=0;
 	if (this.presentMode == "Book") 
 		sw=120;
+	this.curBookMob=0;
 	str+="&nbsp;&nbsp;<img src='img/annotate.gif' style='vertical-align:bottom' title='Annotate' onclick='mps.dr.DrawControlBar(true)'>";		
 	str+="<label>&nbsp; Find: </label ><input id='mpsFind' style='font-size:x-small;width:80px' type='text'/>";
 	str+="<div id='timeline' style='position:absolute;left:152px;width:746px;top:5px;height:26px'></div></p>";
@@ -876,7 +860,7 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 			str+="collapse2.gif'> Collapse all";							// Collapse all button
 		}
 	str+="<img src='img/settingsbut.gif' style='position:absolute;left:"+(214-0+sw)+"px;top:8px' onclick='mps.sh.Settings()' title='Settings'>";		
-	str+=shivaLib.MakeSelect("setViewMode",false,["Atlas","Slides","Book"],mps.sh.presentMode," onchange='mps.sh.PresentView(this)' style='position:absolute;left:"+(150-0+sw)+"px;top:6px;font-size:x-small'");
+	str+=shivaLib.MakeSelect("setViewMode",false,["Atlas","Slides","Book"],mps.sh.presentMode," onchange='mps.sh.PresentView(this)' style='position:absolute;left:"+(150-0+sw)+"px;top:6px;font-size:xx-small'");
 	
 	$("#shelfDiv").html(str);												// Add div
 	$("#shelfDiv").width(230-0+sw);											// Reset width
@@ -1197,12 +1181,12 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 
 	$("#hiresmap").click( function(e) {										// CLICK ON HIRES MAP
 		shivaLib.Sound("click");											// Click
-		mps.SetHiResMapImage(mps.sh.curMob);								// Set hi-res map
+		mps.SetHiResMapImage(thisMob);										// Set hi-res map
 		mps.sh.ShowPrompt("<span style='color:#990000;font-size:12px'>High-resolution map is loading</span>| &nbsp;<i>Please wait...</i>",4000);				// Show timed prompt
 		});
 
 	$("#showpopup").click( function(e) {									// CLICK ON POPUP
-		e.stopPropagation();												// Don'tr edraw
+		e.stopPropagation();												// Don't redraw
 		shivaLib.Sound("click");											// Click
 		mps.ShowText(mps.sh.curMob,true);									// Show it
 		});
@@ -1224,7 +1208,8 @@ MapScholar_Shelf.prototype.PresentView=function(select)					// PRESENTATION MODE
 	if (this.presentMode == "Book")											// If coming from book
 		this.curMob=0;														// Start from scratch
 	this.presentMode=select.value;											// Set flag
-	select.blur();															// Remove focus
+	if (select.blur)														// If not an explict call
+		select.blur();														// Remove focus
 	if (this.presentMode == "Book")	{										// If a book		
 		var n=mps.mobs.length;                            					// Number of mobs
 		for (var i=0;i<n;++i) {                                             // For each mob
@@ -1326,7 +1311,6 @@ MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 		$("#infoPanelDiv").hide();											// Hide info panel
 		return;
 		}
-	var o=mps.mobs[Math.max(mps.sh.curMob,0)];								// Point at mob
 	if (this.presentMode == "Slides") {										// Present mode
 		$("#containerDiv").width(0);										// Hide GE
 		$("#infoPanelDiv").css({left:"20px",width:"900px"});				// Resize infobox
@@ -1339,6 +1323,9 @@ MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 		$("#infoPanelBar").show();											// Show info bar
 		$("#infoPanelText").css({width:"284px","padding":"8px",top:"27px"}); // Resize textbox
 		}
+	var o=mps.mobs[Math.max(mps.sh.curMob,0)];								// Point at mob
+	if (this.presentMode == "Book") 										// Book mode
+		o=mps.mobs[this.curBookMob];										// Point at underlying mob, not page
 	$("#infoPanelDiv").show();												// Show info panel
 	if (o.title) {															// If it has a title
 		str+="<b>"+shivaLib.LinkToAnchor(o.title);							// Add it
