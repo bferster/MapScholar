@@ -5,8 +5,8 @@
 	<link REL="SHORTCUT ICON" HREF="mapscholaricon.ico">
 	<title>MapScholar</title>
 	<link rel="stylesheet" type="text/css" href="http://www.viseyes.org/shiva/css/smoothness/jquery-ui-1.8.16.custom.css">
-	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
-	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
 	<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?sensor=false"></script>
  	<script type="text/javascript" src='//www.google.com/jsapi?autoload={"modules":[{"name":"earth","version":"1"},{"name":"visualization","version":"1"}]}'></script>
  	<script type="text/javascript" src="//www.viseyes.org/shiva/shivalib-min.js"></script>
@@ -600,7 +600,7 @@ MapScholar.prototype.ShowSound=function(num, mode)						// HIDE/SHOW AUDIO
 	url+=m.url+"&volume=50&height=30&width=290";
 	url+="&start="+(m.start?m.start:0)+"&end="+(m.end?m.end:"");			// Start, end
 	url+="&autoplay="+(m.status == "play")+"&volume="+(m.rotation?m.rotation:50);		// Autoplay, volume
-	if ($.browser.mozilla)													// Firefox
+	if (navigator.userAgent.match(/firefox/i))								// If firefox
 		url=url.replace(/\.mp3/g,".ogg");									// Needs oggs
 	if (mode) {																// If showing
 		if (!m.west)														// If no position defined
