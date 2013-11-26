@@ -1035,11 +1035,11 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				v[i]=$.trim(v[i])											// Trim it
 				vv=v[i].substring(4,v[i].length-1).split(",");				// Split by comma
 				num=mps.FindMobByID(vv[0]);									// Get mob from id
-				url="javascript:mps.sh.HighlightMob("+num+")";				// Link to highlight
+				url="mps.sh.HighlightMob("+num+"); return false;";	// Link to highlight
 				title="";													// Assume no title
 				if (vv.length > 1) 											// If a title spec'd
 					title=vv[1];											// Use it
-				desc=desc.replace(RegExp(v[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&"))," <a href='"+url+"' target='_blank'>"+title+"</a> ");	// Replace with anchor tag
+				desc=desc.replace(RegExp(v[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&"))," <a href='#' onclick='"+url+"' target='_blank'>"+title+"</a> ");	// Replace with anchor tag
 				if (num != -1)												// If valid
 					adds.push(num);											// Add shelf array
 				}
