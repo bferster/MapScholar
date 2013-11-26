@@ -670,6 +670,7 @@ function MapScholar_Shelf()												// CONSTRUCTOR
 	this.showTimeline=true;													// Show timeline
 	this.startBook=-1;														// Start of book pages
 	this.endBook=-1;														// End of book pages
+	this.firstPageMob=-1;													// 1st Mob on page
 	
 	$("body").keyup(function(e) {										// KEY DOWN HANDLER
 		mps.controlKey=false;												// Control key off
@@ -679,18 +680,26 @@ function MapScholar_Shelf()												// CONSTRUCTOR
 	$("body").keydown(function(e) {										// KEY DOWN HANDLER
 		if ((e.keyCode == 40) ||(e.keyCode == 34)) {						// Down arrow, pg-dn
 			mps.sh.HighlightMob("next",false,true);							// Next mob
+			if (mps.sh.presentMode == "Book")								// If book mode
+				mps.sh.HighlightMob(mps.sh.firstPageMob);					// Show 1st mob on page
 			shivaLib.Sound("click");										// Click
 			}
 		else if ((e.keyCode == 38) || (e.keyCode == 33)){					// Up arrow, pg-up
 			mps.sh.HighlightMob("last",false,true);							// Previous mob
+			if (mps.sh.presentMode == "Book")								// If book mode
+				mps.sh.HighlightMob(mps.sh.firstPageMob);					// Show 1st mob on page
 			shivaLib.Sound("click");										// Click
 			}
 		else if (e.keyCode == 36) {											// Home
 			mps.sh.HighlightMob(0,false,true);								// First mob
+			if (mps.sh.presentMode == "Book")								// If book mode
+				mps.sh.HighlightMob(mps.sh.firstPageMob);					// Show 1st mob on page
 			shivaLib.Sound("click");										// Click
 			}
 		else if (e.keyCode == 35) {											// End
 			mps.sh.HighlightMob(mps.mobs.length-1,false,true);				// Last mob
+			if (mps.sh.presentMode == "Book")								// If book mode
+				mps.sh.HighlightMob(mps.sh.firstPageMob);					// Show 1st mob on page
 			shivaLib.Sound("click");										// Click
 			}
 		else if (e.keyCode == 16) {											// Shift key
@@ -869,6 +878,7 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 	for (i=0;i<n;++i)														// For each mob
 		this.mobVis.push(0);												// Make it hidden                                       
 	this.FillShelf();														// Draw shelf
+
 	
 	var ops={ min:0, max:100, value:mps.sh.playSpeed,						// Slider options
 		slide:function(event,ui) {											// Slide cb
@@ -876,15 +886,20 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 		}};    
 	$("#playSpeed" ).slider(ops);											// Init slider
 
-	if (this.presentMode == "Book") {
+	if (this.presentMode == "Book") {										// KIf book view
+	
+		mps.sh.HighlightMob(this.firstPageMob);								// Show 1st mob on page
+		
 		$("#lastPageBut").click(function() {							// GO TO LAST PAGE
 			mps.sh.HighlightMob("last");									// Set page
 			shivaLib.Sound("click");										// Click
+			mps.sh.HighlightMob(mps.sh.firstPageMob);						// Show 1st mob on page
 			});
 		
 		$("#playbut").click(function() {								// GO TO NEXT PAGE
 			mps.sh.HighlightMob("next");									// Set page
 			shivaLib.Sound("click");										// Click
+			mps.sh.HighlightMob(mps.sh.firstPageMob);						// Show 1st mob on page
 			});
 	}	
 	
@@ -1038,6 +1053,8 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				if (vv.length > 1) 											// If a title spec'd
 					title=vv[1];											// Use it
 				desc=desc.replace(RegExp(v[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&"))," <a href='#' onclick='"+url+"' target='_blank'>"+title+"</a> ");	// Replace with anchor tag
+				if (i == 0) 												// If 1st mob
+					mps.sh.firstPageMob=num;								// Set flag
 				if (num != -1)												// If valid
 					adds.push(num);											// Add shelf array
 				}
