@@ -689,6 +689,7 @@ function MapScholar_Shelf()												// CONSTRUCTOR
 	this.presentMode="Atlas";												// In regular mode
 	this.showTimeline=true;													// Show timeline
 	this.startBook=-1;														// Start of book pages
+	this.endBook=-1;														// End of book pages
 	
 	$("body").keyup(function(e) {										// KEY DOWN HANDLER
 		mps.controlKey=false;												// Control key off
@@ -721,7 +722,7 @@ function MapScholar_Shelf()												// CONSTRUCTOR
 		});
 }
 
-MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll, dontRefresh)	// HIGHLIGHT MOB OBJECT
+MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLIGHT MOB OBJECT
 {
 	var j,k,o,bases,defAlpha=100;
 	var i=Math.max(this.curMob,0);											// Start point
@@ -828,8 +829,7 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll, dontRefre
 					this.mobVis[j]=100;										// Show base mob
 			}
 		}
-	if (!dontRefresh)														// If refresh not inhibited
-		this.FillShelf();													// Redraw shelf
+	this.FillShelf();														// Redraw shelf
 	mps.ShowMapBoxes(-1,"on");												// Show visible boxes
 	this.ShowPrompt(o.prompt,2000);											// Show timed prompt
 	if (this.presentMode == "Slides")										// If in present mode
@@ -842,7 +842,7 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 	var str="<p>";	
 	var sw=0;
 	if (this.presentMode == "Book") 
-		sw=100;
+		sw=120;
 	str+="&nbsp;&nbsp;<img src='img/annotate.gif' style='vertical-align:bottom' title='Annotate' onclick='mps.dr.DrawControlBar(true)'>";		
 	str+="<label>&nbsp; Find: </label ><input id='mpsFind' style='font-size:x-small;width:80px' type='text'/>";
 	str+="<div id='timeline' style='position:absolute;left:152px;width:746px;top:5px;height:26px'></div></p>";
@@ -851,11 +851,13 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 		str+="<div style='position:absolute;left:987px;top:24px;font-size:8px;width:80px;color:#999'>Play speed</div>";
 		str+="<div id='playSpeed' style='position:absolute;left:974px;top:11px;width:70px'></div>";
 		}
-	else
-		str+="<div style='position:absolute;left:1020px;top:12px;font-size:8px;width:80px;color:#999'>Last/next page</div>";
+	else{
+		i=1054-950-50+sw;
+		str+="<div id='bookPageNum' style='position:absolute;left:975px;top:12px;font-size:11px;width:80px;text-align:center;color:#999;width:"+i+"px'> </div>";
+		}
 	str+="<img id='playbut' style='position:absolute;top:8px;"; 
 	if (this.presentMode == "Book") 
-		str+="left:1154px' src='img/playbut.gif' title='Next page'>";
+		str+="left:"+(1054-0+sw)+"px' src='img/playbut.gif' title='Next page'>";
 	else if (this.inPlay)
 		str+="left:1054px' src='img/stopbut.gif' title='Stop' onclick='mps.sh.Play()'>";
 	else
@@ -894,13 +896,11 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 	if (this.presentMode == "Book") {
 		$("#lastPageBut").click(function() {							// GO TO LAST PAGE
 			mps.sh.HighlightMob("last");									// Set page
-//			mps.sh.HighlightMob(i,false,false,true);					// Show 1st and inhbit recursion
 			shivaLib.Sound("click");										// Click
 			});
 		
 		$("#playbut").click(function() {								// GO TO NEXT PAGE
 			mps.sh.HighlightMob("next");									// Set page
-//			mps.sh.HighlightMob(i,false,false,true);						// Show 1st and inhbit recursion
 			shivaLib.Sound("click");										// Click
 			});
 	}	
@@ -982,6 +982,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
    		tim+="<div style='position:absolute;left:"+x+"px;height:16px;width:1px;top:2px;background-color:#999'/>";
 		}
 	if (this.presentMode == "Book") {										// If book mode										
+		$("#bookPageNum").text("Page "+(this.curMob-this.startBook+1)+" of "+(this.endBook-this.startBook));	// Page num
 		if (mps.mobs[this.curMob].type == "page")							// If a page
 			str+=AddPageToShelf(this.curMob);								// Add it
 		}
@@ -1059,9 +1060,9 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 					adds.push(num);											// Add shelf array
 				}
 			}
-		if (desc) 															// If it has a dewsc
+		if (desc) 															// If it has a desc
 			str+=shivaLib.LinkToAnchor(desc)+"<br>";						// Add it
-		str+="<br><hr><br></td></tr>";										// End
+		str+="<br><hr></td></tr>";											// End
 		for (i=0;i<adds.length;++i)											// For each mob mentioned
 			str+=AddMobToShelf(adds[i]);									// Add it
 		return(str);														// Return html
@@ -1230,6 +1231,13 @@ MapScholar_Shelf.prototype.PresentView=function(select)					// PRESENTATION MODE
 			if (mps.mobs[i].type == "page")	{								// Found 1st page
 				this.startBook=this.curMob=i;								// Point at page
 				mps.Goto(mps.mobs[this.curMob].goto);						// Go to goto
+				break;														// Quit looking
+				}
+			}	
+		this.endBook=n;														// End of book
+		for (var i=this.startBook-0+1;i<n;++i) {                            // For each mob
+			if (mps.mobs[i].type != "page")	{								// Found last page
+				this.endBook=i;												// Point at page
 				break;														// Quit looking
 				}
 			}
