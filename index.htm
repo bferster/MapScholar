@@ -851,8 +851,8 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 	str+="<div id='timeline' style='position:absolute;left:152px;width:746px;top:5px;height:26px'></div></p>";
 	str+="<div id='promptBar' style='position:absolute;left:152px;width:746px;top:4px;height:29px;background:#eee;overflow:hidden'></div>";
 	if (this.presentMode != "Book") {
-		str+="<div style='position:absolute;left:987px;top:24px;font-size:8px;width:80px;color:#999'>Play speed</div>";
-		str+="<div id='playSpeed' style='position:absolute;left:974px;top:11px;width:70px'></div>";
+		str+="<div class='unselectable' style='position:absolute;left:987px;top:24px;font-size:8px;width:80px;color:#999'>Play speed</div>";
+		str+="<div class='unselectable' id='playSpeed' style='position:absolute;left:974px;top:11px;width:70px'></div>";
 		}
 	else{
 		i=1054-950-50+sw;
@@ -872,7 +872,7 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 	$("#controlBarDiv").html(str+"");                                    // Add to DOM
 	str="<div id='contentShelf' style='position:absolute;top:27px;height:559px;background-color:#fafafa;margin:0px;padding:6px;overflow-x:hidden;overflow-y:scroll;border:1px solid #ccc;'/></div>";
 	if (this.presentMode != "Book") {
-		str+="<p>&nbsp;&nbsp;&nbsp;<img id='expandAll' src='img/";			// Image base
+		str+="<p class='unselectable'>&nbsp;&nbsp;&nbsp;<img id='expandAll' src='img/";			// Image base
 		if (this.expandAll)													// If expand
 			str+="expand2.gif'> Expand all";								// Expand all button
 		else																// Collaspe
