@@ -33,7 +33,7 @@
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> </div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
-			<div id="infoPanelText" style="position:absolute;height:555px;left:0px;top:0px;padding:8px;background-color:#fafafa;overflow-x:hidden;overflow-y:auto;border-top:1px solid #ccc;"> </div> 
+			<div id="infoPanelText" style="position:absolute;height:582px;left:0px;top:0px;padding:8px;background-color:#fafafa;overflow-x:hidden;overflow-y:auto;border-top:1px solid #ccc;border-right:2px solid #ccc;"> </div> 
 		</div>
 		
 <script>
@@ -445,13 +445,14 @@ MapScholar.prototype.ShowMapBoxes=function(num, mode)					// HIDE/SHOW WIREFRAME
 			mps.ShowText(i,mps.sh.mobVis[i] > 0);							// Show/hide text iframe
 		if (m.type != "map")												// If not a map
 			continue;														// Continue
-		seg=ge.getElementById(m.gid);										// Get object
-		if ((!$("#mobPos"+i).position()) || (mode == "off")) {				// If it's chapter is not open
-			seg.setVisibility(false);										// Hide it
-			continue;														// Next map
-			}
+		if (m.gid) {														// If loaded
+			seg=ge.getElementById(m.gid);									// Get object
+			if ((!$("#mobPos"+i).position()) || (mode == "off")) {			// If it's chapter is not open
+				seg.setVisibility(false);									// Hide it
+				continue;													// Next map
+				}
 			seg.setVisibility(!(mps.sh.mobVis[i] > 0));						// Show it 
-		sty=seg.getStyleSelector().getLineStyle();							// Get line style
+			}
 		}
 }
 
@@ -724,11 +725,14 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 	if (which == "next") {													// Going forward										
 		if ((this.inPlay) && (this.soundPause)) 							// If pausing for sound to finish
 			return;															// Don't change
-		if (this.presentMode != "Book")										// If not a book
-			while (mps.mobs[i].type == "page")								// If a page
-				++i;														// Skip over it		
-		i=Math.min(i+1,n);													// Cap at end
-		while (((mps.mobs[i].type == "header") || (mps.mobs[i].type == "chapter")) && (i < n))  // Skip over nav mobs
+		if (this.presentMode != "Book")	{									// If not a book
+			while (mps.mobs[i].type == "page")	++i;						// If a page, skip over it
+			i=Math.min(i+1,n);												// Cap at end
+			}
+		if (this.presentMode == "Book")										// If book view
+			i=Math.min(i+1,this.endBook-1);									// Cap at book end
+		else																// All other views
+			while (((mps.mobs[i].type == "header") || (mps.mobs[i].type == "chapter")) && (i < n))  // Skip over nav mobs
 			mps.Goto(mps.mobs[i++].goto);									// Set position
 		this.curMob=i;														// Set curMob
 		}
@@ -766,8 +770,10 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 		this.curBookMob=i;													// Set curBookmob
 	o=mps.mobs[i];   														// Point at mob
 	if (o.type == "boxes") {												// A boxes command
-		mps.showBoxes=(o.status == "on");									// Set flag
-		mps.ShowMapBoxes(-1,o.status);										// Set boxes
+		if ((o.status == "on") || (o.status == "off")) {					// If set on or off
+			mps.showBoxes=(o.status == "on");								// Set flag
+			mps.ShowMapBoxes(-1,o.status);									// Set boxes
+		}
 		return;																// Quit
 		}
 	else if (o.type == "info") {											// An info command
