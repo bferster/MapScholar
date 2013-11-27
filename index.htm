@@ -26,11 +26,16 @@
 				  	 background:-webkit-linear-gradient(top, #f0f0f0 0%, #dfdfdf 100%);
 				  	 border-collapse: collapse;
 				  	 }
+		.unselectable{-moz-user-select: none;     -khtml-user-select: none;
+		   			  -webkit-user-select: none;  -ms-user-select: none;   user-select: none;
+		   			 }
 	</style>
 </head>
 <body>
 		<div id="containerDiv" style="position:absolute;width:900px;height:600px;left:20px;top:20px;"></div>
-		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> </div>
+		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> 
+			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><img src='img/UVALogo.gif' width='100'/><br><br><br><br>11/27/13</p>
+			</div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
 			<div id="infoPanelText" style="position:absolute;height:582px;left:0px;top:0px;padding:8px;background-color:#fafafa;overflow-x:hidden;overflow-y:auto;border-top:1px solid #ccc;border-right:2px solid #ccc;"> </div> 
@@ -967,7 +972,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 	if (mps.popupOpen != -1)												// If popup is open
 		mps.ShowText(mps.popupOpen,false);									// Close it
 	this.DrawInfoPanel("close");											// Close infopanel, if open
-	var str="<table cellspacing='0'>";                                      // Table start
+	var str="<table class='unselectable' cellspacing='0' style='cursor:pointer;>";  // Table start and style
 	var thisMob=-1;															// Holds currently active mob
 	for (i=0;i<n;++i) {                                                     // For each mob
 		o=mps.mobs[i];     													// Point at mob
@@ -981,7 +986,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 	while (i < max-10) {													// While not max
  		i=(i-i%10)-0+10;													// Next decade
 		x=Math.round((i-min)*pixPerYear)+8;									// X pos
-   		tim+="<div style='position:absolute;text-align:center;color:#aaa;left:"+(x-17)+"px;width:30px;top:18px'><i>"+i+"</i></div>";
+   		tim+="<div style='position:absolute;text-align:center;color:#aaa;left:"+(x-17)+"px;width:30px;top:18px' class='unselectable'><i>"+i+"</i></div>";
    		tim+="<div style='position:absolute;left:"+x+"px;height:16px;width:1px;top:2px;background-color:#999'/>";
 		}
 	if (this.presentMode == "Book") {										// If book mode										
