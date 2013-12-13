@@ -59,6 +59,7 @@
 			}
 		if (!url)															// Nothing on query line
 			url="https://docs.google.com/spreadsheet/pub?key=0AohdE1_3ZElJdDhIbTRVRkhHSWNBWUUtYS1rZmJoSEE";
+//			url="https://docs.google.com/spreadsheet/pub?key=0AhTK6MB0cCLQdHhqUUVNTHprcFNmOUprazlIbkFpMkE";  // Boundary line
 		if (url.match(/\?/))												// Has a ? param
 			url+="&";														// Use &
 		else																// Naive
@@ -342,7 +343,7 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 			if (b != -1)													// If a valid base set
 				seg=this.mobs[b].seg;										// Use layer's saved seg
 			if ((mps.sh.mobVis[i]) && (mps.sh.curMob == i))					// If visible and active
-				this.SetChoroplethFeatures(seg,m.url,m.med);					// Set features
+				this.SetChoroplethFeatures(seg,m.url,m.med,true);			// Set features
 			}
 		if ((mps.sh.mobVis[i]) && (seg)) {									// If active
 			seg.setOpacity(mps.sh.mobVis[i]/100);							// Set alpha
@@ -358,7 +359,7 @@ MapScholar.prototype.ShowMapRoads=function(mode)						// HIDE/SHOW ROADS/BORDER
 	ge.getLayerRoot().enableLayerById(ge.LAYER_ROADS,mode);					// Set roads
 }
 
-MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query) // SET CHOROPLETH FEATURES
+MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) // SET CHOROPLETH FEATURES
 {
 	var i,s,d,a,c;
  	if (!seg || !features)													// If invalid seg or nor features
@@ -379,10 +380,13 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query) // SET
 		shivaLib.Query(features,results,query,"id+opacity+col+ecol+ewid");	// Run it
 		features=results;													// Copy to features	
 		}
+	if (hide) {
+		var n=f.getLength();												// Get number of features
+		for (i=0;i<n;++i)													// For each feature
+			features.splice(1,0,[i,0,"","",""]);							// Add hider
+		}
 	for (i=1;i<features.length;++i) {										// For each feature
 		d=features[i];							 	 			  	 	  	// Point at data data
-		if (f.item(d[0]-0).getStyleUrl()) 									// Id has a StyleUrl tag
-			f.item(d[0]-0).setStyleUrl("");									// Remove StyleUrl style							
 		s=f.item(d[0]-0).getComputedStyle(); 				 	 	 		// Get style
 		a=Math.round(d[1]*2.55).toString(16);								// Convert 0-100 to 0-ff
 		if (d[2] != undefined) {		  	 	 				 	 	  	// If setting
@@ -412,7 +416,7 @@ MapScholar.prototype.ChoroQuery=function(query, color)					// SHOW RESULTS OF QU
 	f=f.getLength();														// Get number of features
 	for (i=0;i<f;++i)														// For each feature
 		str+=i+",50,cccccc,000000,1;";										// Make it bland
-	mps.SetChoroplethFeatures(seg,str,null);								// Set feature
+	mps.SetChoroplethFeatures(seg,str,null,false);							// Set feature
 	var results=[];															// Blank array
 	var features=o.url;														// Point at data
 	if (typeof(o.url) == "string") {										// If set literally
@@ -427,7 +431,7 @@ MapScholar.prototype.ChoroQuery=function(query, color)					// SHOW RESULTS OF QU
 	str="";																	// Clear
 	for (i=1;i<results.length;++i)											// For each match
 		str+=results[i][0]+",50,"+color+",ffffff,2;";						// Make it stand out
-	mps.SetChoroplethFeatures(seg,str,null);								// Set feature
+	mps.SetChoroplethFeatures(seg,str,null,false);							// Set feature
 }
 
 MapScholar.prototype.ShowMapBoxes=function(num, mode)					// HIDE/SHOW WIREFRAMES
@@ -934,9 +938,9 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 				f=f.getLength();											// Get number of features
 				for (var i=0;i<f;++i)										// For each feature
 					str+=i+",50,cccccc,000000,1;";							// Make it bland
-				mps.SetChoroplethFeatures(seg,str,null);					// Set feature
+				mps.SetChoroplethFeatures(seg,str,null,false);				// Set feature
 				str=val.substr(1)+",50,ff0000,00ff00,3;";					// Make it stand out
-				mps.SetChoroplethFeatures(seg,str,null);					// Set feature
+				mps.SetChoroplethFeatures(seg,str,null,false);				// Set feature
 	       		return;														// Quit
 	       		}
  			if ((val.length > 1) && (val.match(/\?/))) 						// If querying a choro
@@ -972,7 +976,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 	if (mps.popupOpen != -1)												// If popup is open
 		mps.ShowText(mps.popupOpen,false);									// Close it
 	this.DrawInfoPanel("close");											// Close infopanel, if open
-	var str="<table class='unselectable' cellspacing='0' style='cursor:pointer;>";  // Table start and style
+	var str="<table class='unselectable' width='100%' cellspacing='0' style='cursor:pointer;>";  // Table start and style
 	var thisMob=-1;															// Holds currently active mob
 	for (i=0;i<n;++i) {                                                     // For each mob
 		o=mps.mobs[i];     													// Point at mob
