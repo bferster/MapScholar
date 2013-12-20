@@ -361,7 +361,8 @@ MapScholar.prototype.ShowMapRoads=function(mode)						// HIDE/SHOW ROADS/BORDER
 
 MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) // SET CHOROPLETH FEATURES
 {
-	var i,s,d,a,c;
+	var i,j,s,d,a,c,o;
+ 	var range=[];
  	if (!seg || !features)													// If invalid seg or nor features
  		return;																// Quit
 	var f=seg.getFeatures().getChildNodes();								// Point at seg 
@@ -370,6 +371,8 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 	if (typeof(features) == "string") {										// If set literally
 		if (features.match(/http/))											// If data still not loaded
 			return;															// Quit
+		if (features.charAt(features.length-1) == ";")						// If a trailing ;
+			features=features.substring(0,features.length-1);				// Lop it off
 		features=features.split(";");										// Divide into features array
 		for (i=0;i<features.length;++i)										// For each feature
 			features[i]=features[i].split(",");								// Split by comma
@@ -377,28 +380,64 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 		}
 	if (query)	{															// If a query spec'd
 		var results=[];														// Blank array
-		shivaLib.Query(features,results,query,"id+opacity+col+ecol+ewid");	// Run it
+		a=query;															// Copy query
+		d="";																// No extra field
+a="MEN92 GT 1 RANGE MEN92 0-20=50|ff0000|00ff00|4,10-100=100|0000ff";		
+		if (a.match(/RANGE/)) {												// If has range
+			d=a.match(/(^.+)\s+RANGE\s+(.+?)\s+/i);							// Isolate query and field
+			c=a.substr(d[0].length).split(",");								// Get range(s)
+			a=d[1];															// Set query
+			d="+"+d[2];														// Set extra field
+			}
+		shivaLib.Query(features,results,a,"id+opacity+col+ecol+ewid"+d);	// Run it
 		features=results;													// Copy to features	
+		if (d) {															// If a range set
+			for (i=0;i<c.length;++i) {										// For each range
+				o={};														// Reset
+				d=c[i].match(/(\d+)\s*-\s*(\d+)\s*=\s*(.+)/);				// Split parts
+				o.min=d[1]-0;												// Min
+				o.max=d[2]-0;												// Max
+				d=d[3].split("|");											// Values
+				o.a=d[0]-0;													// Alpha
+				o.c=o.e=o.w="";												// Null out
+				if (d[1])	o.c=d[1];										// Col
+				if (d[2])	o.e=d[2];										// eCol
+				if (d[3])	o.w=d[3]-0;										// Wid
+				range.push(o);												// Add to array
+				}
+			for (i=1;i<features.length;++i) {								// For each feature past header
+				o=features[i];												// Point at feature
+				for (j=0;j<range.length;++j) {								// For each range
+					if ((o[5] >= range[j].min) && (o[5] < range[j].max)) {	// If in range
+						o[1].opacity=range[j].a;							// Alpha 
+						o[2]=range[j].c;	 								// Col
+						o[3]=range[j].e;	 								// eCol
+						o[4]=range[j].w;	 								// Wid
+						}
+					}
+				}
+			}
 		}
 	if (hide) {
 		var n=f.getLength();												// Get number of features
 		for (i=0;i<n;++i)													// For each feature
-			features.splice(1,0,[i,0,"","",""]);							// Add hider
+;//			features.splice(1,0,[i,0,"","",""]);							// Add hider
 		}
+	trace(features)
 	for (i=1;i<features.length;++i) {										// For each feature
-		d=features[i];							 	 			  	 	  	// Point at data data
-		s=f.item(d[0]-0).getComputedStyle(); 				 	 	 		// Get style
-		a=Math.round(d[1]*2.55).toString(16);								// Convert 0-100 to 0-ff
-		if (d[2] != undefined) {		  	 	 				 	 	  	// If setting
-			c=a+d[2].substr(4,2)+d[2].substr(2,2)+d[2].substr(0,2);			// Reorder guns
+		o=features[i];							 	 			  	 	  	// Point at data data
+		s=f.item(o[0]-0).getComputedStyle(); 				 	 	 		// Get style
+		a=Math.round(o[1]*2.55).toString(16);								// Convert 0-100 to 0-ff
+		if (o[2] != undefined) {		  	 	 				 	 	  	// If setting
+			c=a+o[2].substr(4,2)+o[2].substr(2,2)+o[2].substr(0,2);			// Reorder guns
 			s.getPolyStyle().getColor().set(c);								// Set it
 			}
-		if (d[3] != undefined) {											// If setting
-			c=a+d[3].substr(4,2)+d[3].substr(2,2)+d[3].substr(0,2);			// Reorder guns
+		if (o[3] != undefined) {											// If setting
+			c=a+o[3].substr(4,2)+o[3].substr(2,2)+o[3].substr(0,2);			// Reorder guns
 			s.getLineStyle().getColor().set(c);								// Set it
 			}
-		if (d[4] != undefined)												// If setting
-			s.getLineStyle().setWidth(d[4]-0);								// Set it
+		if (o[4] != undefined)												// If setting
+			s.getLineStyle().setWidth(o[4]-0);								// Set it
 		}
 };
 
