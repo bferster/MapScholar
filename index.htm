@@ -382,7 +382,7 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 		var results=[];														// Blank array
 		a=query;															// Copy query
 		d="";																// No extra field
-a="MEN92 GT 1 RANGE MEN92 0-20=50|ff0000|00ff00|4,10-100=100|0000ff";		
+//a="MEN92 GT 1 RANGE MEN92 0-20=50|ff0000|00ff00|4,10-100=100|0000ff";		
 		if (a.match(/RANGE/)) {												// If has range
 			d=a.match(/(^.+)\s+RANGE\s+(.+?)\s+/i);							// Isolate query and field
 			c=a.substr(d[0].length).split(",");								// Get range(s)
