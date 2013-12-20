@@ -382,8 +382,12 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 		var results=[];														// Blank array
 		a=query;															// Copy query
 		d="";																// No extra field
-//a="MEN92 GT 1 RANGE MEN92 0-20=50|ff0000|00ff00|4,10-100=100|0000ff";		
-		if (a.match(/RANGE/)) {												// If has range
+//a="MEN92 GT 10 RANGE CLEAR MEN92 0-20=50|ff0000|00ff00|4,20-100=100|0000ff";		
+		if (a.match(/RANGE/i)) {											// If has range
+			if (a.match(/CLEAR /i)) {										// If hads clear tag
+				hide=true;													// Add clear elements
+				a=a.replace(/CLEAR /i,"");									// Remove flag
+				}
 			d=a.match(/(^.+)\s+RANGE\s+(.+?)\s+/i);							// Isolate query and field
 			c=a.substr(d[0].length).split(",");								// Get range(s)
 			a=d[1];															// Set query
