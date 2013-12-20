@@ -343,7 +343,7 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 			if (b != -1)													// If a valid base set
 				seg=this.mobs[b].seg;										// Use layer's saved seg
 			if ((mps.sh.mobVis[i]) && (mps.sh.curMob == i))					// If visible and active
-				this.SetChoroplethFeatures(seg,m.url,m.med,true);			// Set features
+				this.SetChoroplethFeatures(seg,m.url,m.med,false);			// Set features
 			}
 		if ((mps.sh.mobVis[i]) && (seg)) {									// If active
 			seg.setOpacity(mps.sh.mobVis[i]/100);							// Set alpha
@@ -421,9 +421,8 @@ a="MEN92 GT 1 RANGE MEN92 0-20=50|ff0000|00ff00|4,10-100=100|0000ff";
 	if (hide) {
 		var n=f.getLength();												// Get number of features
 		for (i=0;i<n;++i)													// For each feature
-;//			features.splice(1,0,[i,0,"","",""]);							// Add hider
+			features.splice(1,0,[i,0,"","",""]);							// Add hider
 		}
-	trace(features)
 	for (i=1;i<features.length;++i) {										// For each feature
 		o=features[i];							 	 			  	 	  	// Point at data data
 		s=f.item(o[0]-0).getComputedStyle(); 				 	 	 		// Get style
