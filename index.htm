@@ -883,7 +883,14 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 			str+="collapse2.gif'> Collapse all";							// Collapse all button
 		}
 	str+="<img src='img/settingsbut.gif' style='position:absolute;left:"+(214-0+sw)+"px;top:8px' onclick='mps.sh.Settings()' title='Settings'>";		
-	str+=shivaLib.MakeSelect("setViewMode",false,["Atlas","Slides","Book"],mps.sh.presentMode," onchange='mps.sh.PresentView(this)' style='position:absolute;left:"+(156-0+sw)+"px;top:6px;font-size:xx-small'");
+	var v=["Atlas","Slides"];												// Assume no book mode											
+	for (i=0;i<mps.mobs.length;++i) {										// For each mob
+		if (mps.mobs[i].type == "page") {									// If a page mob
+			v.push("Book");													// Add book to list
+			break;															// Quit looking
+			}
+		}
+	str+=shivaLib.MakeSelect("setViewMode",false,v,mps.sh.presentMode," onchange='mps.sh.PresentView(this)' style='position:absolute;left:"+(156-0+sw)+"px;top:6px;font-size:xx-small'");
 	
 	$("#shelfDiv").html(str);												// Add div
 	$("#shelfDiv").width(230-0+sw);											// Reset width
