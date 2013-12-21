@@ -59,7 +59,6 @@
 			}
 		if (!url)															// Nothing on query line
 			url="https://docs.google.com/spreadsheet/pub?key=0AohdE1_3ZElJdDhIbTRVRkhHSWNBWUUtYS1rZmJoSEE";
-//			url="https://docs.google.com/spreadsheet/pub?key=0AhTK6MB0cCLQdHhqUUVNTHprcFNmOUprazlIbkFpMkE";  // Boundary line
 		if (url.match(/\?/))												// Has a ? param
 			url+="&";														// Use &
 		else																// Naive
@@ -375,7 +374,7 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 			features=features.substring(0,features.length-1);				// Lop it off
 		features=features.split(";");										// Divide into features array
 		for (i=0;i<features.length;++i)										// For each feature
-			features[i]=features[i].split(";");								// Split by comma
+			features[i]=features[i].split(",");								// Split by comma
 		features.splice(0,0,["id","opacity","col","ecol","ewid"]);			// Add default header
 		}
 	if (query)	{															// If a query spec'd
