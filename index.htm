@@ -375,22 +375,21 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 			features=features.substring(0,features.length-1);				// Lop it off
 		features=features.split(";");										// Divide into features array
 		for (i=0;i<features.length;++i)										// For each feature
-			features[i]=features[i].split(",");								// Split by comma
+			features[i]=features[i].split(";");								// Split by comma
 		features.splice(0,0,["id","opacity","col","ecol","ewid"]);			// Add default header
 		}
 	if (query)	{															// If a query spec'd
 		var results=[];														// Blank array
 		a=query;															// Copy query
 		d="";																// No extra field
-//a="MEN92 GT 10 CLEAR RANGE MEN92 0-20=50|ff0000|00ff00|4,20-100=100|0000ff";		
-		if (a.match(/CLEAR/i)) {											// If has clear tag
+//a="MEN92 GT 0 CLEAR RANGE MEN92 0-20=40,87a4fa,aaaaaa,2;20-30=40,557efa,aaaaaa,2;30-100=40,0c48fa,aaaaaa,2";		
+		if (a.match(/ CLEAR/)) {												// If has clear tag
 			hide=true;														// Add clear elements
-			a=a.replace(/CLEAR/i,"");										// Remove tag
+			a=a.replace(/ CLEAR/,"");										// Remove tag
 			}
-
-		if (a.match(/RANGE/i)) {											// If has range
+		if (a.match(/RANGE/)) {												// If has range
 			d=a.match(/(^.+)\s+RANGE\s+(.+?)\s+/i);							// Isolate query and field
-			c=a.substr(d[0].length).split(",");								// Get range(s)
+			c=a.substr(d[0].length).split(";");								// Get range(s)
 			a=d[1];															// Set query
 			d="+"+d[2];														// Set extra field
 			}
@@ -402,7 +401,7 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 				d=c[i].match(/(\d+)\s*-\s*(\d+)\s*=\s*(.+)/);				// Split parts
 				o.min=d[1]-0;												// Min
 				o.max=d[2]-0;												// Max
-				d=d[3].split("|");											// Values
+				d=d[3].split(",");											// Values
 				o.a=d[0]-0;													// Alpha
 				o.c=o.e=o.w="";												// Null out
 				if (d[1])	o.c=d[1];										// Col
@@ -426,24 +425,25 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 	if (hide) {
 		var n=f.getLength();												// Get number of features
 		for (i=0;i<n;++i)													// For each feature
-			features.splice(1,0,[i,0,"","",""]);							// Add hider
+			features.splice(1,0,[i,0,"000000","000000",0]);					// Add hider
 		}
 	for (i=1;i<features.length;++i) {										// For each feature
 		o=features[i];							 	 			  	 	  	// Point at data data
 		s=f.item(o[0]-0).getComputedStyle(); 				 	 	 		// Get style
 		a=Math.round(o[1]*2.55).toString(16);								// Convert 0-100 to 0-ff
-		if (o[2] != undefined) {		  	 	 				 	 	  	// If setting
+		if (a == "0")	a="00";
+		if ((o[2]) || (a == "00")) {		  	 	 				 		// If setting
 			c=a+o[2].substr(4,2)+o[2].substr(2,2)+o[2].substr(0,2);			// Reorder guns
 			s.getPolyStyle().getColor().set(c);								// Set it
 			}
-		if (o[3] != undefined) {											// If setting
+		if ((o[3]) || (a == "00")) {		  	 	 				 		// If setting
 			c=a+o[3].substr(4,2)+o[3].substr(2,2)+o[3].substr(0,2);			// Reorder guns
 			s.getLineStyle().getColor().set(c);								// Set it
 			}
-		if (o[4] != undefined)												// If setting
+		if ((o[4] != undefined) || (a == "00"))		  	 	 				// If setting
 			s.getLineStyle().setWidth(o[4]-0);								// Set it
 		}
-};
+}
 
 MapScholar.prototype.ChoroQuery=function(query, color)					// SHOW RESULTS OF QUERY ON CHOROPLETH
 {
