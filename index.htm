@@ -34,7 +34,7 @@
 <body>
 		<div id="containerDiv" style="position:absolute;width:900px;height:600px;left:20px;top:20px;"></div>
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> 
-			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br>11/27/13</p>
+			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br>12/21/13</p>
 			</div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
@@ -1344,6 +1344,7 @@ MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 		str+=" checked='checked'"											// Check it			
 	str+=" style='vertical-align:middle' id='roads'></td></tr>";			// End box
 	str+="<tr><td>Current position:</td><td><input type='text' style='width:130px' value='"+pos+"'/></td></tr>";	// Current pos
+//	str+="<tr><td>Query editor:</td><td><input id='querySrc' type='text' style='width:130px'> <button id='queryGo'>Go</button></td></tr>";	// Current pos
 	str+="</table><div align='right' style='font-size:x-small'><br/>";		// End table			
 	str+=" <button id='OKBut'>OK</button>";									// OK
 	$("#containerDiv").height($("#containerDiv").height()/100);				// Shrink it
@@ -1362,6 +1363,16 @@ MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 		shivaLib.Sound("click");											// Click
 		mps.showRoads=e.target.checked;										// Set var
 		mps.ShowMapRoads(mps.showRoads);									// Show/hide them
+		});
+	$("#queryGo").click(function(e) {									// CREATE QUERY
+		shivaLib.Sound("click");											// Click
+		new SHIVA_QueryEditor($("#querySrc").val(),"","",true,function(q){	// Run query maker
+ 					$("#containerDiv").height($("#containerDiv").height()*100);
+ 					q=q.substr(7).replace(/,/g,"+");						// Remove SELECT, add +'s
+ 					q=q.replace(/<=/g,"LE").replace(/>=/g,"GE").replace(/!=/g,"NE");
+					q=q.replace(/</g,"LT").replace(/>/g,"GT").replace(/=/g,"EQ").replace(/has/,"LK");
+					});				
+		$("#shivaLightBoxDiv").remove();									// Remove calling dialog
 		});
 }
 
