@@ -1099,15 +1099,16 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
  // HELPERS ///////////////////////////////////////////////////////////////////////////////////////////////////////
  
 	function AddPageToShelf(num) {	
-		var i,adds=[];
+		var title;
+		var v,i,adds=[];
 		var str="<tr><td colspan='2' style='font-size:x-small;padding:8px'>";
 		var o=mps.mobs[num];      											// Point at mob
 		var desc=o.desc;													// Get desc
 		if (o.title) 														// If it has a title
 			str+="<center><b>"+shivaLib.LinkToAnchor(o.title)+"</b></center><br>";	// Add it
 		if (desc.match(/mob\(/)) {											// If an embedded mob
-			var vv,url,title,num;
-			var v=(desc+" ").match(/mob\(.*?\s/ig);							// Extract url(s)
+			var vv,url,num;
+			v=(desc+" ").match(/mob\(.*?\s/ig);								// Extract url(s)
 			for (i=0;i<v.length;++i) {										// For each url
 				v[i]=$.trim(v[i])											// Trim it
 				vv=v[i].substring(4,v[i].length-1).split(",");				// Split by comma
@@ -1122,6 +1123,13 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				if (num != -1)												// If valid
 					adds.push(num);											// Add shelf array
 				}
+			}
+		if (desc.match(/foot\(/)) {											// If embedded footnotes
+			v=(desc+" ").match(/foot\(.*?\)/ig);							// Extract footnotes(s)
+			for (i=0;i<v.length;++i) {										// For each url
+				title=v[i].substr(5,v[i].length-6);							// Extract actual note
+				desc=desc.replace(RegExp(v[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&"))," <a href='#' title='"+title+"'><b><sup>["+(i+1)+"]</b></sup></a> ");	// Replace with anchor tag
+				}	
 			}
 		if (desc) 															// If it has a desc
 			str+=shivaLib.LinkToAnchor(desc)+"<br>";						// Add it
