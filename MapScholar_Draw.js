@@ -875,7 +875,11 @@ MapScholar_Draw.prototype.InitEvents=function()								// INIT EVENTS
 					return;														// Quit
 				lat=e.getLatitude();											// Get lat
 				lon=e.getLongitude();											// Get lon
-				if (_this.dragInfo.lat) {										// If clicked on a seg	
+				if (s.type == "Marker") {										// Marker
+					s.lats[0]=lat;												// Set lat
+					s.lons[0]=lon;												// Lon
+					}
+				else if (_this.dragInfo.lat) {									// If clicked on a seg	
 					_this.DrawControlDots(false);								// Hide control dots
 					var dlat=_this.dragInfo.lat-lat;							// Delta lat
 					var dlon=_this.dragInfo.lon-lon;							// Delta lon
@@ -1142,17 +1146,7 @@ MapScholar_Draw.prototype.ParseKML=function(data)							// PARSE KML FILE
 			e=kml.indexOf("|*Placemark*|",i+10);								// Get end
 			id=kml.substring(i,i+30);											// Get id
 			s=e+10;																// Set new start
-			if (((j=kml.indexOf("|*IconStyle*|",i)) != -1) && (j < e)) {		// If an icon within end
-				o.vis=100;														// Alpha
-				o.type="Marker";												// Set type
-				GetCoords(i,e,o.lats,o.lons);									// Get coords
-				o.url=GetTag(i,e,"href");										// Get url
-				o.text=GetTag(i,e,"name");										// Get label
-				o.text2=GetTag(i,e,"description");								// Get description
-				_this.segs.push(o);												// Add seg
-				_this.AddSegsToEarth(_this.segs.length-1);						// Add seg to EDOM
-				}
-			else if (((j=kml.indexOf("|*LinearRing*|",i)) != -1) && (j < e)) {	// If a polygon
+			if (((j=kml.indexOf("|*LinearRing*|",i)) != -1) && (j < e)) {		// If a polygon
 				lats=[];	lons=[]
 				GetCoords(i,e,lats,lons);										// Get all the coords
 				o.type="Shape";													// Set type
@@ -1190,13 +1184,23 @@ MapScholar_Draw.prototype.ParseKML=function(data)							// PARSE KML FILE
 				_this.segs.push(o);												// Add seg
 				_this.AddSegsToEarth(_this.segs.length-1);						// Add seg to EDOM
 				}
-			else{																// Must be a line
+			else if (((j=kml.indexOf("|*LineStyle*|",i)) != -1) && (j < e)) {	// Is it a line?
 				GetCoords(i,e,o.lats,o.lons);									// Get coords
 				o.type="Line";													// Set type
 				j=kml.indexOf("LineStyle",i)+8;									// Move to linestyle
 				o.ewid=Number(GetTag(j,e,"width"));								// Get width
 				o.ecol=GetColor(j,o.vis);										// Get color
 				o.vis=vis;														// Get vis
+				o.text2=GetTag(i,e,"description");								// Get description
+				_this.segs.push(o);												// Add seg
+				_this.AddSegsToEarth(_this.segs.length-1);						// Add seg to EDOM
+				}
+			else{																// Must be a marker
+				o.vis=100;														// Alpha
+				o.type="Marker";												// Set type
+				GetCoords(i,e,o.lats,o.lons);									// Get coords
+				o.url=GetTag(i,e,"href");										// Get url
+				o.text=GetTag(i,e,"name");										// Get label
 				o.text2=GetTag(i,e,"description");								// Get description
 				_this.segs.push(o);												// Add seg
 				_this.AddSegsToEarth(_this.segs.length-1);						// Add seg to EDOM
