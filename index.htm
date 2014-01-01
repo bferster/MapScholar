@@ -105,6 +105,7 @@ function MapScholar()													// CONSTRUCTOR
 	this.controlKey=this.shiftKey=false;									// Shift/control key flags
 	this.showBoxes=true;													// Show boxes
 	this.showRoads=false;													// Hide Roads/borders
+	this.showScale=false;													// Hide scale
 	this.popupOpen=-1;														// Popup not open
 	shivaLib=new SHIVA_Show("containerDiv");								// Alloc SHIVA_Show
 	shivaLib.ShivaEventHandler("init");										// Init shivaevent listener
@@ -356,6 +357,12 @@ MapScholar.prototype.ShowMapRoads=function(mode)						// HIDE/SHOW ROADS/BORDER
 	var ge=shivaLib.map;													// Point to earth												
 	ge.getLayerRoot().enableLayerById(ge.LAYER_BORDERS,mode);				// Set borders
 	ge.getLayerRoot().enableLayerById(ge.LAYER_ROADS,mode);					// Set roads
+}
+
+MapScholar.prototype.ShowMapScale=function(mode)						// HIDE/SHOW MAP SCALE
+{
+	var ge=shivaLib.map;													// Point to earth												
+	ge.getOptions().setScaleLegendVisibility(mode);							// Set scale
 }
 
 MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) // SET CHOROPLETH FEATURES
@@ -1351,6 +1358,10 @@ MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 	if (mps.showRoads)														// If set
 		str+=" checked='checked'"											// Check it			
 	str+=" style='vertical-align:middle' id='roads'></td></tr>";			// End box
+	str+="<tr><td>Show Map Scale? </td><td><input type='checkbox'";			// Scale
+	if (mps.showScale)														// If set
+		str+=" checked='checked'"											// Check it			
+	str+=" style='vertical-align:middle' id='scale'></td></tr>";			// End box
 	str+="<tr><td>Current position:</td><td><input type='text' style='width:130px' value='"+pos+"'/></td></tr>";	// Current pos
 //	str+="<tr><td>Query editor:</td><td><input id='querySrc' type='text' style='width:130px'> <button id='queryGo'>Go</button></td></tr>";	// Current pos
 	str+="</table><div align='right' style='font-size:x-small'><br/>";		// End table			
@@ -1372,6 +1383,13 @@ MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 		mps.showRoads=e.target.checked;										// Set var
 		mps.ShowMapRoads(mps.showRoads);									// Show/hide them
 		});
+	
+	$("#scale").click(function(e) {										// SHOW SCALE?
+		shivaLib.Sound("click");											// Click
+		mps.showScale=e.target.checked;										// Set var
+		mps.ShowMapScale(mps.showScale);									// Show/hide them
+		});
+	
 	$("#queryGo").click(function(e) {									// CREATE QUERY
 		shivaLib.Sound("click");											// Click
 		new SHIVA_QueryEditor($("#querySrc").val(),"","",true,function(q){	// Run query maker
