@@ -145,6 +145,10 @@ MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT
 				this.sh.PresentView({value:"Book"});						// Reset view
 			else if (o.status == "slides")									// If slides
 				this.sh.PresentView({value:"Slides"});						// Reset view
+			else if ((o.status == "on") || (o.status == "off")) {			// If set on or off
+				mps.showBoxes=(o.status == "on");							// Set flag
+				mps.ShowMapBoxes(-1,o.status);								// Set boxes
+				}
 			}
 		return;
 		}
