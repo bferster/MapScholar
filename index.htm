@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -34,7 +35,7 @@
 <body>
 		<div id="containerDiv" style="position:absolute;width:900px;height:600px;left:20px;top:20px;"></div>
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> 
-			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br>1/2/14</p>
+			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br>1/22/14</p>
 			</div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
@@ -42,6 +43,7 @@
 		</div>
 		
 <script>
+
 
 	var mps=null;
 	var shivaLib=null;
@@ -254,7 +256,8 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 			m.mid="LAYER-"+Math.floor(Math.random()*99999999);				// Make random #
 			google.earth.fetchKml(ge,m.url,function(seg) {					// Get KML
    				if (!seg) {													// Failed
-			    	setTimeout(function(){},0);								// C;lear timeout
+			    	setTimeout(function(){},0);								// Clear timeout
+		     		console.log("Failed KML load of "+m.url);				// Show error
 		     		return;													// Quit
 		     		}
 				var url=""+(seg.getUrl().split("#")[0]);					// Get fetched url, lop off #????
@@ -860,14 +863,17 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 		}
 	if (o.status == "open")			o.status="closed";						// If open, close
 	else if (o.status == "closed")	o.status="open";						// If closed, open
+	if (o.boxes) 															// If something in boxes field
+		mps.showBoxes=(o.boxes.toLowerCase() == "on");						// Set box status
 	if (!multi) {															// If not setting multiples
 		for (j=0;j<n+1;++j)	{												// For each mob
-			if ((this.mobVis[j]) && (mps.showBoxes))						// If selected
 				mps.ShowMapBoxes(j,"on");									// Reset box
 			if (j != this.curMob)											// If not this one
 				this.mobVis[j]=0;											// Hide mob
 			}
 		}
+	
+	
 	if (((o.type == "map") || (o.type == "layer")) && o.status)				// If an opacity set
 		defAlpha=o.status													// Set opacity to status
 	else																	// Not set
@@ -1418,7 +1424,6 @@ MapScholar_Shelf.prototype.ToggleExpandCollapse=function()				// EXPAND/COLLAPSE
 	this.Draw();															// Draw shelf
 	mps.ShowMapBoxes(-1,"on");												// Show visible boxes
 }
-
 
 MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 {
