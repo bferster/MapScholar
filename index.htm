@@ -812,6 +812,14 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 			mps.Goto(mps.mobs[i--].goto);									// Set position
 		this.curMob=i;														// Set curMob
 		}
+	else if ((""+which).match(/goto/)) {									// If a page goto
+		i=which.substr(4)-0+this.startBook-1;								// Calc page
+		if (this.presentMode == "Book")										// If a book
+			i=Math.max(i,this.startBook);									// Cap at book start 
+		i=Math.max(i,0);													// Cap at end
+		i=Math.min(i,this.endBook-1);										// Cap at book end
+		this.curMob=i;														// Set curMob
+		}	
 	else{																	// Absolute
 		if (which < 0) {
 			which=-which;
@@ -1068,6 +1076,10 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			str+=AddMobToShelf(i);											// Add it
 		}
    	str+="<tr><td colspan='2' align='center'><img width='160' height='174' src='img/MapScholarLogo.png'/></td></tr>";
+ 	if (this.presentMode == "Book") 										// If book mode		
+    	str+="<tr><td colspan='2' align='center'><br>Go to page: <input size='3' style='font-size:xx-small' type='text' onchange='mps.sh.HighlightMob(\"goto\"+this.value)'></td></tr>";
+																				
+	
  	if (this.showTimeline)													// If showing timeline
  		$("#timeline").html(tim);											// Add timeline data
 	$("#contentShelf").html("</table>"+str);								// Add mobs
@@ -1149,7 +1161,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			}
 		if (desc) 															// If it has a desc
 			str+=shivaLib.LinkToAnchor(desc)+"<br>";						// Add it
-		str+="<br><hr></td></tr>";											// End
+		str+="<br><hr width='319'></td></tr>";								// End
 		for (i=0;i<adds.length;++i)											// For each mob mentioned
 			str+=AddMobToShelf(adds[i]);									// Add it
 		return(str);														// Return html
