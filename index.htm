@@ -35,7 +35,7 @@
 <body>
 		<div id="containerDiv" style="position:absolute;width:900px;height:600px;left:20px;top:20px;"></div>
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> 
-			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br>1/24/14</p>
+			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br>2/8/14</p>
 			</div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
@@ -111,7 +111,7 @@ function MapScholar()													// CONSTRUCTOR
 	shivaLib=new SHIVA_Show("containerDiv");								// Alloc SHIVA_Show
 	shivaLib.ShivaEventHandler("init");										// Init shivaevent listener
 	shivaLib.options={ 	shivaGroup:"Earth", height:"600", width:"900", 
- 						mapcenter:"29.36,-80.49", range:"1000000", tilt:"42", heading:"0",
+ 						mapcenter:"33,-85", range:"15000000", tilt:"0", heading:"0",
  						panControl:"true", draggable:"true", scrollwheel:"true", overviewMapControl:"false",
  						terrainexag:"1", borders:"false", roads:"false"
  						};
@@ -818,6 +818,8 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 			i=Math.max(i,this.startBook);									// Cap at book start 
 		i=Math.max(i,0);													// Cap at end
 		i=Math.min(i,this.endBook-1);										// Cap at book end
+		while (((mps.mobs[i].type == "header") || (mps.mobs[i].type == "chapter")) && (i > 0))  // Skip over nav mobs
+			mps.Goto(mps.mobs[i--].goto);									// Set position
 		this.curMob=i;														// Set curMob
 		}	
 	else{																	// Absolute
@@ -1076,10 +1078,15 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			str+=AddMobToShelf(i);											// Add it
 		}
    	str+="<tr><td colspan='2' align='center'><img width='160' height='174' src='img/MapScholarLogo.png'/></td></tr>";
+ 
+ 	gotoBook=function(val) {											// GOTO PAGE HANDLER
+ 		mps.sh.HighlightMob("goto"+val);									// Show page
+ 		shivaLib.Sound("click");											// Click
+ 		mps.sh.HighlightMob(mps.sh.firstPageMob);							// Show first mob		
+ 		}
+ 		
  	if (this.presentMode == "Book") 										// If book mode		
-    	str+="<tr><td colspan='2' align='center'><br>Go to page: <input size='3' style='font-size:xx-small' type='text' onchange='mps.sh.HighlightMob(\"goto\"+this.value)'></td></tr>";
-																				
-	
+    	str+="<tr><td colspan='2' align='center'><br>Go to page: <input size='3' style='font-size:xx-small' type='text' onchange='gotoBook(this.value)'></td></tr>";
  	if (this.showTimeline)													// If showing timeline
  		$("#timeline").html(tim);											// Add timeline data
 	$("#contentShelf").html("</table>"+str);								// Add mobs
@@ -1136,7 +1143,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			str+="<center><b>"+shivaLib.LinkToAnchor(o.title)+"</b></center><br>";	// Add it
 		if (desc.match(/mob\(/)) {											// If an embedded mob
 			var vv,url,num;
-			v=(desc+" ").match(/mob\(.*?\s/ig);								// Extract url(s)
+			v=(desc+" ").match(/mob\((.*?)\)/ig);								// Extract url(s)
 			for (i=0;i<v.length;++i) {										// For each url
 				v[i]=$.trim(v[i])											// Trim it
 				vv=v[i].substring(4,v[i].length-1).split(",");				// Split by comma
@@ -1153,14 +1160,16 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				}
 			}
 		if (desc.match(/goto\(/)) {											// If an embedded goto
-			var j,k=0,vv,url="",num;
-			v=(desc+" ").match(/goto\(.*?\s/ig);							// Extract url(s)
+			var j,k,vv,url,num;
+			v=(desc+" ").match(/goto\((.*?)\)/ig);							// Extract url(s)
 			for (i=0;i<v.length;++i) {										// For each url
+				k=0;														// Reset
 				v[i]=$.trim(v[i])											// Trim it
 				vv=v[i].substring(5,v[i].length-1).split(",");				// Split by comma
 				title="";													// Assume no title
 				if (isNaN(vv[0])) 											// If a title spec'd
 					title=vv[0],++k;										// Use it
+				url="";														// Clear
 				for (j=k;j<vv.length-1;++j)									// For all pos's
 					url+=vv[j]+",";											// Re-sum them up
 				url+=vv[j];													// Add last one
@@ -1399,7 +1408,6 @@ MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 		str+=" checked='checked'"											// Check it			
 	str+=" style='vertical-align:middle' id='scale'></td></tr>";			// End box
 	str+="<tr><td>Current position:</td><td><input type='text' style='width:130px' value='"+pos+"'/></td></tr>";	// Current pos
-//	str+="<tr><td>Query editor:</td><td><input id='querySrc' type='text' style='width:130px'> <button id='queryGo'>Go</button></td></tr>";	// Current pos
 	str+="</table><div align='right' style='font-size:x-small'><br/>";		// End table			
 	str+=" <button id='OKBut'>OK</button>";									// OK
 	$("#containerDiv").height($("#containerDiv").height()/100);				// Shrink it
