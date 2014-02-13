@@ -255,7 +255,7 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 		if (m.type == "layer") {											// If a layer
 			m.mid="LAYER-"+Math.floor(Math.random()*99999999);				// Make random #
 			google.earth.fetchKml(ge,m.url,function(seg) {					// Get KML
-   				if (!seg) {													// Failed
+    				if (!seg) {													// Failed
 			    	setTimeout(function(){},0);								// Clear timeout
 		     		console.log("Failed KML load of "+m.url);				// Show error
 		     		return;													// Quit
@@ -266,6 +266,9 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 						break;												// Quit looking
 				mobs[j].seg=seg;											// Save ptr to seg
 				ge.getFeatures().appendChild(seg);							// Add it to display list
+ 				var str=seg.getKml().toString();							// Get kml
+ 				if (str.match(/<region>/i) && str.match(/<lod>/i) && str.match(/<networklink>/i))	// If it's a tiled map
+				 	seg.setDrawOrder(-1)									// Allow overlays on it
 				seg.setVisibility(false);									// Hide it
 	    		});	
 			}
