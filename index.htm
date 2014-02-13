@@ -68,13 +68,13 @@
 		mps.dr.InitEvents();												// Init draw events
 		if (url.indexOf("http") != -1) {									// Is a url
 			shivaLib.GetSpreadsheet(url,true,null,function(data) {			// Get from docs
+				if (!data) {												// No data
+					alert("Problem loading spreadsheet! Make sure it is shared to the public and the url is correct");
+					return;
+					}
 				mps.InitProject("",data);									// Init project from file
 				mps.AddMapBoxes();											// Add boxes
-				if (mps.sh.curMob != -1) {									// If going somewhere particular
-//					mps.sh.curMob=mps.FindMobByID(mps.sh.curMob);			// Convert id to index
-//					mps.sh.HighlightMob(mps.sh.curMob,false,true);			// Highlight mob
-					}
-				});
+				},false,true);												// No headers and send errors
 			}
 	}
 	
