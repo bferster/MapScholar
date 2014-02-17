@@ -267,8 +267,6 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 				mobs[j].seg=seg;											// Save ptr to seg
 				ge.getFeatures().appendChild(seg);							// Add it to display list
  				var str=seg.getKml().toString();							// Get kml
- 				if (str.match(/<region>/i) && str.match(/<lod>/i) && str.match(/<networklink>/i))	// If it's a tiled map
-				 	seg.setDrawOrder(-1)									// Allow overlays on it
 				seg.setVisibility(false);									// Hide it
 	    		});	
 			}
