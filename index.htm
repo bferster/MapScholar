@@ -395,7 +395,6 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 		var results=[];														// Blank array
 		a=query;															// Copy query
 		d="";																// No extra field
-//a="MEN92 GT 0 CLEAR RANGE MEN92 0-20=40,87a4fa,aaaaaa,2;20-30=40,557efa,aaaaaa,2;30-100=40,0c48fa,aaaaaa,2";		
 		if (a.match(/ CLEAR/)) {												// If has clear tag
 			hide=true;														// Add clear elements
 			a=a.replace(/ CLEAR/,"");										// Remove tag
@@ -411,7 +410,7 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 		if (d) {															// If a range set
 			for (i=0;i<c.length;++i) {										// For each range
 				o={};														// Reset
-				d=c[i].match(/(\d+)\s*-\s*(\d+)\s*=\s*(.+)/);				// Split parts
+				d=c[i].match(/(-*\d+)\s*-\s*(-*\d+)\s*=\s*(.+)/);			// Split parts
 				o.min=d[1]-0;												// Min
 				o.max=d[2]-0;												// Max
 				d=d[3].split(",");											// Values
