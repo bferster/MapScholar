@@ -614,7 +614,7 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 			default:	l=0;	t=0;	w=894;		h=594;		break;		// Full
 			}
 		}
-	if ((mode) && (mps.sh.presentMode == "Atlas")) {						// If showing in normal GE mode
+	if ((mode) && (mps.sh.presentMode != "Slides")) {						// If showing in normal GE mode
 		str="<div style='font-family:sans-serif;font-size:small'>";			// Div
 		str+="<p style='text-align:center;font-weight:bold'>";				// Center & bold
 		if (m.title)														// If a title set
@@ -1143,7 +1143,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			str+="<center><b>"+shivaLib.LinkToAnchor(o.title)+"</b></center><br>";	// Add it
 		if (desc.match(/mob\(/)) {											// If an embedded mob
 			var vv,url,num;
-			v=(desc+" ").match(/mob\((.*?)\)/ig);								// Extract url(s)
+			v=(desc+" ").match(/mob\((.*?)\)/ig);							// Extract url(s)
 			for (i=0;i<v.length;++i) {										// For each url
 				v[i]=$.trim(v[i])											// Trim it
 				vv=v[i].substring(4,v[i].length-1).split(",");				// Split by comma
@@ -1304,7 +1304,13 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
    		var str="<div id='timedot"+i+"' class='timelinedot' style='position:absolute;left:"+x+"px;top:"+6+"px;";
    		if (mps.sh.mobVis[i] > 0)											// If selected
   			str+='background-color:#000099';								// Make it blue
-   		str+=" ' title='"+o.start+"'></div>";								// Tooltip
+   		str+=" ' title='";													// Start tooltip
+   		var v=(""+o.start).split(".");										// Get parts
+ 		if (v.length == 1)													// Yr
+   			str+=v[0];														// Add it
+   		else if (v.length == 2)												// Yr/mo
+   			str+=v[1]+"/"+v[0];												// Add it
+   		str+="'></div>";													// Finish tooltip
 	  	for (j=0;j<dates.length;++j)										// For each map
 			if (dates[j].date == o.start) ++p;								// If it matches this date, inc
 	 	dates.push({date: o.start, part: p, index:i});						// Save the date
