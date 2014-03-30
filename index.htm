@@ -107,6 +107,7 @@ function MapScholar()													// CONSTRUCTOR
 	this.showBoxes=true;													// Show boxes
 	this.showRoads=false;													// Hide Roads/borders
 	this.showScale=false;													// Hide scale
+	this.showOverview=false;												// No overview
 	this.popupOpen=-1;														// Popup not open
 	shivaLib=new SHIVA_Show("containerDiv");								// Alloc SHIVA_Show
 	shivaLib.ShivaEventHandler("init");										// Init shivaevent listener
@@ -370,6 +371,13 @@ MapScholar.prototype.ShowMapScale=function(mode)						// HIDE/SHOW MAP SCALE
 {
 	var ge=shivaLib.map;													// Point to earth												
 	ge.getOptions().setScaleLegendVisibility(mode);							// Set scale
+}
+
+MapScholar.prototype.ShowMapOverview=function(mode)						// HIDE/SHOW MAP OVERVIEW
+{
+	trace(mode)
+	var ge=shivaLib.map;													// Point to earth												
+	ge.getOptions().setOverviewMapVisibility(mode);							// Set overview status
 }
 
 MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) // SET CHOROPLETH FEATURES
@@ -1051,7 +1059,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 	if (mps.popupOpen != -1)												// If popup is open
 		mps.ShowText(mps.popupOpen,false);									// Close it
 	this.DrawInfoPanel("close");											// Close infopanel, if open
-	var str="<table class='unselectable' width='100%' cellspacing='0' style='cursor:pointer;>";  // Table start and style
+	var str="<table class='unselectable' width='100%' cellspacing='0' style='cursor:pointer'>";  // Table start and style
 	var thisMob=-1;															// Holds currently active mob
 	for (i=0;i<n;++i) {                                                     // For each mob
 		o=mps.mobs[i];     													// Point at mob
@@ -1080,6 +1088,13 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
    	str+="<tr><td colspan='2' align='center'><img width='160' height='174' src='img/MapScholarLogo.png'/></td></tr>";
  
  	gotoBook=function(val) {											// GOTO PAGE HANDLER
+ 		if (val.match(/@/))	{												// If an indirect page
+ 			val=val.replace(/@/g,"");										// Remove it
+ 			val=mps.FindMobByID(val);										// Get mob from id
+			if (val == -1)													// No valid mob
+				return;														// Quit
+			val-=mps.sh.startBook-1;										// Convert to page num (1-n)
+			}
  		mps.sh.HighlightMob("goto"+val);									// Show page
  		shivaLib.Sound("click");											// Click
  		mps.sh.HighlightMob(mps.sh.firstPageMob);							// Show first mob		
@@ -1087,6 +1102,8 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
  		
  	if (this.presentMode == "Book") 										// If book mode		
     	str+="<tr><td colspan='2' align='center'><br>Go to page: <input size='3' style='font-size:xx-small' type='text' onchange='gotoBook(this.value)'></td></tr>";
+    	str+="<tr><td colspan='2' align='center'><i><br>Add the @ sign to match a map in a publication</i></td></tr><br><br>";
+
  	if (this.showTimeline)													// If showing timeline
  		$("#timeline").html(tim);											// Add timeline data
 	$("#contentShelf").html("</table>"+str);								// Add mobs
@@ -1413,6 +1430,11 @@ MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 	if (mps.showScale)														// If set
 		str+=" checked='checked'"											// Check it			
 	str+=" style='vertical-align:middle' id='scale'></td></tr>";			// End box
+	str+="<tr><td>Show overview? </td><td><input type='checkbox'";			// Overview
+	if (mps.showOverview)													// If set
+		str+=" checked='checked'"											// Check it			
+	str+=" style='vertical-align:middle' id='overview'></td></tr>";			// End box
+
 	str+="<tr><td>Current position:</td><td><input type='text' style='width:130px' value='"+pos+"'/></td></tr>";	// Current pos
 	str+="</table><div align='right' style='font-size:x-small'><br/>";		// End table			
 	str+=" <button id='OKBut'>OK</button>";									// OK
@@ -1438,6 +1460,12 @@ MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 		shivaLib.Sound("click");											// Click
 		mps.showScale=e.target.checked;										// Set var
 		mps.ShowMapScale(mps.showScale);									// Show/hide them
+		});
+
+	$("#overview").click(function(e) {									// SHOW OVERVIEW?
+		shivaLib.Sound("click");											// Click
+		mps.showOverview=e.target.checked;									// Set var
+		mps.ShowMapOverview(mps.showOverview);								// Show/hide 
 		});
 	
 	$("#queryGo").click(function(e) {									// CREATE QUERY
