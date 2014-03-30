@@ -35,7 +35,7 @@
 <body>
 		<div id="containerDiv" style="position:absolute;width:900px;height:600px;left:20px;top:20px;"></div>
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> 
-			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>3/1/14</p>
+			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>3/30/14</p>
 			</div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
@@ -1266,7 +1266,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			str+="&nbsp;&nbsp;</td>";											// End col
 			str+="<td valign='top'><span id='mobPos"+ num+"'><b>"+shivaLib.LinkToAnchor(o.title)+"</b><br/></span>";	// Add title
 			if (o.start)													// If a date
-				str+="<span style='color:#770000'><b>"+o.start+"</b></span> ";	// Add date
+				str+="<span style='color:#770000'><b>"+Math.floor(o.start)+"</b></span> ";	// Add date
 			}
 		else{																// Other mob
 			str+="><td colspan='2' valign='top'>";							// Single column
@@ -1495,7 +1495,7 @@ MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 		str+="<b>"+shivaLib.LinkToAnchor(o.title);							// Add it
 		if (o.start) {														// If a start set
 			str+="<span style='color:#990000'>";							// Red
-			str+="&nbsp;&nbsp;&nbsp;("+o.start;								// Add it
+			str+="&nbsp;&nbsp;&nbsp;("+Math.floor(o.start);					// Add it
 			if (o.end)														// If an end set
 				str+=" - "+o.end;											// Add it
 			str+=")</span>";												// Close date paren
