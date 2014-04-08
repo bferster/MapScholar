@@ -35,7 +35,7 @@
 <body>
 		<div id="containerDiv" style="position:absolute;width:900px;height:600px;left:20px;top:20px;"></div>
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> 
-			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>3/30/14</p>
+			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>4/8/14</p>
 			</div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
@@ -1100,10 +1100,10 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
  		mps.sh.HighlightMob(mps.sh.firstPageMob);							// Show first mob		
  		}
  		
- 	if (this.presentMode == "Book") 										// If book mode		
+ 	if (this.presentMode == "Book") {										// If book mode		
     	str+="<tr><td colspan='2' align='center'><br>Go to page: <input size='3' style='font-size:xx-small' type='text' onchange='gotoBook(this.value)'></td></tr>";
     	str+="<tr><td colspan='2' align='center'><i><br>Add the @ sign to match a map in a publication</i></td></tr><br><br>";
-
+		}
  	if (this.showTimeline)													// If showing timeline
  		$("#timeline").html(tim);											// Add timeline data
 	$("#contentShelf").html("</table>"+str);								// Add mobs
@@ -1308,9 +1308,21 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			str+="&nbsp;&nbsp;&nbsp;&nbsp;<img id='mobInfo' title='See citation' src='img/infobutton.gif'/>";
 			if ((o.url) && (o.type == "map"))
 				str+="&nbsp;&nbsp;<img id='hiresmap' title='See hi-res map' src='img/viewdot.gif'/>";
-			if (o.type == "choro") 
+			if (o.type == "choro") {
+				var j;
 				str+="</br></br><input type='text' id='chorQuery'style='width:80%;font-size:x-small;height:12px' onchange='mps.ChoroQuery(this.value,\"ff0000\")'>";
-			str+="<br/><br/></td></tr>";
+				var ss=o.desc;												// Copy desc
+				var v=ss.match(/bull.?\(.+?\)/gi);							// Get bullets
+				if (v) {													// If bullets
+					for (j=0;j<v.length;++j) 								// For each one
+						v[j]="<br><font color='"+v[j].match(/bull\((.+)\)/i)[1]+"'>&block; </font>";	// Make Color tag
+					for (j=0;j<v.length;++j) 								// For each one
+						ss=ss.replace(/bull.?\(.+?\)/i,v[j]);				// Replace bullets
+					}
+				if (ss)														// If a description
+					str+="<br>"+ss;											// Add to display
+				}
+			str+="<br/><br/></td></tr>";									// End row
 			}
 		return str;
 	}
