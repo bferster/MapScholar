@@ -1320,9 +1320,9 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 						ss=ss.replace(/bull.?\(.+?\)/i,v[j]);				// Replace bullets
 					}
 				if (ss)														// If a description
-					str+="<br>"+ss;											// Add to display
+					str+="<p>"+ss+"</p>";									// Add to display
 				}
-			str+="<br/><br/></td></tr>";									// End row
+			str+="<br/></td></tr>";											// End row
 			}
 		return str;
 	}
