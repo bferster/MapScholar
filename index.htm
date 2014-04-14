@@ -1315,7 +1315,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				var v=ss.match(/bull.?\(.+?\)/gi);							// Get bullets
 				if (v) {													// If bullets
 					for (j=0;j<v.length;++j) 								// For each one
-						v[j]="<br><font color='"+v[j].match(/bull\((.+)\)/i)[1]+"'>&block; </font>";	// Make Color tag
+						v[j]="<br><font color='"+v[j].match(/bull\((.+)\)/i)[1]+"'>&block;&block;&block; </font>";	// Make Color tag
 					for (j=0;j<v.length;++j) 								// For each one
 						ss=ss.replace(/bull.?\(.+?\)/i,v[j]);				// Replace bullets
 					}
