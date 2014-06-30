@@ -34,7 +34,7 @@
 <body>
 		<div id="containerDiv" style="position:absolute;width:900px;height:600px;left:20px;top:20px;"></div>
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> 
-			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>6/27/14</p>
+			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>6/30/14</p>
 			</div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
@@ -346,10 +346,10 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 		else																// A map
 			seg=ge.getElementById(m.mid);									// Get object
 		if (m.type == "choro") {											// If a choropleth
-			var bases=(""+m.base).split(",");								// Get bases array
-			if (bases.length)												// If one
-				bases=bases[bases.length-1];								// Get last one
-			var b=mps.FindMobByID(bases);									// Get index from id
+			var b=(""+m.base).split(",");									// Get bases array
+			if (b && b.length)												// If one
+				b=b[b.length-1];											// Get last one
+			b=mps.FindMobByID(b);											// Get index from id
 			if (b != -1)													// If a valid base set
 				seg=this.mobs[b].seg;										// Use layer's saved seg
 			if (mps.sh.mobVis[i])											// If visible
