@@ -346,7 +346,10 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 		else																// A map
 			seg=ge.getElementById(m.mid);									// Get object
 		if (m.type == "choro") {											// If a choropleth
-			var b=mps.FindMobByID(m.base);									// Get index from id
+			var bases=(""+m.base).split(",");								// Get bases array
+			if (bases.length)												// If one
+				bases=bases[bases.length-1];								// Get last one
+			var b=mps.FindMobByID(bases);									// Get index from id
 			if (b != -1)													// If a valid base set
 				seg=this.mobs[b].seg;										// Use layer's saved seg
 			if (mps.sh.mobVis[i])											// If visible
