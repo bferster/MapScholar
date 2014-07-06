@@ -858,14 +858,10 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 		this.curBookMob=i;													// Set curBookmob
 	o=mps.mobs[i];   														// Point at mob
 	if (o.type == "boxes") {												// A boxes command
-		if (o.status.match(/on/i)) {										// If set on on
-			mps.showBoxes=true;												// Set flag
-			mps.ShowMapBoxes(-1,"on");										// Set boxes
-			}
-		else if (o.status.match(/off/i)) {									// If set on off
-			mps.showBoxes=false;											// Set flag
-			mps.ShowMapBoxes(-1,"off");										// Set boxes
-			}
+		if ((o.status == "on") || (o.status == "off")) {					// If set on or off
+			mps.showBoxes=(o.status == "on");								// Set flag
+			mps.ShowMapBoxes(-1,o.status);									// Set boxes
+		}
 		return;																// Quit
 		}
 	else if (o.type == "info") {											// An info command
