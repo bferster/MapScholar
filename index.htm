@@ -34,7 +34,7 @@
 <body>
 		<div id="containerDiv" style="position:absolute;width:900px;height:600px;left:20px;top:20px;"></div>
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> 
-			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>7/6/14</p>
+			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>7/7/14</p>
 			</div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
@@ -146,13 +146,17 @@ MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT
 				this.sh.PresentView({value:"Book"});						// Reset view
 			else if (o.status.match(/slides/i))								// If slides
 				this.sh.PresentView({value:"Slides"});						// Reset view
-			if (o.status.match(/on/i)) {									// If set on on
+			if (o.status.match(/on/i)) {									// If set, boxes on
 				mps.showBoxes=true;											// Set flag
 				mps.ShowMapBoxes(-1,"on");									// Set boxes
 				}
-			else if (o.status.match(/off/i)) {								// If set on off
+			else if (o.status.match(/off/i)) {								// If set, boxes off
 				mps.showBoxes=false;										// Set flag
 				mps.ShowMapBoxes(-1,"off");									// Set boxes
+				}
+			if (o.status.match(/scale/i)) {									// If set on on
+				mps.showScale=true;											// Set var
+				mps.ShowMapScale(mps.showScale);							// Show scale
 				}
 			}
 		return;
@@ -381,7 +385,6 @@ MapScholar.prototype.ShowMapScale=function(mode)						// HIDE/SHOW MAP SCALE
 
 MapScholar.prototype.ShowMapOverview=function(mode)						// HIDE/SHOW MAP OVERVIEW
 {
-	trace(mode)
 	var ge=shivaLib.map;													// Point to earth												
 	ge.getOptions().setOverviewMapVisibility(mode);							// Set overview status
 }
@@ -1206,6 +1209,11 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				desc=desc.replace(RegExp(v[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&"))," <a href='#' title='"+title+"'><b><sup>["+(i+1)+"]</b></sup></a> ");	// Replace with anchor tag
 				}	
 			}
+		if (desc.match(/more\(\)/)) {										// If more tag
+			v=desc.split("more()");											// Split
+			desc=v[0]+"<br><br><span id='moreHead' style='color:#009900;text-align:center' onclick='toggleMore()'";
+			desc+=">More...</span><span id='moreText' style='display:none' onclick='toggleMore()'>"+v[1]+"</span>"; 											
+			}
 		if (desc) 															// If it has a desc
 			str+=shivaLib.LinkToAnchor(desc)+"<br>";						// Add it
 		str+="<br><hr width='319'></td></tr>";								// End
@@ -1297,7 +1305,6 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			str+="&nbsp;&nbsp;<span id='mobPos"+ i+"'><b>"+shivaLib.LinkToAnchor(o.title)+"</b><br/></span>";	// Add title
 			}
 		if ((o.desc) && ((o.type == "map") || (o.type == "chapter") || (o.type == "header") || (o.small))) { // If desc spec'd
-			str+=shivaLib.LinkToAnchor(o.desc);								// Add desc
 			if ((o.text)&& (mps.sh.mobVis[i] > 0))							// If text defined and visible
 				str+="&nbsp;&nbsp;<img id='showpopup' title='Show popup info' src='img/popupbutton.gif'/>";
 			str+="<br/>";													// Add desc
@@ -1617,6 +1624,12 @@ MapScholar_Shelf.prototype.Play=function(again, chapter)				// PLAY
 		mps.ShowMapBoxes(-1,"on");											// Show boxes
 		}
 }
+
+	function toggleMore()
+	{
+		$("#moreHead").css("display",$("#moreHead").css("display") == "inline" ? "none" : "inline" );
+		$("#moreText").css("display",$("#moreText").css("display") == "inline" ? "none" : "inline" );
+	}
 
 
 </script>
