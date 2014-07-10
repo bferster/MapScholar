@@ -572,6 +572,9 @@ MapScholar.prototype.Goto=function(pos)									// SET EARTH VIEWPOINT
 		this.gotoLookAt.setTilt(v[3]-0);									// Set tilt
 	if (v[4] != undefined)													// If set
 		this.gotoLookAt.setHeading(v[4]-0);									// Set heading
+	if ((v[5] != undefined) && (mps.sh.curMob != -1) && (mps.mobs[mps.sh.curMob].seg))	// If set and valid
+		mps.mobs[mps.sh.curMob].seg.setOpacity(v[5]/100);					// Set alpha
+
 	ge.getOptions().setFlyToSpeed(speed-0);									// Set speed
 	ge.getView().setAbstractView(this.gotoLookAt);							// Go there
 }
@@ -916,8 +919,12 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 			bases[k]=mps.FindMobByID(bases[k]);								// Get index from id
 		for (j=0;j<n+1;++j)	{												// For each mob
 			for (k=0;k<bases.length;++k)									// For each base
-				if (bases[k] == j) 											// If a base defined													
-					this.mobVis[j]=100;										// Show base mob
+				if (bases[k] == j) {										// If a base defined													
+					if (mps.mobs[j].status)									// If alpha set
+						this.mobVis[j]=mps.mobs[j].status;					// Show base mob using alpha
+					else													// No alpha set
+						this.mobVis[j]=100;									// Fully on
+					}
 			}
 		}
 	this.FillShelf();														// Redraw shelf
@@ -993,17 +1000,19 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 		}};    
 	$("#playSpeed" ).slider(ops);											// Init slider
 
-	if (this.presentMode == "Book") {										// KIf book view
+	if (this.presentMode == "Book") {										// If book view
 	
 		mps.sh.HighlightMob(this.firstPageMob);								// Show 1st mob on page
 		
 		$("#lastPageBut").click(function() {							// GO TO LAST PAGE
+			$("#contentShelf").scrollTop(0);								// Scroll to top
 			mps.sh.HighlightMob("last");									// Set page
 			shivaLib.Sound("click");										// Click
 			mps.sh.HighlightMob(mps.sh.firstPageMob);						// Show 1st mob on page
 			});
 		
 		$("#playbut").click(function() {								// GO TO NEXT PAGE
+			$("#contentShelf").scrollTop(0);								// Scroll to top
 			mps.sh.HighlightMob("next");									// Set page
 			shivaLib.Sound("click");										// Click
 			mps.sh.HighlightMob(mps.sh.firstPageMob);						// Show 1st mob on page
@@ -1104,6 +1113,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				return;														// Quit
 			val-=mps.sh.startBook-1;										// Convert to page num (1-n)
 			}
+		$("#contentShelf").scrollTop(0);									// Scroll to top
  		mps.sh.HighlightMob("goto"+val);									// Show page
  		shivaLib.Sound("click");											// Click
  		mps.sh.HighlightMob(mps.sh.firstPageMob);							// Show first mob		
@@ -1211,8 +1221,8 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			}
 		if (desc.match(/more\(\)/)) {										// If more tag
 			v=desc.split("more()");											// Split
-			desc=v[0]+"<br><br><span id='moreHead' style='color:#009900;text-align:center' onclick='toggleMore()'";
-			desc+=">More...</span><span id='moreText' style='display:none' onclick='toggleMore()'>"+v[1]+"</span>"; 											
+			desc=v[0]+"<span id='moreHead' style='color:#009900;text-align:center' onclick='toggleMore()'";
+			desc+="> More...</span><span id='moreText' style='display:none'>"+v[1]+"</span>"; 											
 			}
 		if (desc) 															// If it has a desc
 			str+=shivaLib.LinkToAnchor(desc)+"<br>";						// Add it
