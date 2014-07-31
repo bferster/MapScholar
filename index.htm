@@ -34,7 +34,7 @@
 <body>
 		<div id="containerDiv" style="position:absolute;width:900px;height:600px;left:20px;top:20px;"></div>
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> 
-			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>7/17/14</p>
+			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>7/31/14</p>
 			</div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
@@ -1082,7 +1082,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 	var thisMob=-1;															// Holds currently active mob
 	for (i=0;i<n;++i) {                                                     // For each mob
 		o=mps.mobs[i];     													// Point at mob
- 		if (o.start && !isNaN(o.start) && o.type == "map")	{				// A valid year
+ 		if (o.start && !isNaN(o.start) && ((o.type == "map")|| (o.type == "choro") || (o.type == "layer")))	{		// A valid year
 			min=Math.min(o.start,min);										// Find min
 			max=Math.max(o.start,max);										// Find max
 			}
@@ -1281,12 +1281,14 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				pic=o.small;												// Use it
 			else															// Use icon
 				pic="img/layericon.png";									// Set
+			tim+=AddMapToTimeline(o,i);										// Add map to timeline
 			}
 		else if (o.type == "choro") {										// A layer													
 			if (o.small)													// If a thumb defined                                                           
 				pic=o.small;												// Use it
 			else															// Use icon
 				pic="img/choroicon.png";									// Set
+			tim+=AddMapToTimeline(o,i);										// Add map to timeline
 			}
 		else if (o.type == "goto")											// A goto													
 			pic="img/gotoicon.png";											// Use icon
