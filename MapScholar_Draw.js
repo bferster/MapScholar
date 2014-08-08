@@ -37,13 +37,13 @@ MapScholar_Draw.prototype.DrawShelf=function()							// DRAW DRAWING SHELF
 		str+="<br/><br/>You can undo actions by clicking on the undo button to the left of the Save/Load button.";
 		str+="<br/><br/>Click on the trashcan icon to remove the complete segment.";
 		str+="<br/><br/><div style='text-align:center'><b>To save or load KML file</b></div>";
-		str+="<br/>Click on the Save/Load button and enter your email. To save, give the KML file a title and click the Save button.<br/><br/>To load, choose the KML line and click the Load button. To append to the segments already drawn or loaded, hold the CONTROL key and click the Load button.";
+		str+="<br/>Click on the Save/Load button and enter your email. To save, give the KML file a title and click the Save button.<br/><br/>To load, choose the KML line and click the Load button. To append to the segments already drawn or loaded, hold the CONTROL (Command on Mac)key and click the Load button.";
 		str+="</td></tr>"
 		}
 	else if ((type == "Line") || (type == "Shape")) {
 		str+="<tr><td>Popup text&nbsp;</td><td><textarea rows='1' style='width:110px;font-size:x-small' id='annText2'></textarea></td></tr>";
 		str+="<tr><td colspan='2'><p><hr/></p>";
-		str+="Drag a point's icon to move that point on the map. If the CONTROL key is down, the point will snap to the nearest point near it.<br/><br/>Drag the segment itself to move the whole segment.";
+		str+="Drag a point's icon to move that point on the map. If the CONTROL key (Command on Mac) is down, the point will snap to the nearest point near it.<br/><br/>Drag the segment itself to move the whole segment.";
 		str+="<br/><br/>Click on a (+) icon in the segment to icon to insert a new point there.<br/><br/>Right-clicking will add a new point to the end of the line where you clicked.<br/><br/>Click on point icon with SHIFT key down to remove point.";
 		str+="<br/><br/>Undo actions by clicking on the undo button to the left of the Save/Load button.";
 		str+="<br/><br/>Click on the trash can icon to remove the complete segment.";
