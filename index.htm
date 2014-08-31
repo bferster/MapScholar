@@ -866,18 +866,20 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 		this.curBookMob=i;													// Set curBookmob
 	o=mps.mobs[i];   														// Point at mob
 
-	if (o.settings.match(/roads/)) {										// Roads tag
-		mps.showRoads=(o.settings.match(/roads *on/i)) ? true : false		// Set flag
-		mps.ShowMapRoads(mps.showRoads);									// Show roads?
-		}
-	if (o.settings.match(/scale/)) {										// Scale tag
-		mps.showScale=(o.settings.match(/scale *on/i)) ? true : false		// Set flag
-		mps.ShowMapScale(mps.showScale);									// Show scale?
-		}
-	if (o.settings.match(/boxes/)) {										// boxes tag
-		mps.showBoxes=(o.settings.match(/boxes *on/i)) ? "on" : "off"		// Set flag
-		mps.ShowMapBoxes(-1,mps.showBoxes);									// Show boxes?
-		}
+	if (o.settings) {														// If a settings field
+		if (o.settings.match(/roads/)) {									// Roads tag
+			mps.showRoads=(o.settings.match(/roads *on/i)) ? true : false	// Set flag
+			mps.ShowMapRoads(mps.showRoads);								// Show roads?
+			}
+		if (o.settings.match(/scale/)) {									// Scale tag
+			mps.showScale=(o.settings.match(/scale *on/i)) ? true : false	// Set flag
+			mps.ShowMapScale(mps.showScale);								// Show scale?
+			}
+		if (o.settings.match(/boxes/)) {									// boxes tag
+			mps.showBoxes=(o.settings.match(/boxes *on/i)) ? "on" : "off"	// Set flag
+			mps.ShowMapBoxes(-1,mps.showBoxes);								// Show boxes?
+			}
+	}
 
 	if (o.type == "boxes") {												// A boxes command
 		if ((o.status == "on") || (o.status == "off")) {					// If set on or off
