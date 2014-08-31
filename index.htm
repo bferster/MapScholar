@@ -34,7 +34,7 @@
 <body>
 		<div id="containerDiv" style="position:absolute;width:900px;height:600px;left:20px;top:20px;"></div>
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> 
-			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>8/4/14</p>
+			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>9/2/14</p>
 			</div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
@@ -807,6 +807,7 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 		this.Play();														// Turn off playing
 		return;																// Quit
 		}
+
 	if (which == "next") {													// Going forward										
 		if ((this.inPlay) && (this.soundPause)) 							// If pausing for sound to finish
 			return;															// Don't change
@@ -864,11 +865,25 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 	else																	// If a book
 		this.curBookMob=i;													// Set curBookmob
 	o=mps.mobs[i];   														// Point at mob
+
+	if (o.settings.match(/roads/)) {										// Roads tag
+		mps.showRoads=(o.settings.match(/roads *on/i)) ? true : false		// Set flag
+		mps.ShowMapRoads(mps.showRoads);									// Show roads?
+		}
+	if (o.settings.match(/scale/)) {										// Scale tag
+		mps.showScale=(o.settings.match(/scale *on/i)) ? true : false		// Set flag
+		mps.ShowMapScale(mps.showScale);									// Show scale?
+		}
+	if (o.settings.match(/boxes/)) {										// boxes tag
+		mps.showBoxes=(o.settings.match(/boxes *on/i)) ? "on" : "off"		// Set flag
+		mps.ShowMapBoxes(-1,mps.showBoxes);									// Show boxes?
+		}
+
 	if (o.type == "boxes") {												// A boxes command
 		if ((o.status == "on") || (o.status == "off")) {					// If set on or off
 			mps.showBoxes=(o.status == "on");								// Set flag
 			mps.ShowMapBoxes(-1,o.status);									// Set boxes
-		}
+			}
 		return;																// Quit
 		}
 	else if (o.type == "info") {											// An info command
@@ -1122,9 +1137,9 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
  		}
  		
  	if (this.presentMode == "Book") {										// If book mode		
-    	str+="<tr><td colspan='2' align='center'><br>Go to page: <input size='3' style='font-size:xx-small' type='text' onchange='gotoBook(this.value)'></td></tr>";
+   		str+="<tr><td colspan='2' align='center'><br>Go to page: <input size='3' style='font-size:xx-small' type='text' onchange='gotoBook(this.value)'> &nbsp; <a href='javascript:gotoBook(\"0\")'>Index</a></td></tr>";
     	str+="<tr><td colspan='2' align='center'><i><br>Add the @ sign to match a map in a publication</i></td></tr><br><br>";
-		}
+ 		}
  	if (this.showTimeline)													// If showing timeline
  		$("#timeline").html(tim);											// Add timeline data
 	$("#contentShelf").html("</table>"+str);								// Add mobs
@@ -1212,6 +1227,21 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 					url+=vv[j]+",";											// Re-sum them up
 				url+=vv[j];													// Add last one
 				desc=desc.replace(RegExp(v[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&"))," <a href='javascript:mps.Goto(\""+url+"\")'>"+title+"</a> ");	// Replace with anchor tag
+				}
+			}
+		if (desc.match(/toc\(/)) {											// If an embedded toc
+			var t,vv,num;
+			v=(desc+" ").match(/toc\((.*?)\)/ig);							// Extract url(s)
+			for (i=0;i<v.length;++i) {										// For each url
+				t="";														// Clear string
+				vv=v[i].substring(4,v[i].length-1).split(",");				// Split by comma
+				vv[0]=mps.FindMobByID(vv[0]);								// Get mob from id
+				if (!i)	t="<br>";											// Add space to 1st
+				t+="<br>&nbsp; &nbsp; ";									// Add break
+				for (j=1;j<vv[1];++j)										// Add indent
+					t+="&nbsp; &nbsp; ";									// Add spaces
+				t+="<a href='javascript:mps.sh.HighlightMob(\"goto"+(vv[0]-num+1)+"\")'>"+mps.mobs[vv[0]].title+"</a>";	
+				desc=desc.replace(RegExp(v[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&")),t);	// Replace with anchor tag
 				}
 			}
 		if (desc.match(/foot\(/)) {											// If embedded footnotes
