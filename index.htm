@@ -87,8 +87,8 @@
 
 	function shivaEventHandler(e)										// ON SHIVA MESSAGE
 	{
-		if (e.data.indexOf("MPS-Load") == 0) {								// If load
-			var data=$.parseJSON(e.data.substr(9));							// String -> JSON
+		if (e.data.indexOf("MapEdit=data") == 0) {							// If load
+			var data=$.parseJSON(e.data.substr(13));						// String -> JSON
 			mps.InitProject("",data);										// Init project
 			}
 }

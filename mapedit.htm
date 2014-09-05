@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8" />
+	<link REL="SHORTCUT ICON" HREF="mapscholaricon.ico">
+	<title>MapScholar Editor</title>
+ 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>	
+	<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+	<script src="//www.qmediaplayer.com/qfile.js"></script>
+	<style type="text/css">
+		body { 			font-family:Verdana,Geneva,sans-serif; font-size:10px;}
+		.rounded-corners { -moz-border-radius:8px;-webkit-border-radius:8px;-khtml-border-radius:8px;border-radius:8px;}
+		tr.odd { 		background-color:#e0e0e0; }
+		td:focus {		outline:none;	}
+		select:focus {	outline:none;	}
+		.ui-autocomplete { max-height: 300px; overflow-y: auto; }
+	
+ 		.unselectable { -moz-user-select: none;     -khtml-user-select: none;
+		   			 	-webkit-user-select: none;  -ms-user-select: none;   user-select: none;
+		   				}
+ 	 	.player { 		display:inline-block;margin:0px;border:none;padding:0px;
+ 	 					}
+	 	.pane 	{ 		background-color:#f0f0f0;font-size:12px
+	 					}
+	 	.footer { 		margin:-1px;border-bottom-right-radius:4px;border-bottom-left-radius:4px; 
+	 					border:1px solid #999;background-color:#ddd;font-size:13px;
+	 					padding:0px;padding-top:4px;padding-bottom:4px;
+	 					display:inline-block;top:100%;width:100%;
+	 					}
+	 	.editor { 		border-radius:4px;border:1px solid #999;min-width:400px;
+	 					}
+		.butSty {		border-radius:10px;color:#333;cursor:pointer;
+						}
+ 		.ui-menu {     	overflow:hidden;border:none;font-size:13px;
+ 						border-radius:0px;border-bottom:1px solid #999;padding:0px !important;
+ 						}
+		.ui-menu > li { 				float: left;display: block;width: auto !important;}
+		.ui-menu ul {   				border:1px solid #999;border-radius:4px;padding-bottom:6px !important;}
+		.ui-menu ul li {   				display:block;float:none;border:none }
+		.ui-menu ul li ul {    			width:auto; left:96px !important; padding-top:5px !important;padding-bottom:5px !important;}
+		.ui-menu ul li ul li {    		width:auto !important; margin: 0px 5px !important; }
+		.ui-menu ul li ul li a {   	 	float:left; }
+		.ui-menu li {    				margin: 5px 5px !important; padding: 0 0 !important; }
+		.ui-menu > li > a {  			float:left;display:block;clear: both;overflow: hidden; }
+		.ui-menu .ui-menu-icon {     	display:none }
+		.ui-menu .ui-menu .ui-menu li { float:left;display:block; }	
+ 		.ui-menu .ui-menu { 		    overflow: visible !important; }
+		.bs {			border-radius:10px;padding-left:8px;padding-right:8px;padding-top:1px;
+						border:1px solid #999;font-size:12px;height;20px;
+						}
+		.is {			border-radius:10px;padding-left:8px;padding-right:8px;padding-top:1px;
+						border:1px solid #999;font-size:12px;height;20px;width:200px;
+						]
+
+ 	</style>
+</head>
+
+	<div id='playerDiv' class='unselectable' >
+		<iframe class="player" id="playerIF" src="index.htm" height="100%" scrolling="no"></iframe>
+	</div>
+	<div id="editDiv" class="editor unselectable" style="position:absolute;top:16px;z-index:4;display:hidden"> 
+		 <ul id="menu" style="margin:1px">
+		    <li id=""><a href="#">File</a><ul>
+				<li id="m11"><a  href="#">New</a></li>
+				<li id="m12"><a href="#">Open</a></li>
+				<li id="m13"><a href="#">Save</a></li>
+				<li id="m14"><a href="#">Save As...</a></li>
+				<li id="m15"><a href="#">Delete</a></li>
+				<li id="m16"><a href="#">Undelete</a></li>
+		   	</ul></li>
+		    <li id=""><a href="#">Edit</a><ul>
+				<li id="m21"><a href="#">Undo</a></li>
+	            <li id="m22"><a href="#">Bookmark&nbsp;an&nbsp;undo</a></li>
+		 		<li id="m23"><a href="#">JSON</a></il>
+			</ul></li>
+	 			<li id=""><a href="#">Content</a><ul>
+	                <li id="m31"><a href="#">Edit graphic content</a></li>
+	                <li id="m32"><a href="#">Edit transcript</a></li>
+	                <li id="m33"><a href="#">Edit index</a></li>
+	                <li id="m34"><a href="#">Edit assessments</a></li>
+	            </ul>
+			<li id="m4" ><a href="#">Settings</a><li>
+		</ul>
+		<div id="paneDiv" class="pane" style="width:100%;height:100%"></div> 
+		<div id="footerDiv" class="footer" style="position:absolute;width:100%">
+			<span id="showName"></span>
+			<a id='getHelp' href='https://docs.google.com/document/d/1hMjG_Df0ifMjbT3a9j_KVjieMllkY0J_5UInOlkQweE/edit?usp=sharing' 
+				target='_blank' style='text-decoration:none;position:absolute'>
+				<img src="img/helpicon.gif"></a>
+		</div>
+	</div>
+	<div id="playerSiz" style="position:absolute;top:0px;width:8px;cursor:col-resize;opacity:inherit;height:100%" class="unselectable" title="Resize player"></div>
+		
+<body>
+<script>
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		
+	var playerWid=1140;
+	var curShow="";																// Currently loaded show name
+	var curPane="intro";														// Current edit pane
+	var curJson={ };															// Holds current JSON
+	var qmf=null;																// File system
+	var butsty=" style='border-radius:10px;color#666;padding-left:12px;padding-right:12px;color:#222;background-color:#ccc;font-size:12px;' ";	// Button styling
+	var keyFlag="";																// Holds key flags												
+	var playerZoom=1;
+	
+	$(document).ready(function() {											// WHEN PAGE LOADED
+		if (window.addEventListener) 											// If supported this way
+			window.addEventListener("message",shivaEventHandler,false);			// Add event handler
+		else																	// Use other method
+			window.attachEvent("message",shivaEventHandler);					// Add handler
+
+		qmf=new QmediaFile("//qmediaplayer.com/",1);							// Alloc file system
+		NewShow();																// Init show
+		
+		var url=window.location.search.substring(1);							// Get query string
+		if (url && !isNaN(url)) 												// If a number
+			curShow=url;														// Save show number											
+//		else																	// No query
+			curShow=1;															// Load default show
+		
+		sessionStorage.clear();													// Reset undos
+		$("#menu" ).menu({ position:{my:"left top", at: "left top+40" }});		// Set menu
+		$("#menu").on("menuselect", function(event,ui) { 						// On menu select
+				var id=ui.item[0].id.substr(1);									// Get id
+				if (id)	Sound("click");											// Click
+				switch(id) {													// Route on id
+					case "11":	ConfirmBox("This will clear the project you current have open. It will not affect the one stored online",NewShow);
+								ChangePane("intro");	Preview();		break;	// New file
+					case "12":	ChangePane("intro");	qmf.Load(); 	break;	// Load file
+					case "13":	ChangePane("intro");	qmf.Save(0); 	break;	// Save file
+					case "14":	ChangePane("intro");	qmf.Save(1); 	break;	// Save as... 
+					case "15":	ChangePane("intro");	qmf.Delete(); 	break;	// Delete
+					case "16":	ChangePane("intro");	qmf.Delete(1); 	break;	// Undelete
+					case "21":	Undo();									break;	// Undo
+					case "22":	Do("bookmark");							break;	// Save bookmark
+					case "23":	ChangePane("json");						break;	// Edit JSON
+					case "31":	ChangePane("content");					break;	// Manage content
+					case "32": 	ChangePane("transcript");  				break;	// Transcript
+					case "33": 	ChangePane("index");  					break;	// Index 
+					case "34": 	ChangePane("assessment");  				break;	// Assessment content
+					case "4":	ChangePane("settings");					break;	// Edit settings
+					}
+			 	});
+		
+		Draw();
+		$(window).resize(function(e) { if (!e.target.id) Draw();	 } );		// Redraw on window resize		
+		qmf.LoadFile("qmf"+curShow);											// Load project
+		$("#editDiv").show();													// Show editor
+
+		$("#playerSiz").draggable({												// DRAG PLAYER WIDTH HANDLER
+			cursorAt:{left:-8},iframeFix:true,									// Cursor offset
+			cursor: "col-resize", axis:"x",										// X-only
+//			containment:[0,0,wid,0],
+			drag: function(event, ui) {											// On drag
+				var wid=playerWid;											// Copy width
+				if ((" "+playerWid).match("%"))								// If % in width
+					wid=$("body").width()*.66;									// Use 66%										
+			 	playerZoom=Math.max(0,Math.min(1,(event.clientX)/wid));			// Set ratio between windows
+				Draw();															// Resize panes
+				}
+			});
+		$("#playerSiz").hover(													// Player width
+			function(){ $(this).css("background-color","#acc3db")},				// Highlight
+			function(){ $(this).css("background-color","transparent")			// Hide
+		});
+
+	});	
+	
+	function NewShow() 														// NEW SHOW
+	{	
+		curShow=qmf.curFile="";													// Clear curshow
+		Preview();																// Preview
+		Draw();																	// Show curshow number as vlanml
+	}
+
+	function LoadShow(data)													// LOAD A SHOW
+	{
+ 		if (data.qmfmsg == "private") {											// If a private file		
+			AlertBox("Private project","Sorry, but this project is marked <i>private</i>. You will need to supply the password to load it");
+			return;																// Quit
+			}
+		else if (data.qmfmsg == "error") {										// If an error
+			AlertBox("Sorry, but there was an error loading this project");
+			return;																// Quit
+			}
+//  		curJson=data;															// Set json
+   		if (qmf.curFile)														// If a good file
+   			curShow=qmf.curFile;												// Set curshow
+  		Preview(); 																// Preview show
+   		Draw();																	// Redraw 
+   		Sound('ding'); 															// Ding
+    	}
+
+
+	function Preview()														// PREVIEW SHOW
+	{
+		Do();																	// Save for undo
+		if (curPane == "settings") 												// If current pane Settings
+			Draw();																// Redraw frame because width may be reset
+		Sound("click");															// Click
+		SendShivaMessage("MapEdit=data",JSON.stringify(curJson));				// Send to show player	   		
+    	}
+   	
+ curJson=[
+   {
+      "id": 101,
+      "type": "chapter",
+      "title": "Imagining Carolina maps",
+      "desc": "",
+      "tags": "",
+      "small": "",
+      "med": "",
+      "url": "",
+      "status": "open",
+      "start": null,
+      "end": "",
+      "citation": "",
+      "author": "Max",
+      "north": null,
+      "south": null,
+      "east": null,
+      "west": null,
+      "rotation": "",
+      "goto": "34.7536,-79.9633,5355055,0,0",
+      "base": "",
+      "alt": "",
+      "pagenum": "",
+      "prompt": ""
+   },
+   {
+      "id": 102,
+      "type": "map",
+      "title": "La Floride Francoise",
+      "desc": "La Floride Francoise",
+      "tags": "Imagining Carolina",
+      "small": "http://farm9.staticflickr.com/8019/7310697988_18eb47c466_m.jpg",
+      "med": "http://farm9.staticflickr.com/8019/7310697988_18eb47c466_z.jpg",
+      "url": "http://farm9.staticflickr.com/8019/7310697988_08d33c75b3_o.jpg",
+      "status": "",
+      "start": 1665,
+      "end": "",
+      "citation": "P[ierre] Duval, La Floride Francoise ([Paris, 1665?]).  From Florida Map Collection, USF Digital Collections, http://digital.lib.usf.edu/?u15.9042. Cumming, 158; Burden I, 485-486.",
+      "author": "Max",
+      "north": 32.746269,
+      "south": 31.756859,
+      "east": -80.332589,
+      "west": -81.998319,
+      "rotation": "0",
+      "goto": "32.2359,-81.2021,173510,0,0.13",
+      "base": "",
+      "alt": "",
+      "pagenum": "",
+      "prompt": "Floride:| a good example  of a seventeenth century early American map."
+   },
+   {
+      "id": 103,
+      "type": "link",
+      "title": "Test for Bob",
+      "desc": "The south part of Virginia, now the north part of Carolina",
+      "tags": "Imagining Carolina",
+      "small": "",
+      "med": "",
+      "url": "http://www.viseyes.org/shiva/go.htm?e=404",
+      "status": "",
+      "start": 1657,
+      "end": "",
+      "citation": "Nicolas Comberford, ?The south part of Virginia, now the north part of Carolina? (1657). Manuscripts and Archives Division, New York Public Library. NYPL Digital Gallery, http://digitalgallery.nypl.org/nypldigital/id?ps_mss_cd18_271. Cumming, 152-154.",
+      "author": "Max",
+      "north": 37.075176,
+      "south": 34.005826,
+      "east": -74.850946,
+      "west": -77.635333,
+      "rotation": "0",
+      "goto": "",
+      "base": "",
+      "alt": "",
+      "pagenum": "",
+      "prompt": "Nicolas Comberford:| The south part of Virginia"
+   }
+];
+  	
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// EDIT PANES
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	function ChangePane(newPane) 											// CHANGE EDIT PANE
+	{	
+		curPane=newPane;														// Set current pane
+		Draw();																	// Redraw
+	}
+	
+	function Draw()															// RESIZE PANES
+	{ 
+		var str;
+		var wid=playerWid;													// Copy width
+		if ((" "+playerWid).match("%"))										// If % in width
+			wid=$("body").width()*.66;											// Use 66%										
+		var w=window.innerWidth-(wid*playerZoom)-32;							// Editor width
+		var h=window.innerHeight-64;											// Editor height
+		$("#playerIF").prop("width",wid);										// Player wid
+		$("#playerIF").prop("height",h+40);										// Hgt
+		$("#editDiv").css({width:w+"px",left:wid*playerZoom+16+"px",height:h+"px"}); // Overall div
+		$("#getHelp").css({left:w-24+"px"});									// Help dot to right
+	
+		$("#showName").html("&nbsp; Current show: <b>"+curShow+"</b>");			// Show name
+		if (curPane == "json") {												// Editing pane
+			str="<textarea id='jsonEditor' style='width:"+(w-32)+"px;height:"+(h-55)+"px;border:none;font-size:13px;padding:16px;background-color:#f8f8f8'>"+JSON.stringify(curJson,null,'\t')+"</textarea></div>";
+			$("#paneDiv").html(str);											// Put editor up	
+			}
+		else if (curPane == "intro") {											// Startup pane
+			str="<br><br><p style='text-align:center'><img src='img/MapScholarLogo.png'></p>";	// Image
+			$("#paneDiv").html(str);											// Put editor up	
+			}
+		else if (curPane == "content") 		ContentEditPane();					// Content pane
+		else if (curPane == "index") 		IndexEditPane();					// Index pane
+		else if (curPane == "transcript")   TranscriptEditPane();				// Transcript pane
+		else if (curPane == "settings")  	SettingsEditPane();					// Settings pane
+		else if (curPane == "assessment") 	AssessmentEditPane();				// Assessment pane
+
+		$("#playerDiv").css({	"-webkit-transform-origin":"0 0", 				// Scale player window
+				"transform-origin":"0 0",			
+				"-webkit-transform":"matrix("+playerZoom+",0,0,"+playerZoom+",0,0)",
+	 			"-transform":"matrix("+playerZoom+",0,0,"+playerZoom+",0,0)",
+	   			});
+		var wid=playerWid;													// Copy width
+		if ((" "+playerWid).match("%"))										// If % in width
+			wid=$("body").width()*.66;											// Use 66%										
+		$("#playerSiz").css({ left:(wid*playerZoom+8)+"px"});					// Set sizer pos
+	}
+
+
+///////////// SETTINGS ////////////////
+
+
+	function SettingsEditPane()											// SETTINGS EDITOR
+	{
+		curEdit=-1;																// Clear
+		var h=$("#paneDiv").height()-220;										// Max height
+		var str="<div style='padding:12px'><br>"								// Container div
+		str+="<div style='font-size:36px;color:#999'><b>Settings</b></div>"		// Title
+		str+="<br><br><div style='width:360px;max-height:"+h+"px;overflow-y:auto;background-color:#f8f8f8;padding:8px;border:1px solid #999;border-radius:8px'>";		// Scrollable container
+		str+="<table id='settingsTable' style='font-size:11px;padding:0px;border-collapse:collapse;'>";	// Add table
+		str+="<tr><td colspan=3><b>General<b></td></tr>";						// Heading
+		str+="<tr><td colspan=3><hr></td></tr>";								// Rule
+		str+="<tr><td width=18></td><td>Title</td><td><input class='bs' type='text' id='title' value='"+(curJson.title ? curJson.title :'')+"'></td></tr>";	// Get setting
+		str+="<tr><td></td><td>Overall width</td><td><input class='bs' type='text' id='width' value='"+playerWid+"'></td></tr>";	// Get setting
+		str+="<tr><td></td><td>InfoMap source</td><td><input class='bs' type='text' id='infoMapSource' value='"+(curJson.infoMapSource ? curJson.infoMapSource : '')+"'></td></tr>";	// Get setting
+		str+="<tr><td></td><td>External CSS stylesheet</td><td><input class='bs' type='text' id='extCSS' value='"+(curJson.extCSS ? curJson.extCSS : '')+"'></td></tr>";	// Get setting
+		str+="<tr><td></td><td>Transcript pane label</td><td><input class='bs' type='text' id='transLab' value='"+(curJson.transLab ? curJson.transLab : '')+"'></td></tr>";	// Get setting
+		str+="<tr><td></td><td>Information pane label</td><td><input class='bs' type='text' id='infoLab' value='"+(curJson.infoLab ? curJson.infoLab : '')+"'></td></tr>";	// Get setting
+		str+="<tr><td></td><td>Index pane label</td><td><input class='bs' type='text' id='contentsLab' value='"+(curJson.contentsLab ? curJson.contentsLab : '' )+"'></td></tr>";	// Get setting
+		str+="<tr><td></td><td>Play when index clicked?</td><td>"+MakeSelect("contentsPlayOnClick",false,["true","false"],curJson.contentsPlayOnClick)+"</td></tr>";	// Get setting
+		str+="<tr><td></td><td>Require user login?</td><td>"+MakeSelect("logIn",false,["true","false"],curJson.logIn ? curJson.logIn : 'false' )+"</td></tr>";	// Get setting
+		str+="<tr><td></td><td>Lower panel height</td><td><input class='bs' type='text' id='transHgt' value='"+(curJson.transHgt ? curJson.transHgt : '')+"'></td></tr>";	// Get setting
+		str+="<tr><td colspan=3><b><br>Player<b></td></tr>";					// Heading
+		str+="<tr><td colspan=3><hr></td></tr>";								// Rule
+		str+="<tr><td></td><td>Media source (Id or URL)</td><td><input class='bs' type='text' id='playerSource' value='"+(curJson.playerSource ? curJson.playerSource : '')+"'></td></tr>";	// Get setting
+		str+="<tr><td></td><td>Start time (seconds)</td><td><input class='bs' type='text' id='playerStart' value='"+(curJson.playerStart ? curJson.playerStart : 0)+"'></td></tr>";	// Get setting
+		str+="<tr><td></td><td>Stop time (seconds)</td><td><input class='bs' type='text' id='playerStop' value='"+(curJson.playerStop ? curJson.playerStop : 600)+"'></td></tr>";	// Get setting
+		str+="<tr><td></td><td>Media aspect ratio (0-1)</td><td><input class='bs' type='text' id='playerAspect' value='"+(curJson.playerAspect ? curJson.playerAspect : '')+"'></td></tr>";	// Get setting
+		str+="<tr><td></td><td>Initial slide/player ratio (0-1)</td><td><input class='bs' type='text' id='playerSlideRatio' value='"+(curJson.playerSlideRatio ? curJson.playerSlideRatio : '')+"'></td></tr>";	// Get setting
+		str+="<tr><td></td><td>Initial volume (0-100)</td><td><input class='bs' type='text' id='playerVolume' value='"+(curJson.playerVolume ? curJson.playerVolume : "")+"'></td></tr>";	// Get setting
+		str+="<tr><td></td><td>Auto start</td><td>"+MakeSelect("playerAuto",false,["true","false"],curJson.playerAuto)+"</td></tr>";	// Get setting
+		str+="<tr><td></td><td>Show native controls</td><td>"+MakeSelect("playerControls",false,["true","false"],curJson.playerControls)+"</td></tr>";	// Get setting
+		str+="<tr><td></td><td>Quality</td><td>"+MakeSelect("playerQuality",false,["Default","Good","Better","Best"],curJson.playerQuality)+"</td></tr>";	// Get setting
+		str+="<tr><td colspan=3><b><br>Transcript<b></td></tr>";					// Heading
+		str+="<tr><td colspan=3><hr></td></tr>";								// Rule
+		str+="<tr><td></td><td>Initial trans/info ratio (0-1)</td><td><input class='bs' type='text' id='transInfoRatio' value='"+(curJson.transInfoRatio ? curJson.transInfoRatio : '')+"'></td></tr>";	// Get setting
+		str+="<tr><td></td><td>Initial language</td><td><input class='bs' type='text' id='transLanguage' value='"+(curJson.transLanguage ? curJson.transLanguage : '')+"'></td></tr>";	// Get setting
+		str+="<tr><td></td><td>Languages</td><td><input class='bs' type='text' id='transLangs' value='"+(curJson.transLangs ? curJson.transLangs : '')+"'></td></tr>";	// Get setting
+		str+="</table></div><br>";												// End table
+		str+="&nbsp;&nbsp;<button"+butsty+"onclick='Preview()'>Preview</button>";	// Preview button
+		$("#paneDiv").html(str+"</div>");										// Put editor up	
+		
+		$("#title").on("change", function() { curJson.title=$(this).val(); });					// Extract value	
+		$("#width").on("change", function() { playerWid=$(this).val(); });					// Extract value	
+		$("#infoMapSource").on("change", function() { curJson.infoMapSource=$(this).val(); });	// Extract value	
+		$("#extCSS").on("change", function() { curJson.extCSS=$(this).val(); });				// Extract value	
+		$("#transLab").on("change", function() { curJson.transLab=$(this).val(); });			// Extract value	
+		$("#infoLab").on("change", function() { curJson.infoLab=$(this).val(); });				// Extract value	
+		$("#contentsLab").on("change", function() { curJson.contentsLab=$(this).val(); });		// Extract value	
+		$("#transLab").on("change", function() { curJson.transLab=$(this).val(); });			// Extract value	
+		$("#contentsPlayOnClick").on("change", function() { curJson.contentsPlayOnClick=$(this).val(); });	// Extract value	
+		$("#logIn").on("change", function() { curJson.logIn=$(this).val(); });					// Extract value	
+		$("#playerSource").on("change", function() { curJson.playerSource=$(this).val(); });	// Extract value	
+		$("#playerStart").on("change", function() { curJson.playerStart=$(this).val(); });		// Extract value	
+		$("#playerStop").on("change", function() { curJson.playerStop=$(this).val(); });		// Extract value	
+		$("#playerAspect").on("change", function() { curJson.playerAspect=$(this).val(); });	// Extract value	
+		$("#playerSlideRatio").on("change", function() { curJson.playerSlideRatio=$(this).val(); });	// Extract value	
+		$("#playerControls").on("change", function() { curJson.playerControls=$(this).val(); });// Extract value	
+		$("#playerAuto").on("change", function() { curJson.playerAuto=$(this).val(); });		// Extract value	
+		$("#playerVolume").on("change", function() { curJson.playerVolume=$(this).val(); });	// Extract value	
+		$("#playerQuality").on("change", function() { curJson.playerQuality=$(this).val(); });	// Extract value	
+		$("#transInfoRatio").on("change", function() { curJson.transInfoRatio=$(this).val(); });// Extract value	
+		$("#transHgt").on("change", function() { curJson.transHgt=$(this).val(); });			// Extract value	
+		$("#transLanguage").on("change", function() { curJson.transLanguage=$(this).val(); });	// Extract value	
+		$("#transLangs").on("change", function() { curJson.transLangs=$(this).val(); });		// Extract value	
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// EVENTS
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	
+	function shivaEventHandler(e)											// ON SHIVA EVENT
+	{
+			trace(e.data);
+	}	
+
+	function SendShivaMessage(cmd, msg) 									// SEND SHIVA MESSAGE 
+	{
+		var str=cmd;															// Add src					
+		if (msg)																// If more to it
+			str+="|"+msg;														// Add it
+		var win=document.getElementById("playerIF").contentWindow;				// Point at iframe	
+		win.postMessage(str,"*");												// Send message to show
+	}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// HELPERS
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	function MakeSelect(id, multi, items, sel, extra, values)				// CREATE SELECT WIDGET
+	{
+		var	str="<select class='bs' id='"+id+"'";
+		if (multi)
+			str+="multiple='multiple' size='"+multi+"'";
+		if (extra)
+			str+=extra;
+		str+=">";
+		for (i=0;i<items.length;++i) {
+			str+="<option";
+			if (sel == items[i])
+				str+=" selected='selected'"
+			if (values && values[i])
+				str+=" value='"+values[i]+"'";
+			str+=">"+items[i]+"</option>";
+			}	
+		return str+"</select>"
+	}
+	
+	
+</script>
+</body></html>
