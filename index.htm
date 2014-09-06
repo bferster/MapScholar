@@ -77,11 +77,13 @@
 			}
 		else{																// An id
 			url=url.split("?")[0];											// Lop off unique
-			url="//qmediaplayer.com/loadshow.php?id="+url;					// Get from db
-			$.ajax({ url: url, dataType:'jsonp' });							// Get jsonp and call LoadShow() from it
+			if (!isNaN(url)) {												// If a number
+				url="//qmediaplayer.com/loadshow.php?id="+url;				// Get from db
+				$.ajax({ url: url, dataType:'jsonp' });						// Get jsonp and call LoadShow() from it
+				}
+			}
 		}
-	}
-	
+		
      $(document).ready(function() {										// ON JQUERY LOADED
 		mps=new MapScholar();												// Main object
 		if (window.addEventListener) 										// WC3	
@@ -97,12 +99,11 @@
 		mps.AddMapBoxes();													// Add boxes
 	}		
 	
-		function shivaEventHandler(e)										// ON SHIVA MESSAGE
+	function shivaEventHandler(e)										// ON SHIVA MESSAGE
 	{
-		if (e.data.indexOf("MapEdit=data") == 0) {							// If load
+		if (e.data.indexOf("MapEdit=data") == 0)							// If load
 			LoadShow($.parseJSON(e.data.substr(13)));						// String -> JSON
-		}
-}
+	}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // MAIN 
