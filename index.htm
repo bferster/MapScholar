@@ -71,8 +71,7 @@
 					alert("Problem loading spreadsheet! Make sure it is shared to the public and the url is correct");
 					return;
 					}
-				mps.InitProject("",data);									// Init project from file
-				mps.AddMapBoxes();											// Add boxes
+				LoadShow(data);												// Init project
 				},false,true);												// No headers and send errors
 			}
 		else{																// An id
