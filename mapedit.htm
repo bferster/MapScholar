@@ -90,7 +90,7 @@
 				<img src="img/helpicon.gif"></a>
 		</div>
 	</div>
-	<div id="playerSiz" style="position:absolute;top:0px;width:8px;cursor:col-resize;opacity:inherit;height:100%" class="unselectable" title="Resize player"></div>
+	<div id="playerSiz" style="position:absolute;top:0px;width:8px;cursor:col-resize;opacity:inherit;height:100%;z-index:100" class="unselectable" title="Resize player"></div>
 		
 <body>
 <script>
@@ -100,7 +100,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		
 	var playerWid=1140;
-	var curShow="";																// Currently loaded show name
+	var curShow="None";															// Currently loaded show name
 	var curPane="intro";														// Current edit pane
 	var curJson={ };															// Holds current JSON
 	var qmf=null;																// File system
@@ -120,9 +120,6 @@
 		var url=window.location.search.substring(1);							// Get query string
 		if (url && !isNaN(url)) 												// If a number
 			curShow=url;														// Save show number											
-//		else																	// No query
-			curShow=1;															// Load default show
-		
 		sessionStorage.clear();													// Reset undos
 		$("#menu" ).menu({ position:{my:"left top", at: "left top+40" }});		// Set menu
 		$("#menu").on("menuselect", function(event,ui) { 						// On menu select
@@ -149,18 +146,14 @@
 		
 		Draw();
 		$(window).resize(function(e) { if (!e.target.id) Draw();	 } );		// Redraw on window resize		
-		qmf.LoadFile("qmf"+curShow);											// Load project
 		$("#editDiv").show();													// Show editor
 
 		$("#playerSiz").draggable({												// DRAG PLAYER WIDTH HANDLER
 			cursorAt:{left:-8},iframeFix:true,									// Cursor offset
 			cursor: "col-resize", axis:"x",										// X-only
-//			containment:[0,0,wid,0],
+			stop: function(event, ui) {	Draw(); },								// On stop resize panes
 			drag: function(event, ui) {											// On drag
-				var wid=playerWid;											// Copy width
-				if ((" "+playerWid).match("%"))								// If % in width
-					wid=$("body").width()*.66;									// Use 66%										
-			 	playerZoom=Math.max(0,Math.min(1,(event.clientX)/wid));			// Set ratio between windows
+			 	playerZoom=Math.max(0,Math.min(1,(event.clientX)/playerWid));	// Set ratio between windows
 				Draw();															// Resize panes
 				}
 			});
@@ -174,7 +167,8 @@
 	function NewShow() 														// NEW SHOW
 	{	
 		curShow=qmf.curFile="";													// Clear curshow
-		Preview();																// Preview
+		curJson=[ { "id": 0, "type": "startup", "title": "Untitled" } ];		// Add startup mob
+ 		Preview();																// Preview
 		Draw();																	// Show curshow number as vlanml
 	}
 
@@ -188,7 +182,7 @@
 			AlertBox("Sorry, but there was an error loading this project");
 			return;																// Quit
 			}
-//  		curJson=data;															// Set json
+ 		curJson=data;															// Set json
    		if (qmf.curFile)														// If a good file
    			curShow=qmf.curFile;												// Set curshow
   		Preview(); 																// Preview show
@@ -205,85 +199,7 @@
 		Sound("click");															// Click
 		SendShivaMessage("MapEdit=data",JSON.stringify(curJson));				// Send to show player	   		
     	}
-   	
- curJson=[
-   {
-      "id": 101,
-      "type": "chapter",
-      "title": "Imagining Carolina maps",
-      "desc": "",
-      "tags": "",
-      "small": "",
-      "med": "",
-      "url": "",
-      "status": "open",
-      "start": null,
-      "end": "",
-      "citation": "",
-      "author": "Max",
-      "north": null,
-      "south": null,
-      "east": null,
-      "west": null,
-      "rotation": "",
-      "goto": "34.7536,-79.9633,5355055,0,0",
-      "base": "",
-      "alt": "",
-      "pagenum": "",
-      "prompt": ""
-   },
-   {
-      "id": 102,
-      "type": "map",
-      "title": "La Floride Francoise",
-      "desc": "La Floride Francoise",
-      "tags": "Imagining Carolina",
-      "small": "http://farm9.staticflickr.com/8019/7310697988_18eb47c466_m.jpg",
-      "med": "http://farm9.staticflickr.com/8019/7310697988_18eb47c466_z.jpg",
-      "url": "http://farm9.staticflickr.com/8019/7310697988_08d33c75b3_o.jpg",
-      "status": "",
-      "start": 1665,
-      "end": "",
-      "citation": "P[ierre] Duval, La Floride Francoise ([Paris, 1665?]).  From Florida Map Collection, USF Digital Collections, http://digital.lib.usf.edu/?u15.9042. Cumming, 158; Burden I, 485-486.",
-      "author": "Max",
-      "north": 32.746269,
-      "south": 31.756859,
-      "east": -80.332589,
-      "west": -81.998319,
-      "rotation": "0",
-      "goto": "32.2359,-81.2021,173510,0,0.13",
-      "base": "",
-      "alt": "",
-      "pagenum": "",
-      "prompt": "Floride:| a good example  of a seventeenth century early American map."
-   },
-   {
-      "id": 103,
-      "type": "link",
-      "title": "Test for Bob",
-      "desc": "The south part of Virginia, now the north part of Carolina",
-      "tags": "Imagining Carolina",
-      "small": "",
-      "med": "",
-      "url": "http://www.viseyes.org/shiva/go.htm?e=404",
-      "status": "",
-      "start": 1657,
-      "end": "",
-      "citation": "Nicolas Comberford, ?The south part of Virginia, now the north part of Carolina? (1657). Manuscripts and Archives Division, New York Public Library. NYPL Digital Gallery, http://digitalgallery.nypl.org/nypldigital/id?ps_mss_cd18_271. Cumming, 152-154.",
-      "author": "Max",
-      "north": 37.075176,
-      "south": 34.005826,
-      "east": -74.850946,
-      "west": -77.635333,
-      "rotation": "0",
-      "goto": "",
-      "base": "",
-      "alt": "",
-      "pagenum": "",
-      "prompt": "Nicolas Comberford:| The south part of Virginia"
-   }
-];
-  	
+   	  	
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // EDIT PANES
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -327,10 +243,8 @@
 				"-webkit-transform":"matrix("+playerZoom+",0,0,"+playerZoom+",0,0)",
 	 			"-transform":"matrix("+playerZoom+",0,0,"+playerZoom+",0,0)",
 	   			});
-		var wid=playerWid;													// Copy width
-		if ((" "+playerWid).match("%"))										// If % in width
-			wid=$("body").width()*.66;											// Use 66%										
-		$("#playerSiz").css({ left:(wid*playerZoom+8)+"px"});					// Set sizer pos
+
+		$("#playerSiz").css({ left:(playerWid*playerZoom+8)+"px"});				// Set sizer pos
 	}
 
 
@@ -347,7 +261,7 @@
 		str+="<table id='settingsTable' style='font-size:11px;padding:0px;border-collapse:collapse;'>";	// Add table
 		str+="<tr><td colspan=3><b>General<b></td></tr>";						// Heading
 		str+="<tr><td colspan=3><hr></td></tr>";								// Rule
-		str+="<tr><td width=18></td><td>Title</td><td><input class='bs' type='text' id='title' value='"+(curJson.title ? curJson.title :'')+"'></td></tr>";	// Get setting
+		str+="<tr><td width=18></td><td>Title</td><td><input class='bs' type='text' id='title' value='"+(curJson[0].title ? curJson[0].title :'')+"'></td></tr>";	// Get setting
 		str+="<tr><td></td><td>Overall width</td><td><input class='bs' type='text' id='width' value='"+playerWid+"'></td></tr>";	// Get setting
 		str+="<tr><td></td><td>InfoMap source</td><td><input class='bs' type='text' id='infoMapSource' value='"+(curJson.infoMapSource ? curJson.infoMapSource : '')+"'></td></tr>";	// Get setting
 		str+="<tr><td></td><td>External CSS stylesheet</td><td><input class='bs' type='text' id='extCSS' value='"+(curJson.extCSS ? curJson.extCSS : '')+"'></td></tr>";	// Get setting

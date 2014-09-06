@@ -34,7 +34,7 @@
 <body>
 		<div id="containerDiv" style="position:absolute;width:900px;height:600px;left:20px;top:20px;"></div>
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> 
-			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>9/2/14</p>
+			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>9/6/14</p>
 			</div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
@@ -75,6 +75,11 @@
 				mps.AddMapBoxes();											// Add boxes
 				},false,true);												// No headers and send errors
 			}
+		else{																// An id
+			url=url.split("?")[0];											// Lop off unique
+			url="//qmediaplayer.com/loadshow.php?id="+url;					// Get from db
+			$.ajax({ url: url, dataType:'jsonp' });							// Get jsonp and call LoadShow() from it
+		}
 	}
 	
      $(document).ready(function() {										// ON JQUERY LOADED
@@ -85,12 +90,18 @@
 			window.attachEvent("message",shivaEventHandler);				// Add listener	
 		});
 
-	function shivaEventHandler(e)										// ON SHIVA MESSAGE
+	
+	function LoadShow(data)												// ON QMF CALL
+	{
+		mps.InitProject("",data);											// Init project
+		mps.AddMapBoxes();													// Add boxes
+	}		
+	
+		function shivaEventHandler(e)										// ON SHIVA MESSAGE
 	{
 		if (e.data.indexOf("MapEdit=data") == 0) {							// If load
-			var data=$.parseJSON(e.data.substr(13));						// String -> JSON
-			mps.InitProject("",data);										// Init project
-			}
+			LoadShow($.parseJSON(e.data.substr(13)));						// String -> JSON
+		}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,7 +152,7 @@ MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT
 		this.dr.DrawControlBar(false);										// Draw control bar and shelf
 		o=this.mobs[0];														// Point at 1st mob
 		this.Goto(o.goto);													// Go to 1st pos
-		if (o.type == "boxes") {											// If opening on a boxes mob
+		if ((o.type == "boxes") || (o.type == "startup")) {					// Startup mob
 			if (o.status.match(/book/i))									// If book
 				this.sh.PresentView({value:"Book"});						// Reset view
 			else if (o.status.match(/slides/i))								// If slides
@@ -881,7 +892,10 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 			}
 	}
 
-	if (o.type == "boxes") {												// A boxes command
+	if (o.type == "startup") {												// A startup command
+		return;																// Quit
+		}
+	else if (o.type == "boxes") {											// A boxes command
 		if ((o.status == "on") || (o.status == "off")) {					// If set on or off
 			mps.showBoxes=(o.status == "on");								// Set flag
 			mps.ShowMapBoxes(-1,o.status);									// Set boxes
@@ -1270,7 +1284,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 		var str=""
 		var pic="";															// Assume no pic
 		var o=mps.mobs[num];      											// Point at mob
-		if ((o.type == "boxes") || (o.type == "timeline")|| (o.type == "page"))	// If not displayable
+		if ((o.type == "boxes") || (o.type == "timeline")|| (o.type == "page") || (o.type == "startup"))	// If not displayable
 			return str;														// Don't show it
 		if ((o.type == "chapter") || (o.type == "header")) {				// A header													
 			str+="<tr id='heading"+i+"' valign='top' height='30'><td colspan='2'><div class='"+o.type+"bar'>"; // Start
