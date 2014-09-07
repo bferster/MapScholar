@@ -30,6 +30,7 @@
 		   			  -webkit-user-select: none;  -ms-user-select: none;   user-select: none;
 		   			 }
 	</style>
+	
 </head>
 <body>
 		<div id="containerDiv" style="position:absolute;width:900px;height:600px;left:20px;top:20px;"></div>
@@ -103,6 +104,18 @@
 		if (e.data.indexOf("MapEdit=data") == 0)							// If load
 			LoadShow($.parseJSON(e.data.substr(13)));						// String -> JSON
 	}
+
+	function SendShivaMessage(src, msg) 								// SEND SHIVA MESSAGE 
+	{
+		var str=src+"|show";												// Add src and window						
+		if (msg)															// If more to it
+			str+="|"+msg;													// Add it
+		if (window.parent)													// If has a parent
+			window.parent.postMessage(str,"*");								// Send message to parent wind
+		else																// Local	
+			window.postMessage(str,"*");									// Send message to wind
+	}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // MAIN 
@@ -1479,6 +1492,7 @@ MapScholar_Shelf.prototype.PresentView=function(select)					// PRESENTATION MODE
 		this.DrawInfoPanel("show");											// Show it
 	else																	// Other node
 		this.DrawInfoPanel("close");										// Close panel
+	SendShivaMessage("MapScholar=resize",$("#controlBarDiv").width()+$("#shelfDiv").width());	// Send that size may have changed
 }	
 	
 

@@ -8,6 +8,8 @@
 	<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
 	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 	<script src="//www.qmediaplayer.com/qfile.js"></script>
+	<script src="ckeditor/ckeditor.js"></script>
+
 	<style type="text/css">
 		body { 			font-family:Verdana,Geneva,sans-serif; font-size:10px;}
 		.rounded-corners { -moz-border-radius:8px;-webkit-border-radius:8px;-khtml-border-radius:8px;border-radius:8px;}
@@ -74,13 +76,13 @@
 	            <li id="m22"><a href="#">Bookmark&nbsp;an&nbsp;undo</a></li>
 		 		<li id="m23"><a href="#">JSON</a></il>
 			</ul></li>
-	 			<li id=""><a href="#">Content</a><ul>
-	                <li id="m31"><a href="#">Edit graphic content</a></li>
-	                <li id="m32"><a href="#">Edit transcript</a></li>
-	                <li id="m33"><a href="#">Edit index</a></li>
-	                <li id="m34"><a href="#">Edit assessments</a></li>
-	            </ul>
-			<li id="m4" ><a href="#">Settings</a><li>
+	 			<li id=""><a href="#">Mobs</a><ul>
+	                <li id="m31"><a href="#">Add new mob</a></li>
+					<li id="m32" ><a href="#">Startup settings</a><li>
+		   </ul></li>
+	 			<li id=""><a href="#">Pages</a><ul>
+	                <li id="m41"><a href="#">Add new page</a></li>
+		   </ul></li>
 		</ul>
 		<div id="paneDiv" class="pane" style="width:100%;height:100%"></div> 
 		<div id="footerDiv" class="footer" style="position:absolute;width:100%">
@@ -99,7 +101,7 @@
 // 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		
-	var playerWid=1140;
+	var playerWid=1130;
 	var curShow="None";															// Currently loaded show name
 	var curPane="intro";														// Current edit pane
 	var curJson={ };															// Holds current JSON
@@ -136,11 +138,10 @@
 					case "21":	Undo();									break;	// Undo
 					case "22":	Do("bookmark");							break;	// Save bookmark
 					case "23":	ChangePane("json");						break;	// Edit JSON
-					case "31":	ChangePane("content");					break;	// Manage content
-					case "32": 	ChangePane("transcript");  				break;	// Transcript
-					case "33": 	ChangePane("index");  					break;	// Index 
-					case "34": 	ChangePane("assessment");  				break;	// Assessment content
-					case "4":	ChangePane("settings");					break;	// Edit settings
+					case "23":	ChangePane("html");						break;	// Edit HTML
+					case "31":	ChangePane("addmob");					break;	// Manage content
+					case "32": 	ChangePane("settings");  				break;	// Transcript
+					case "41": 	ChangePane("addpage");  				break;	// Index 
 					}
 			 	});
 		
@@ -190,7 +191,6 @@
    		Sound('ding'); 															// Ding
     	}
 
-
 	function Preview()														// PREVIEW SHOW
 	{
 		Do();																	// Save for undo
@@ -231,12 +231,10 @@
 		else if (curPane == "intro") {											// Startup pane
 			str="<br><br><p style='text-align:center'><img src='img/MapScholarLogo.png'></p>";	// Image
 			$("#paneDiv").html(str);											// Put editor up	
+
 			}
-		else if (curPane == "content") 		ContentEditPane();					// Content pane
-		else if (curPane == "index") 		IndexEditPane();					// Index pane
-		else if (curPane == "transcript")   TranscriptEditPane();				// Transcript pane
 		else if (curPane == "settings")  	SettingsEditPane();					// Settings pane
-		else if (curPane == "assessment") 	AssessmentEditPane();				// Assessment pane
+		else if (curPane == "addpage")  	PageEditor();						// Add page pane
 
 		$("#playerDiv").css({	"-webkit-transform-origin":"0 0", 				// Scale player window
 				"transform-origin":"0 0",			
@@ -247,6 +245,17 @@
 		$("#playerSiz").css({ left:(playerWid*playerZoom+8)+"px"});				// Set sizer pos
 	}
 
+	function PageEditor()													// PAGE EDITOR
+	{
+		var h=$("#paneDiv").height()-220;										// Max height
+		var str="<div style='padding:12px'><br>"								// Container div
+		str+="<div style='font-size:36px;color:#999'><b>Edit page</b></div>"	// Title
+		str+="<br><br><div style='width:360px;max-height:"+h+"px;overflow-y:auto;background-color:#f8f8f8;padding:8px;border:1px solid #999;border-radius:8px'>";		// Scrollable container
+		str+="<textarea class='ckeditor' id='editor1' name='editor1' rows='40' cols='20'></textarea><br>";
+		str+="&nbsp;&nbsp;<button"+butsty+"onclick='Preview()'>Preview</button>";	// Preview button
+		$("#paneDiv").html(str+"</div>");										// Put editor up	
+		CKEDITOR.inline($("#editor1")[0]);
+	}
 
 ///////////// SETTINGS ////////////////
 
@@ -256,7 +265,7 @@
 		curEdit=-1;																// Clear
 		var h=$("#paneDiv").height()-220;										// Max height
 		var str="<div style='padding:12px'><br>"								// Container div
-		str+="<div style='font-size:36px;color:#999'><b>Settings</b></div>"		// Title
+		str+="<div style='font-size:36px;color:#999'><b>Startup</b></div>"		// Title
 		str+="<br><br><div style='width:360px;max-height:"+h+"px;overflow-y:auto;background-color:#f8f8f8;padding:8px;border:1px solid #999;border-radius:8px'>";		// Scrollable container
 		str+="<table id='settingsTable' style='font-size:11px;padding:0px;border-collapse:collapse;'>";	// Add table
 		str+="<tr><td colspan=3><b>General<b></td></tr>";						// Heading
@@ -323,7 +332,11 @@
 	
 	function shivaEventHandler(e)											// ON SHIVA EVENT
 	{
-			trace(e.data);
+	//	trace(e.data);
+		if (e.data.match(/MapScholar=resize/))	{								// If a resize
+			playerWid=e.data.split("|")[2]-0;									// Isolate it
+			Draw();																// Redraw
+			}
 	}	
 
 	function SendShivaMessage(cmd, msg) 									// SEND SHIVA MESSAGE 
