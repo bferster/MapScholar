@@ -206,6 +206,10 @@
 
 	function ChangePane(newPane) 											// CHANGE EDIT PANE
 	{	
+		if (curPane == "json") {												// If current pane is JSON editor
+			var str=$("#jsonEditor").val();										// Get script
+			curJson=$.parseJSON(str);											// Get editor contents
+			}
 		curPane=newPane;														// Set current pane
 		Draw();																	// Redraw
 	}
