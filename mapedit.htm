@@ -320,7 +320,7 @@
 
 	function MakeMobTable() 												// MAKE TABLE
 	{	
-		var i,o,pic;i;lastType=""; 
+		var i,o,pic; 
 		var trsty=" style='height:20px;background-color:#f8f8f8' onMouseOver='this.style.backgroundColor=\"#dee7f1\"' ";
 		trsty+="onMouseOut='this.style.backgroundColor=\"#f8f8f8\"'";
 		$("#contentTable").empty();												// Remove all rows
@@ -365,7 +365,7 @@
 			str+="<div style='display:inline-block;width:65px;color:#777'><b>&nbsp; &nbsp; Goto:</b></div>";
 			str+="<input class='is' style='width:25px;text-align:center' type='text' id='idg"+i+"' value='"+(o.goto ? "SET" : '')+"'>";
 			str+="<br><div style='display:inline-block;width:45px;color:#777;vertical-align:4px'><b>Title:</b></div>";
-			str+="<textarea class='ckeditor is' rows='1' style='width:276px;vertical-align:bottom' type='text' id='idt"+i+"'>"+(o.desc ? o.desc : '')+"</textarea>";
+			str+="<textarea class='ckeditor is' rows='1' style='width:276px;vertical-align:bottom' type='text' id='idt"+i+"'>"+(o.title ? o.desc : '')+"</textarea>";
 			str+="<br><div style='display:inline-block;width:45px;color:#777;vertical-align:8px'><b>Desc:</b></div>";
 			str+="<textarea class='ckeditor is' rows='1' style=width:276px;vertical-align:bottom' type='text' id='idd"+i+"'>"+(o.desc ? o.desc : '')+"</textarea>";
 			str+="</td><td><img style='visibility:hidden' id='idtr"+i+"' src='images/trashdot.gif' onclick='onDeleteMob(this.id)'></td></tr><tr><td colspan='3'><hr></td></tr>";	// Add trashcan
@@ -378,7 +378,9 @@
 				Sound("click");													// Click
 //				CKEDITOR.inline($("#idt"+id)[0]);								// Title RT editor
 //				CKEDITOR.inline($("#idd"+id)[0]);								// Desc
-				$("#idtr"+id).css({"visibility":"visible"});					// Show trashcan
+				for (var j=0;j<curJson.length;++j) 								// For each mob
+					$("#idtr"+j).css({"visibility":"hidden"});					// Hide trashcans
+				$("#idtr"+id).css({"visibility":"visible"});					// Show this trashcan
 				});
 
 			$("#idi"+i).on("blur", function() {									// ON BLUR OF ID
