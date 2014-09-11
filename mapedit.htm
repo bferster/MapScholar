@@ -459,10 +459,10 @@
 	    						where+=$("#gotohgt").val()+",";					// Hgt
 	    						where+=$("#gototlt").val()+",";  				// Tilt
 	    						where+=$("#gotohdg").val();						// Heading
-								if ($("#gotospd") != undefined)					// If a speed set
+								if ($("#gotospd").val())						// If a speed set
 		    						where+=","+$("#gotospd").val();				// Add it
 	    						callback(where);								// Send to callback	
-	    						$(this).remove();	
+	    						$(this).remove();								// Remove dialog
 	    						},
 	    	"Remove goto": 	function() { callback("");			$(this).remove();	},
 	    	"Cancel":  		function() { $(this).remove(); 							}
