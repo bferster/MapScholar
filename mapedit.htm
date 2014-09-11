@@ -75,13 +75,10 @@
 				<li id="m21"><a href="#">Undo</a></li>
 	            <li id="m22"><a href="#">Bookmark&nbsp;an&nbsp;undo</a></li>
 		 		<li id="m23"><a href="#">JSON</a></il>
-			</ul></li>
-	 			<li id=""><a href="#">Mobs</a><ul>
-	                <li id="m31"><a href="#">Add new mob</a></li>
-					<li id="m32" ><a href="#">Startup settings</a><li>
-		   </ul></li>
-	 			<li id=""><a href="#">Pages</a><ul>
-	                <li id="m41"><a href="#">Add new page</a></li>
+		   	</ul></li>
+			    <li id=""><a href="#">Content</a><ul>
+				<li id="m31"><a href="#">Edit mobs</a></li>
+	 			<li id="m32"><a href="#">Edit pages</a></li>
 		   </ul></li>
 		</ul>
 		<div id="paneDiv" class="pane" style="width:100%;height:100%"></div> 
@@ -108,7 +105,9 @@
 	var qmf=null;																// File system
 	var butsty=" style='border-radius:10px;color#666;padding-left:12px;padding-right:12px;color:#222;background-color:#ccc;font-size:12px;' ";	// Button styling
 	var keyFlag="";																// Holds key flags												
-	var playerZoom=1;
+	var playerZoom=1;															// Zoom
+	var curEdit=-1;																// Hold current edit
+	var curPos;																	// Current earth locale
 	
 	$(document).ready(function() {											// WHEN PAGE LOADED
 		if (window.addEventListener) 											// If supported this way
@@ -139,9 +138,8 @@
 					case "22":	Do("bookmark");							break;	// Save bookmark
 					case "23":	ChangePane("json");						break;	// Edit JSON
 					case "23":	ChangePane("html");						break;	// Edit HTML
-					case "31":	ChangePane("addmob");					break;	// Manage content
-					case "32": 	ChangePane("settings");  				break;	// Transcript
-					case "41": 	ChangePane("addpage");  				break;	// Index 
+					case "31":	ChangePane("editmobs");					break;	// Edit mobs
+					case "32": 	ChangePane("editpages");  				break;	// Edit pages 
 					}
 			 	});
 		
@@ -187,6 +185,7 @@
    		if (qmf.curFile)														// If a good file
    			curShow=qmf.curFile;												// Set curshow
   		Preview(); 																// Preview show
+  		ChangePane("editmobs");													// Edit mobs 		
    		Draw();																	// Redraw 
    		Sound('ding'); 															// Ding
     	}
@@ -235,17 +234,16 @@
 		else if (curPane == "intro") {											// Startup pane
 			str="<br><br><p style='text-align:center'><img src='img/MapScholarLogo.png'></p>";	// Image
 			$("#paneDiv").html(str);											// Put editor up	
-
 			}
+		else if (curPane == "editmobs")  	MobEditPane();						// Mob edit pane
 		else if (curPane == "settings")  	SettingsEditPane();					// Settings pane
-		else if (curPane == "addpage")  	PageEditor();						// Add page pane
+		else if (curPane == "editpages")  	PageEditor();						// Page edit pane
 
 		$("#playerDiv").css({	"-webkit-transform-origin":"0 0", 				// Scale player window
 				"transform-origin":"0 0",			
 				"-webkit-transform":"matrix("+playerZoom+",0,0,"+playerZoom+",0,0)",
 	 			"-transform":"matrix("+playerZoom+",0,0,"+playerZoom+",0,0)",
 	   			});
-
 		$("#playerSiz").css({ left:(playerWid*playerZoom-3)+"px"});				// Set sizer pos
 	}
 
@@ -264,7 +262,7 @@
 ///////////// SETTINGS ////////////////
 
 
-	function SettingsEditPane()											// SETTINGS EDITOR
+	function SettingsEditPane()												// SETTINGS EDITOR
 	{
 		curEdit=-1;																// Clear
 		var h=$("#paneDiv").height()-220;										// Max height
@@ -281,25 +279,6 @@
 		str+="<tr><td></td><td>Transcript pane label</td><td><input class='bs' type='text' id='transLab' value='"+(curJson.transLab ? curJson.transLab : '')+"'></td></tr>";	// Get setting
 		str+="<tr><td></td><td>Information pane label</td><td><input class='bs' type='text' id='infoLab' value='"+(curJson.infoLab ? curJson.infoLab : '')+"'></td></tr>";	// Get setting
 		str+="<tr><td></td><td>Index pane label</td><td><input class='bs' type='text' id='contentsLab' value='"+(curJson.contentsLab ? curJson.contentsLab : '' )+"'></td></tr>";	// Get setting
-		str+="<tr><td></td><td>Play when index clicked?</td><td>"+MakeSelect("contentsPlayOnClick",false,["true","false"],curJson.contentsPlayOnClick)+"</td></tr>";	// Get setting
-		str+="<tr><td></td><td>Require user login?</td><td>"+MakeSelect("logIn",false,["true","false"],curJson.logIn ? curJson.logIn : 'false' )+"</td></tr>";	// Get setting
-		str+="<tr><td></td><td>Lower panel height</td><td><input class='bs' type='text' id='transHgt' value='"+(curJson.transHgt ? curJson.transHgt : '')+"'></td></tr>";	// Get setting
-		str+="<tr><td colspan=3><b><br>Player<b></td></tr>";					// Heading
-		str+="<tr><td colspan=3><hr></td></tr>";								// Rule
-		str+="<tr><td></td><td>Media source (Id or URL)</td><td><input class='bs' type='text' id='playerSource' value='"+(curJson.playerSource ? curJson.playerSource : '')+"'></td></tr>";	// Get setting
-		str+="<tr><td></td><td>Start time (seconds)</td><td><input class='bs' type='text' id='playerStart' value='"+(curJson.playerStart ? curJson.playerStart : 0)+"'></td></tr>";	// Get setting
-		str+="<tr><td></td><td>Stop time (seconds)</td><td><input class='bs' type='text' id='playerStop' value='"+(curJson.playerStop ? curJson.playerStop : 600)+"'></td></tr>";	// Get setting
-		str+="<tr><td></td><td>Media aspect ratio (0-1)</td><td><input class='bs' type='text' id='playerAspect' value='"+(curJson.playerAspect ? curJson.playerAspect : '')+"'></td></tr>";	// Get setting
-		str+="<tr><td></td><td>Initial slide/player ratio (0-1)</td><td><input class='bs' type='text' id='playerSlideRatio' value='"+(curJson.playerSlideRatio ? curJson.playerSlideRatio : '')+"'></td></tr>";	// Get setting
-		str+="<tr><td></td><td>Initial volume (0-100)</td><td><input class='bs' type='text' id='playerVolume' value='"+(curJson.playerVolume ? curJson.playerVolume : "")+"'></td></tr>";	// Get setting
-		str+="<tr><td></td><td>Auto start</td><td>"+MakeSelect("playerAuto",false,["true","false"],curJson.playerAuto)+"</td></tr>";	// Get setting
-		str+="<tr><td></td><td>Show native controls</td><td>"+MakeSelect("playerControls",false,["true","false"],curJson.playerControls)+"</td></tr>";	// Get setting
-		str+="<tr><td></td><td>Quality</td><td>"+MakeSelect("playerQuality",false,["Default","Good","Better","Best"],curJson.playerQuality)+"</td></tr>";	// Get setting
-		str+="<tr><td colspan=3><b><br>Transcript<b></td></tr>";					// Heading
-		str+="<tr><td colspan=3><hr></td></tr>";								// Rule
-		str+="<tr><td></td><td>Initial trans/info ratio (0-1)</td><td><input class='bs' type='text' id='transInfoRatio' value='"+(curJson.transInfoRatio ? curJson.transInfoRatio : '')+"'></td></tr>";	// Get setting
-		str+="<tr><td></td><td>Initial language</td><td><input class='bs' type='text' id='transLanguage' value='"+(curJson.transLanguage ? curJson.transLanguage : '')+"'></td></tr>";	// Get setting
-		str+="<tr><td></td><td>Languages</td><td><input class='bs' type='text' id='transLangs' value='"+(curJson.transLangs ? curJson.transLangs : '')+"'></td></tr>";	// Get setting
 		str+="</table></div><br>";												// End table
 		str+="&nbsp;&nbsp;<button"+butsty+"onclick='Preview()'>Preview</button>";	// Preview button
 		$("#paneDiv").html(str+"</div>");										// Put editor up	
@@ -311,23 +290,186 @@
 		$("#transLab").on("change", function() { curJson.transLab=$(this).val(); });			// Extract value	
 		$("#infoLab").on("change", function() { curJson.infoLab=$(this).val(); });				// Extract value	
 		$("#contentsLab").on("change", function() { curJson.contentsLab=$(this).val(); });		// Extract value	
-		$("#transLab").on("change", function() { curJson.transLab=$(this).val(); });			// Extract value	
-		$("#contentsPlayOnClick").on("change", function() { curJson.contentsPlayOnClick=$(this).val(); });	// Extract value	
-		$("#logIn").on("change", function() { curJson.logIn=$(this).val(); });					// Extract value	
-		$("#playerSource").on("change", function() { curJson.playerSource=$(this).val(); });	// Extract value	
-		$("#playerStart").on("change", function() { curJson.playerStart=$(this).val(); });		// Extract value	
-		$("#playerStop").on("change", function() { curJson.playerStop=$(this).val(); });		// Extract value	
-		$("#playerAspect").on("change", function() { curJson.playerAspect=$(this).val(); });	// Extract value	
-		$("#playerSlideRatio").on("change", function() { curJson.playerSlideRatio=$(this).val(); });	// Extract value	
-		$("#playerControls").on("change", function() { curJson.playerControls=$(this).val(); });// Extract value	
-		$("#playerAuto").on("change", function() { curJson.playerAuto=$(this).val(); });		// Extract value	
-		$("#playerVolume").on("change", function() { curJson.playerVolume=$(this).val(); });	// Extract value	
-		$("#playerQuality").on("change", function() { curJson.playerQuality=$(this).val(); });	// Extract value	
-		$("#transInfoRatio").on("change", function() { curJson.transInfoRatio=$(this).val(); });// Extract value	
-		$("#transHgt").on("change", function() { curJson.transHgt=$(this).val(); });			// Extract value	
-		$("#transLanguage").on("change", function() { curJson.transLanguage=$(this).val(); });	// Extract value	
-		$("#transLangs").on("change", function() { curJson.transLangs=$(this).val(); });		// Extract value	
 }
+
+	function MobEditPane()													/// MOB EDITOR
+	{
+		var h=$("#paneDiv").height()-220;														// Max height
+		var str="<div style='padding:12px'><br>"												// Container div
+		str+="<div style='display:inline-block;font-size:36px;color:#999'><b>Edit mobs</div>";
+		str+="<br><br><div style='max-height:"+h+"px;overflow-x:hidden;overflow-y:auto;background-color:#f8f8f8;padding:8px;border:1px solid #999;border-radius:8px'>";		// Scrollable container
+		str+="<table id='contentTable' style='font-size:12px;width:100%;padding:0px;border-collapse:collapse;'>";	// Add table
+		str+="</table></div><div style='font-size:12px'<br><br>";				// End table
+		str+="<button"+butsty+"id='addMobBut'>Add a new mob</button>";			// Add button
+		str+="&nbsp;&nbsp;<button"+butsty+"onclick='Preview()'>Preview</button>";		// Preview button
+		$("#paneDiv").html(str+"</div>");										// Put editor up	
+		MakeMobTable();															// Make table
+
+		$("#addMobBut").on("click",function() {									// ON ADD
+			var o={};															// New obj
+			o.id=Math.floor(Math.random()*9999);								// Make up id
+			o.type="chapter";														// Assume map
+			o.title="Untitled"													// No title
+			curJson.push(o)														// Add startup mob
+			curEdit=-1;															// Not editing anymore
+			MakeMobTable();														// Remake table
+			Sound("click");														// Click
+			});
+
+		}
+
+	function MakeMobTable() 												// MAKE TABLE
+	{	
+		var i,o,pic;i;lastType=""; 
+		var trsty=" style='height:20px;background-color:#f8f8f8' onMouseOver='this.style.backgroundColor=\"#dee7f1\"' ";
+		trsty+="onMouseOut='this.style.backgroundColor=\"#f8f8f8\"'";
+		$("#contentTable").empty();												// Remove all rows
+		for (i=0;i<curJson.length;++i) {														// For each index
+			o=curJson[i];														// Point at row
+			if (o.type == "page") 												// If a page
+				continue;														// Dont show
+			str="<tr id='idx"+i+"' "+trsty+">";									// Row
+			if (o.type == "map") {												// If a map
+				if (o.small)                                                    // If a small defined															
+					pic=o.small;												// Use it
+				else if (o.med)													// Else if a med defined															
+					pic=o.med;													// Use it
+				else if (o.url)													// Else if a large defined															
+					pic=o.url;													// Use it
+				else															// Else
+					pic="images/mobicon.jpg";									// Use icon
+				}
+			else if ((o.type == "chapter") || (o.type == "header")) 			// If a chapter or header
+				pic="images/chaptericon.png";									// Use icon
+			else if (o.type == "startup") 										// If a startup
+				pic="images/starticon.jpg";										// Use icon
+			else if (o.type == "choro") 										// If a choro
+				pic="images/choroicon.jpg";										// Use icon
+			else if (o.type == "goto") 											// If a goto
+				pic="images/goto.jpg";											// Use icon
+			else if (o.type == "info") 											// If as info
+				pic="images/infoicon.jpg";										// Use icon
+			else if (o.type == "link") 											// If a link
+				pic="images/linkicon.jpg";										// Use icon
+			else if (o.type == "layer") 										// If a layer
+				pic="images/layericon.png";										// Use icon
+			else if (o.type == "sound") 										// If a layer
+				pic="images/soundicon.jpg";										// Use icon
+			else
+				pic="images/mobicon.jpg";										// Use icon
+			str+="<td style='width:115px;vertical-align:top'><img style='border:1px solid #999' height='60' width='100' src='"+pic+"'></td>";	// Add thumbnail
+			str+="<td style='vertical-align:top;white-space:nowrap'><div style='display:inline-block;width:45px;color:#777'><b>Type: </b></div>";
+			str+=MakeSelect("ida"+i,false,["chapter","choro", "goto","header","info","layer","link","map","sound","startup","text"],o.type);	
+			str+="<div style='display:inline-block;width:50px;color:#777'><b>&nbsp; &nbsp; ID:</b></div>";
+			str+="<input class='is' style='width:30px' type='text' id='idi"+i+"' value='"+(o.id != undefined ? o.id : '')+"'>";
+			str+="<div style='display:inline-block;width:65px;color:#777'><b>&nbsp; &nbsp; Goto:</b></div>";
+			str+="<input class='is' style='width:25px;text-align:center' type='text' id='idg"+i+"' value='"+(o.goto ? "SET" : '')+"'>";
+			str+="<br><div style='display:inline-block;width:45px;color:#777;vertical-align:4px'><b>Title:</b></div>";
+			str+="<textarea class='ckeditor is' rows='1' style='width:276px;vertical-align:bottom' type='text' id='idt"+i+"'>"+(o.desc ? o.desc : '')+"</textarea>";
+			str+="<br><div style='display:inline-block;width:45px;color:#777;vertical-align:8px'><b>Desc:</b></div>";
+			str+="<textarea class='ckeditor is' rows='1' style=width:276px;vertical-align:bottom' type='text' id='idd"+i+"'>"+(o.desc ? o.desc : '')+"</textarea>";
+			str+="</td><td><img style='visibility:hidden' id='idtr"+i+"' src='images/trashdot.gif' onclick='onDeleteMob(this.id)'></td></tr><tr><td colspan='3'><hr></td></tr>";	// Add trashcan
+			$("#contentTable").append(str);										// Add row
+			
+			$("#idx"+i).on("click", function(e) {								// ON ROW CLICK
+				var id=e.currentTarget.id.substr(3);							// Extract id
+				if (id == undefined)											// If deselecting
+					return;														// Quit
+				Sound("click");													// Click
+//				CKEDITOR.inline($("#idt"+id)[0]);								// Title RT editor
+//				CKEDITOR.inline($("#idd"+id)[0]);								// Desc
+				$("#idtr"+id).css({"visibility":"visible"});					// Show trashcan
+				});
+
+			$("#idi"+i).on("blur", function() {									// ON BLUR OF ID
+					var id=this.id.substr(3);									// Get id
+					curJson[id].id=$("#idi"+id).val();							// Get text
+					MakeMobTable();												// Remake table
+					});				
+			
+			$("#idg"+i).on("click", function() {								// GOTO EDITOR
+					var id=this.id.substr(3);									// Get id
+					GoToEditor(id, curJson[id].goto, function(w) {				// Edit source
+						curJson[id].goto=w;										// Set val
+						MakeMobTable();											// Show
+						});
+					});				
+	
+			$("#idt"+i).on("blur", function() {									// ON BLUR OF TITLE
+					var id=this.id.substr(3);									// Get id
+					curJson[id].title=$("#idt"+id).val();						// Get text
+					MakeMobTable();												// Remake table
+					});				
+	
+			$("#idd"+i).on("blur", function() {									// ON BLUR OF TITLE
+					var id=this.id.substr(3);									// Get id
+					curJson[id].desc=$("#idd"+id).val();						// Get text
+					MakeMobTable();												// Remake table
+					});				
+
+			$("#ida"+i).on("change", function() {								// ON EDIT TYPE
+					var id=this.id.substr(3);									// Get id
+					curJson[id].type=$("#ida"+id).val();						// Get text
+					MakeMobTable();												// Remake table
+					});				
+			}																	// End mob loop
+	}	
+
+	function onDeleteMob(id) 												// ON DELETE MOB
+	{	
+		id=id.substr(3);														// Strip off prefix
+		curJson.splice(id,1);													// Remove from json
+		$("#idx"+id).remove();													// Remove from table
+		Sound("delete");														// Delete sound
+		MakeMobTable();															// Redraw table
+		}
+
+	function GoToEditor(id, where, callback) 								// GOTO EDITOR
+	{	
+		$("#alertBoxDiv").remove();												// Remove any old ones
+		$("body").append("<div style='overflow:hidden;' class='unselectable' id='alertBoxDiv'></div>");														
+		var str="<p><img src='images/qlogo32.png' style='vertical-align:-10px'/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";								
+		str+="<span style='font-size:18px;text-shadow:1px 1px #ccc;color:#000000'><b>Set goto position</b></span><br><br><p><table>";
+     	str+="<tr><td>Lat: </td><td><input id='gotolat' class='is' style='width:100px'>";
+  	 	str+="<td> Long: </td><td><input id='gotolon' class='is' style='width:100px'></td>";
+  	 	str+="<td> Range: </td><td><input id='gotohgt' class='is' style='width:100px'></tr>";
+    	str+="<tr><td>Tilt: </td><td><input id='gototlt' class='is' style='width:100px'>";
+  	 	str+="<td> Head: </td><td><input id='gotohdg' class='is' style='width:100px'></td>";
+  	 	str+="<td> Speed: </td><td><input id='gotospd' class='is' style='width:100px'></tr>";
+ 		str+="</table>";		
+		str+="<br><b>How to set a goto position:</b><br><br>Position the earth on the left where you want to go to. Click on the <i>OK</i> button to save, or the <i>Remove goto button</i> to remove the goto entirely. You can also use the MapScholar shelf items or the <i>Find</i> option to navigate. You can change the default speed of the move by entering a value in the speed box. The speed is from 0 (forever) to 5 (instantly) and is optional. The default is 1, which takes approximately 2 seconds. " 
+		$("#alertBoxDiv").append("</div>"+str);	
+
+		if (!where)																// If no pos set
+			where=curPos;														// Use current pos
+		var v=where.split(",");													// Split
+		$("#gotolat").val(v[0]);												// Set lat field
+		$("#gotolon").val(v[1]);												// Set lon field
+		$("#gotohgt").val(v[2]);												// Set hgt field
+		$("#gototlt").val(v[3]);												// Set tilt field
+		$("#gotohdg").val(v[4]);												// Set heading field
+		if (v[5] != undefined)													// If a speed set
+			$("#gotospd").val(v[5]);											// Set speed field,
+					
+		$("#alertBoxDiv").dialog({ width:622, buttons: {
+	    	"OK": 			function() { 
+	    						where="";										// Normal move
+	    						where+=$("#gotolat").val()+",";					// Add lat
+	    						where+=$("#gotolon").val()+",";					// Lon
+	    						where+=$("#gotohgt").val()+",";					// Hgt
+	    						where+=$("#gototlt").val()+",";  				// Tilt
+	    						where+=$("#gotohdg").val();						// Heading
+								if ($("#gotospd") != undefined)					// If a speed set
+		    						where+=","+$("#gotospd").val();				// Add it
+	    						callback(where);								// Send to callback	
+	    						$(this).remove();	
+	    						},
+	    	"Remove goto": 	function() { callback("");			$(this).remove();	},
+	    	"Cancel":  		function() { $(this).remove(); 							}
+			}});	
+		$("#alertBoxDiv").dialog("option","position",{ my:"center", at:"center", of:"#paneDiv" });
+	}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // EVENTS
@@ -336,13 +478,22 @@
 	
 	function shivaEventHandler(e)											// ON SHIVA EVENT
 	{
-	//	trace(e.data);
+//		trace(e.data);
 		if (e.data.match(/MapScholar=resize/))	{								// If a resize
 			playerWid=(e.data.split("|")[2]-0+20);								// Isolate it
 			Draw();																// Redraw
 			}
-	}	
-
+		else if (e.data.match(/ShivaEarth=move/))	{							// If a move
+			var v=e.data.split("|");											// Split
+			$("#gotolat").val(v[2]);											// Set lat field, if open
+			$("#gotolon").val(v[3]);											// Set lon field, if open
+			$("#gotohgt").val(v[4]);											// Set hgt field, if open
+			$("#gototlt").val(v[5]);											// Set tilt field, if open
+			$("#gotohdg").val(v[6]);											// Set heading field, if open
+			curPos=v[2]+","+v[3]+","+v[4]+","+v[5]+","+v[6];					// Make up goto
+			}	
+	}
+		
 	function SendShivaMessage(cmd, msg) 									// SEND SHIVA MESSAGE 
 	{
 		var str=cmd;															// Add src					
