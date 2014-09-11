@@ -165,7 +165,7 @@ MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT
 		this.dr.DrawControlBar(false);										// Draw control bar and shelf
 		o=this.mobs[0];														// Point at 1st mob
 		this.Goto(o.goto);													// Go to 1st pos
-		if ((o.type == "boxes") || (o.type == "startup")) {					// Startup mob
+		if (o.status && (o.type == "boxes") || (o.type == "startup")) { 	// Startup mob
 			if (o.status.match(/book/i))									// If book
 				this.sh.PresentView({value:"Book"});						// Reset view
 			else if (o.status.match(/slides/i))								// If slides
