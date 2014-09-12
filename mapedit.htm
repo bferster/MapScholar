@@ -81,10 +81,10 @@
 	 			<li id="m32"><a href="#">Edit pages</a></li>
 		   </ul></li>
 		</ul>
-		<div id="paneDiv" class="pane" style="width:100%;height:100%"></div> 
+		<div id="paneDiv" class="pane" style="width:100%;height:100%;"></div> 
 		<div id="footerDiv" class="footer" style="position:absolute;width:100%">
 			<span id="showName"></span>
-			<a id='getHelp' href='https://docs.google.com/document/d/1hMjG_Df0ifMjbT3a9j_KVjieMllkY0J_5UInOlkQweE/edit?usp=sharing' 
+			<a id='getHelp' href='https://docs.google.com/document/d/11aS861HLnwg9IQ8JJe4UZ-GZ20980Va2kTmfHYHPd0A/edit?usp=sharing' 
 				target='_blank' style='text-decoration:none;position:absolute'>
 				<img src="img/helpicon.gif"></a>
 		</div>
@@ -361,27 +361,37 @@
 			str+="<td style='vertical-align:top;white-space:nowrap'><div style='display:inline-block;width:45px;color:#777'><b>Type: </b></div>";
 			str+=MakeSelect("ida"+i,false,["chapter","choro", "goto","header","info","layer","link","map","sound","startup","text"],o.type);	
 			str+="<div style='display:inline-block;width:50px;color:#777'><b>&nbsp; &nbsp; ID:</b></div>";
-			str+="<input class='is' style='width:30px' type='text' id='idi"+i+"' value='"+(o.id != undefined ? o.id : '')+"'>";
-			str+="<div style='display:inline-block;width:65px;color:#777'><b>&nbsp; &nbsp; Goto:</b></div>";
-			str+="<input class='is' style='width:25px;text-align:center' type='text' id='idg"+i+"' value='"+(o.goto ? "SET" : '')+"'>";
+			str+="<input class='is' style='width:30px' type='text' id='idi"+i+"' value='"+(o.id != undefined ? o.id : '')+"'> &nbsp; ";
+			str+="<button class='bs' style='width:auto%' id='idg"+i+"'>"+(o.goto ? 'Set goto' : 'Add goto')+"</button>";
 			str+="<br><div style='display:inline-block;width:45px;color:#777;vertical-align:4px'><b>Title:</b></div>";
-			str+="<textarea class='ckeditor is' rows='1' style='width:276px;vertical-align:bottom' type='text' id='idt"+i+"'>"+(o.title ? o.desc : '')+"</textarea>";
+			str+="<textarea class='ckeditor is' rows='1' style='width:250px;vertical-align:bottom' type='text' id='idt"+i+"'>"+(o.title ? o.title : '')+"</textarea>";
 			str+="<br><div style='display:inline-block;width:45px;color:#777;vertical-align:8px'><b>Desc:</b></div>";
-			str+="<textarea class='ckeditor is' rows='1' style=width:276px;vertical-align:bottom' type='text' id='idd"+i+"'>"+(o.desc ? o.desc : '')+"</textarea>";
-			str+="</td><td><img style='visibility:hidden' id='idtr"+i+"' src='images/trashdot.gif' onclick='onDeleteMob(this.id)'></td></tr><tr><td colspan='3'><hr></td></tr>";	// Add trashcan
+			str+="<textarea class='ckeditor is' rows='1' style=width:250px;vertical-align:bottom' type='text' id='idd"+i+"'>"+(o.desc ? o.desc : '')+"</textarea>";
+			str+="</td><td><img style='visibility:hidden' id='idtm"+i+"' src='images/movedot.gif'>";	// Add move icon
+			str+="<br><br><img style='visibility:hidden' id='idtr"+i+"' src='images/trashdot.gif' onclick='onDeleteMob(this.id)'></td></tr><tr><td colspan='3'><hr></td></tr>";	// Add trashcan
 			$("#contentTable").append(str);										// Add row
 			
 			$("#idx"+i).on("click", function(e) {								// ON ROW CLICK
-				var id=e.currentTarget.id.substr(3);							// Extract id
-				if (id == undefined)											// If deselecting
-					return;														// Quit
-				Sound("click");													// Click
-//				CKEDITOR.inline($("#idt"+id)[0]);								// Title RT editor
-//				CKEDITOR.inline($("#idd"+id)[0]);								// Desc
-				for (var j=0;j<curJson.length;++j) 								// For each mob
-					$("#idtr"+j).css({"visibility":"hidden"});					// Hide trashcans
-				$("#idtr"+id).css({"visibility":"visible"});					// Show this trashcan
-				});
+					var id=e.currentTarget.id.substr(3);						// Extract id
+					if (id == undefined)										// If deselecting
+						return;													// Quit
+					SendShivaMessage("MapEdit=mob",id);							// Go to this mob	   		
+ 					Sound("click");												// Click
+	//				CKEDITOR.inline($("#idt"+id)[0]);							// Title RT editor
+	//				CKEDITOR.inline($("#idd"+id)[0]);							// Desc
+					for (var j=0;j<curJson.length;++j) {						// For each mob
+						$("#idtm"+j).css({"visibility":"hidden"});				// Hide move icons
+						$("#idtr"+j).css({"visibility":"hidden"});				// Hide trashcans
+						$("#idx"+j).droppable({ drop: function(event, ui) {		// On drop
+  							trace(event.target.id)
+							Sound("click");										// Click
+							MakeMobTable();										// Remake table
+							}});
+						}
+					$("#idtm"+id).css({"visibility":"visible"});				// Show this move icon
+					$("#idtr"+id).css({"visibility":"visible"});				// Show this trashcan
+					$("#idtm"+id).draggable({ axis:"y"});						// Make icon draggable
+					});														
 
 			$("#idi"+i).on("blur", function() {									// ON BLUR OF ID
 					var id=this.id.substr(3);									// Get id
@@ -423,6 +433,12 @@
 		curJson.splice(id,1);													// Remove from json
 		$("#idx"+id).remove();													// Remove from table
 		Sound("delete");														// Delete sound
+		MakeMobTable();															// Redraw table
+		}
+
+	function onMoveMob(id) 													// ON MOVE MOB
+	{	
+		id=id.substr(3);														// Strip off prefix
 		MakeMobTable();															// Redraw table
 		}
 
