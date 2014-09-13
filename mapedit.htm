@@ -362,12 +362,15 @@
 			str+="<td style='width:115px;vertical-align:top'><img style='border:1px solid #999' height='60' width='100' src='"+pic+"'></td>";	// Add thumbnail
 			str+="<td style='vertical-align:top;white-space:nowrap'><div style='display:inline-block;width:45px;color:#777'><b>Type: </b></div>";
 			str+=MakeSelect("ida"+i,false,["chapter","choro", "goto","header","info","layer","link","map","sound","startup","text"],o.type);	
-			str+=" &nbsp; <button class='bs' style='width:auto%' id='idg"+i+"'>"+(o.goto ? 'Set goto' : 'Add goto')+"</button> &nbsp; ";
+			str+=" &nbsp; <button class='bs' id='idg"+i+"'>"+(o.goto ? 'Set goto' : 'Add goto')+"</button> &nbsp; ";
 			str+="<button class='bs' style='width:auto%' id='idm"+i+"'>More...</button>";
 			str+="<br><div style='display:inline-block;width:45px;color:#777;vertical-align:4px'><b>Title:</b></div>";
-			str+="<textarea class='ckeditor is' rows='1' style='width:225px;vertical-align:bottom' type='text' id='idt"+i+"'>"+(o.title ? o.title : '')+"</textarea>";
+			str+="<textarea class='is' rows='1' style='width:204px;vertical-align:bottom' type='text' id='idt"+i+"'>"+(o.title ? o.title : '')+"</textarea>";
+			str+=" <img src='img/editdot.gif' id='idth"+i+"'>";
 			str+="<br><div style='display:inline-block;width:45px;color:#777;vertical-align:8px'><b>Desc:</b></div>";
-			str+="<textarea class='ckeditor is' rows='1' style=width:225px;vertical-align:bottom' type='text' id='idd"+i+"'>"+(o.desc ? o.desc : '')+"</textarea>";
+			str+="<textarea class='is' rows='1' style='width:204px;vertical-align:bottom' type='text' id='idd"+i+"'>"+(o.desc ? o.desc : '')+"</textarea>";
+			str+=" <img src='img/editdot.gif' id='iddh"+i+"'>";
+
 			str+="</td><td><img style='visibility:hidden' id='idtm"+i+"' src='images/movedot.gif'>";	// Add move icon
 			str+="<br><br><img style='visibility:hidden' id='idtr"+i+"' src='images/trashdot.gif' onclick='onDeleteMob(this.id)'></td></tr><tr><td colspan='3'><hr></td></tr>";	// Add trashcan
 			$("#contentTable").append(str);										// Add row
@@ -378,9 +381,7 @@
 						return;													// Quit
 					SendShivaMessage("MapEdit=mob",id);							// Go to this mob	   		
  					Sound("click");												// Click
-	//				CKEDITOR.inline($("#idt"+id)[0]);							// Title RT editor
-	//				CKEDITOR.inline($("#idd"+id)[0]);							// Desc
-					for (var j=0;j<curJson.length;++j) {						// For each mob
+						for (var j=0;j<curJson.length;++j) {					// For each mob
 						$("#idtm"+j).css({"visibility":"hidden"});				// Hide move icons
 						$("#idtr"+j).css({"visibility":"hidden"});				// Hide trashcans
 						$("#idx"+j).droppable({ drop: function(event, ui) {		// On drop
@@ -393,6 +394,22 @@
 					$("#idtr"+id).css({"visibility":"visible"});				// Show this trashcan
 					$("#idtm"+id).draggable({ axis:"y"});						// Make icon draggable
 					});														
+
+			$("#idth"+i).on("click", function() {								// HTML EDITOR
+					var id=this.id.substr(4);									// Get id
+					HTMLEditor(id, curJson[id].title, function(d) {				// Edit text
+						curJson[id].title=d;									// Set val
+						MakeMobTable();											// Show
+						});
+					});				
+
+			$("#iddh"+i).on("click", function() {								// HTML EDITOR
+					var id=this.id.substr(4);									// Get id
+					HTMLEditor(id, curJson[id].desc, function(d) {				// Edit text
+						curJson[id].desc=d;										// Set val
+						MakeMobTable();											// Show
+						});
+					});				
 
 			$("#idi"+i).on("blur", function() {									// ON BLUR OF ID
 					var id=this.id.substr(3);									// Get id
@@ -446,7 +463,34 @@
 	{	
 		id=id.substr(3);														// Strip off prefix
 		MakeMobTable();															// Redraw table
-		}
+	}
+
+	function HTMLEditor(id, text, callback) 								// GOTO EDITOR
+	{	
+		$("#alertBoxDiv").remove();												// Remove any old ones
+		if (!text)	text="";													// Not defined
+		$("body").append("<div style='overflow:hidden;' class='unselectable' id='alertBoxDiv'></div>");														
+		var str="<p><img src='images/qlogo32.png' style='vertical-align:-10px'/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";								
+		str+="<span style='font-size:18px;text-shadow:1px 1px #ccc;color:#000000'><b>Style text</b></span><br><br><p><table>";
+ 		str+="<textarea id='editor1' rows='4' style='width:100%' >"+text+"</textarea>";
+ 		$("#alertBoxDiv").append("</div>"+str);	
+ 		CKEDITOR.replace('editor1');
+   		
+  		$("#alertBoxDiv").dialog({ width:622, buttons: {
+	    	"OK": 		function() { 
+	    					var s=CKEDITOR.instances.editor1.getData().replace(/[\n|\r]/g,"").replace(/"/g,"&quot;");
+	    					callback(s);										// Send to callback	
+		    				$(this).remove();									// Remove dialog
+		    				},
+		    "Cancel": 	function() { $(this).remove(); }
+			}});	
+		$("#alertBoxDiv").dialog("option","position",{ my:"center", at:"center", of:"#paneDiv" });
+		$(".ui-dialog-titlebar").hide();
+		$(".ui-dialog-buttonpane.ui-widget-content.ui-helper-clearfix").css("border","none");
+		$(".ui-dialog").css({"border-radius":"14px", "box-shadow":"4px 4px 8px #ccc"});
+ 		$(".ui-button").css({"border-radius":"30px","outline":"none"});
+ 	}
+
 
 	function GoToEditor(id, where, callback) 								// GOTO EDITOR
 	{	
@@ -492,6 +536,10 @@
 	    	"Cancel":  		function() { $(this).remove(); 							}
 			}});	
 		$("#alertBoxDiv").dialog("option","position",{ my:"center", at:"center", of:"#paneDiv" });
+		$(".ui-dialog-titlebar").hide();
+		$(".ui-dialog-buttonpane.ui-widget-content.ui-helper-clearfix").css("border","none");
+		$(".ui-dialog").css({"border-radius":"14px", "box-shadow":"4px 4px 8px #ccc"});
+ 		$(".ui-button").css({"border-radius":"30px","outline":"none"});
 	}
 
 	function MoreEditor(id) 												// MORE EDITOR
