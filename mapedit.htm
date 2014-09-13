@@ -58,8 +58,8 @@
  	</style>
 </head>
 
-	<div id='playerDiv' class='unselectable' style='margin:-12px'>
-		<iframe class="player" id="playerIF" src="index.htm" height="100%" scrolling="no"></iframe>
+	<div id='playerDiv' class='unselectable' style='margin-top:-12px;margin-left:-12px'>
+		<iframe class="player" id="playerIF" src="index.htm" scrolling="no"></iframe>
 	</div>
 	<div id="editDiv" class="editor unselectable" style="position:absolute;top:16px;z-index:4;display:hidden"> 
 		 <ul id="menu" style="margin:1px">
@@ -121,6 +121,10 @@
 		var url=window.location.search.substring(1);							// Get query string
 		if (url && !isNaN(url)) 												// If a number
 			curShow=url;														// Save show number											
+		var w=$(window).width();												// Get window width
+		if (w < playerWid+500)													// If too small
+			playerZoom=(w-500)/playerWid;
+	
 		sessionStorage.clear();													// Reset undos
 		$("#menu" ).menu({ position:{my:"left top", at: "left top+40" }});		// Set menu
 		$("#menu").on("menuselect", function(event,ui) { 						// On menu select
@@ -216,19 +220,17 @@
 	function Draw()															// RESIZE PANES
 	{ 
 		var str;
-		var wid=playerWid;													// Copy width
-		if ((" "+playerWid).match("%"))										// If % in width
-			wid=$("body").width()*.66;											// Use 66%										
-		var w=window.innerWidth-(wid*playerZoom)-32;							// Editor width
+		var wid=playerWid;														// Copy width
+		var w=window.innerWidth-(wid*playerZoom)-16;							// Editor width
 		var h=window.innerHeight-64;											// Editor height
 		$("#playerIF").prop("width",wid);										// Player wid
-		$("#playerIF").prop("height",h+40);										// Hgt
-		$("#editDiv").css({width:w+"px",left:wid*playerZoom+6+"px",height:h+"px"}); // Overall div
+		$("#playerIF").prop("height",h);										// Hgt
+		$("#editDiv").css({width:w+"px",left:wid*playerZoom+6+"px",height:h-8+"px"}); // Overall div
 		$("#getHelp").css({left:w-24+"px"});									// Help dot to right
 	
 		$("#showName").html("&nbsp; Current show: <b>"+curShow+"</b>");			// Show name
 		if (curPane == "json") {												// Editing pane
-			str="<textarea id='jsonEditor' style='width:"+(w-32)+"px;height:"+(h-55)+"px;border:none;font-size:13px;padding:16px;background-color:#f8f8f8'>"+JSON.stringify(curJson,null,'\t')+"</textarea></div>";
+			str="<texStarea id='jsonEditor' style='width:"+(w-32)+"px;height:"+(h-55)+"px;border:none;font-size:13px;padding:16px;background-color:#f8f8f8'>"+JSON.stringify(curJson,null,'\t')+"</textarea></div>";
 			$("#paneDiv").html(str);											// Put editor up	
 			}
 		else if (curPane == "intro") {											// Startup pane
@@ -360,13 +362,12 @@
 			str+="<td style='width:115px;vertical-align:top'><img style='border:1px solid #999' height='60' width='100' src='"+pic+"'></td>";	// Add thumbnail
 			str+="<td style='vertical-align:top;white-space:nowrap'><div style='display:inline-block;width:45px;color:#777'><b>Type: </b></div>";
 			str+=MakeSelect("ida"+i,false,["chapter","choro", "goto","header","info","layer","link","map","sound","startup","text"],o.type);	
-			str+="<div style='display:inline-block;width:50px;color:#777'><b>&nbsp; &nbsp; ID:</b></div>";
-			str+="<input class='is' style='width:30px' type='text' id='idi"+i+"' value='"+(o.id != undefined ? o.id : '')+"'> &nbsp; ";
-			str+="<button class='bs' style='width:auto%' id='idg"+i+"'>"+(o.goto ? 'Set goto' : 'Add goto')+"</button>";
+			str+=" &nbsp; <button class='bs' style='width:auto%' id='idg"+i+"'>"+(o.goto ? 'Set goto' : 'Add goto')+"</button> &nbsp; ";
+			str+="<button class='bs' style='width:auto%' id='idm"+i+"'>More...</button>";
 			str+="<br><div style='display:inline-block;width:45px;color:#777;vertical-align:4px'><b>Title:</b></div>";
-			str+="<textarea class='ckeditor is' rows='1' style='width:250px;vertical-align:bottom' type='text' id='idt"+i+"'>"+(o.title ? o.title : '')+"</textarea>";
+			str+="<textarea class='ckeditor is' rows='1' style='width:225px;vertical-align:bottom' type='text' id='idt"+i+"'>"+(o.title ? o.title : '')+"</textarea>";
 			str+="<br><div style='display:inline-block;width:45px;color:#777;vertical-align:8px'><b>Desc:</b></div>";
-			str+="<textarea class='ckeditor is' rows='1' style=width:250px;vertical-align:bottom' type='text' id='idd"+i+"'>"+(o.desc ? o.desc : '')+"</textarea>";
+			str+="<textarea class='ckeditor is' rows='1' style=width:225px;vertical-align:bottom' type='text' id='idd"+i+"'>"+(o.desc ? o.desc : '')+"</textarea>";
 			str+="</td><td><img style='visibility:hidden' id='idtm"+i+"' src='images/movedot.gif'>";	// Add move icon
 			str+="<br><br><img style='visibility:hidden' id='idtr"+i+"' src='images/trashdot.gif' onclick='onDeleteMob(this.id)'></td></tr><tr><td colspan='3'><hr></td></tr>";	// Add trashcan
 			$("#contentTable").append(str);										// Add row
@@ -405,6 +406,11 @@
 						curJson[id].goto=w;										// Set val
 						MakeMobTable();											// Show
 						});
+					});				
+
+			$("#idm"+i).on("click", function() {								// MORE EDITOR
+					var id=this.id.substr(3);									// Get id
+					MoreEditor(id) 												// Edit more settings
 					});				
 	
 			$("#idt"+i).on("blur", function() {									// ON BLUR OF TITLE
@@ -483,6 +489,35 @@
 	    						$(this).remove();								// Remove dialog
 	    						},
 	    	"Remove goto": 	function() { callback("");			$(this).remove();	},
+	    	"Cancel":  		function() { $(this).remove(); 							}
+			}});	
+		$("#alertBoxDiv").dialog("option","position",{ my:"center", at:"center", of:"#paneDiv" });
+	}
+
+	function MoreEditor(id) 												// MORE EDITOR
+	{	
+		$("#alertBoxDiv").remove();												// Remove any old ones
+		$("body").append("<div style='overflow:hidden;' class='unselectable' id='alertBoxDiv'></div>");														
+		var str="<p><img src='images/qlogo32.png' style='vertical-align:-10px'/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";								
+		str+="<span style='font-size:18px;text-shadow:1px 1px #ccc;color:#000000'><b>Mob settings</b></span><br><br><p><table>";
+     	str+="<tr><td>Start date: <input id='sdate' class='is' style='width:100px'></td>";
+  	 	str+="<td> End Date: <input id='edate' class='is' style='width:100px'></td></tr>";
+  		str+="</table>";		
+		str+="<br><b>Settings:</b><br><br>Help goes here"
+		$("#alertBoxDiv").append("</div>"+str);	
+		
+		if (curJson.start)														// If set
+			$("#sdate").val(curJson.start);										// Set start
+		if (curJson.end)														// If set
+			$("#edate").val(curJson.end);										// Set end
+					
+		$("#alertBoxDiv").dialog({ width:622, buttons: {
+	    	"OK": 			function() { 
+								curJson.start=$("#sdate").val();				// Set val
+								curJson.end=$("#edate").val();					// Set val
+								MakeMobTable();									// Show
+		    					$(this).remove();								// Remove dialog
+	    						},
 	    	"Cancel":  		function() { $(this).remove(); 							}
 			}});	
 		$("#alertBoxDiv").dialog("option","position",{ my:"center", at:"center", of:"#paneDiv" });
