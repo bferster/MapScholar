@@ -230,7 +230,7 @@
 	
 		$("#showName").html("&nbsp; Current show: <b>"+curShow+"</b>");			// Show name
 		if (curPane == "json") {												// Editing pane
-			str="<texStarea id='jsonEditor' style='width:"+(w-32)+"px;height:"+(h-55)+"px;border:none;font-size:13px;padding:16px;background-color:#f8f8f8'>"+JSON.stringify(curJson,null,'\t')+"</textarea></div>";
+			str="<textarea id='jsonEditor' style='width:"+(w-32)+"px;height:"+(h-55)+"px;border:none;font-size:13px;padding:16px;background-color:#f8f8f8'>"+JSON.stringify(curJson,null,'\t')+"</textarea></div>";
 			$("#paneDiv").html(str);											// Put editor up	
 			}
 		else if (curPane == "intro") {											// Startup pane
@@ -292,7 +292,7 @@
 		$("#transLab").on("change", function() { curJson.transLab=$(this).val(); });			// Extract value	
 		$("#infoLab").on("change", function() { curJson.infoLab=$(this).val(); });				// Extract value	
 		$("#contentsLab").on("change", function() { curJson.contentsLab=$(this).val(); });		// Extract value	
-}
+		}
 
 	function MobEditPane()													/// MOB EDITOR
 	{
@@ -310,7 +310,7 @@
 		$("#addMobBut").on("click",function() {									// ON ADD
 			var o={};															// New obj
 			o.id=Math.floor(Math.random()*9999);								// Make up id
-			o.type="chapter";														// Assume map
+			o.type="chapter";													// Assume chapter
 			o.title="Untitled"													// No title
 			curJson.push(o)														// Add startup mob
 			curEdit=-1;															// Not editing anymore
@@ -505,16 +505,16 @@
   		str+="</table>";		
 		str+="<br><b>Settings:</b><br><br>Help goes here"
 		$("#alertBoxDiv").append("</div>"+str);	
-		
-		if (curJson.start)														// If set
-			$("#sdate").val(curJson.start);										// Set start
+		var o=curJson[id];														// Point at mob
+		if (o.start)															// If set
+			$("#sdate").val(o.start);											// Set start
 		if (curJson.end)														// If set
-			$("#edate").val(curJson.end);										// Set end
+			$("#edate").val(o.end);												// Set end
 					
 		$("#alertBoxDiv").dialog({ width:622, buttons: {
 	    	"OK": 			function() { 
-								curJson.start=$("#sdate").val();				// Set val
-								curJson.end=$("#edate").val();					// Set val
+								o.start=$("#sdate").val();						// Set val
+								o.end=$("#edate").val();						// Set val
 								MakeMobTable();									// Show
 		    					$(this).remove();								// Remove dialog
 	    						},
