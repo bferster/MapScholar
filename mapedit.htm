@@ -293,14 +293,14 @@
 			str+="<br><div style='display:inline-block;width:45px;color:#777;vertical-align:4px'><b>Desc:</b></div>";
 			str+="<textarea class='is' rows='1' style='width:204px;vertical-align:bottom' id='idd"+i+"'>"+(o.desc ? o.desc : '')+"</textarea>";
 			str+=" <img src='img/editdot.gif' id='iddh"+i+"'>";
-			str+="<br><div style='display:inline-block;width:45px;color:#777'><b>Page:</b></div>";
-			str+="<input class='is' style='width:30px' type='text' id='idp"+i+"' value='"+(o.page != undefined ? o.page : '')+"'>";
-			str+=" &nbsp; <div style='display:inline-block;color:#777'><b>ID:</b></div>";
-			str+=" &nbsp; <input class='is' style='width:30px' type='text' id='idi"+i+"' value='"+(o.id != undefined ? o.id : '')+"'>";
+			str+="<br><div style='display:inline-block;width:45px;color:#777'><b>ID:</b></div>";
+			str+="<input class='is' style='width:30px' type='text' id='idi"+i+"' value='"+(o.id != undefined ? o.id : '')+"'>";
 			str+=" &nbsp; <button class='bs' style='color:#009900;background-color:#fff' id='idg"+i+"'>"+(o.goto ? 'Set goto' : 'Add goto')+"</button>";
 
 			str+="</td><td><img style='visibility:hidden' id='idtm"+i+"' src='images/movedot.gif'>";	// Add move icon
-			str+="<br><br><img style='visibility:hidden' id='idtr"+i+"' src='images/trashdot.gif' onclick='onDeleteMob(this.id)'></td></tr><tr><td colspan='3'><hr></td></tr>";	// Add trashcan
+			str+="<br><br><img style='visibility:hidden' id='idtr"+i+"' src='images/trashdot.gif' onclick='onDeleteMob(this.id)'></td>"; // Add trashcan
+			if (i < curJson.length-1) 											// If not last line
+				str+="</tr><tr><td colspan='3'><hr></td></tr>";					// Add between line
 			$("#contentTable").append(str);										// Add row
 			
 			$("#idx"+i).on("click", function(e) {								// ON ROW CLICK
@@ -351,12 +351,6 @@
 					MakePageTable();											// Remake table
 					});				
 			
-			$("#idp"+i).on("blur", function() {									// ON BLUR OF PAGE
-					var id=this.id.substr(3);									// Get id
-					curJson[id].page=$("#idp"+id).val();						// Get text
-					MakePageTable();											// Remake table
-					});				
-	
 			$("#idd"+i).on("blur", function() {									// ON BLUR OF DESC
 					var id=this.id.substr(3);									// Get id
 					curJson[id].desc=$("#idd"+id).val();						// Get text
@@ -452,9 +446,10 @@
 			str+="<br><div style='display:inline-block;width:45px;color:#777;vertical-align:4px'><b>Desc:</b></div>";
 			str+="<textarea class='is' rows='1' style='width:224px;vertical-align:bottom' type='text' id='idd"+i+"'>"+(o.desc ? o.desc : '')+"</textarea>";
 			str+=" <img src='img/editdot.gif' id='iddh"+i+"'>";
-
 			str+="</td><td><img style='visibility:hidden' id='idtm"+i+"' src='images/movedot.gif'>";	// Add move icon
-			str+="<br><br><img style='visibility:hidden' id='idtr"+i+"' src='images/trashdot.gif' onclick='onDeleteMob(this.id)'></td></tr><tr><td colspan='3'><hr></td></tr>";	// Add trashcan
+			str+="<br><br><img style='visibility:hidden' id='idtr"+i+"' src='images/trashdot.gif' onclick='onDeleteMob(this.id)'></td>"; // Add trashcan
+			if (i < curJson.length-1) 											// If not last line
+				str+="</tr><tr><td colspan='3'><hr></td></tr>";					// Add between line
 			$("#contentTable").append(str);										// Add row
 			
 			$("#idx"+i).on("click", function(e) {								// ON ROW CLICK
@@ -560,7 +555,7 @@
  		$("#alertBoxDiv").append("</div>"+str);	
  		CKEDITOR.replace('editor1');
    		
-  		$("#alertBoxDiv").dialog({ width:622, buttons: {
+  		$("#alertBoxDiv").dialog({ width:580, buttons: {
 	    	"OK": 		function() { 
 	    					var s=CKEDITOR.instances.editor1.getData().replace(/[\n|\r]/g,"").replace(/"/g,"&quot;");
 	    					callback(s);										// Send to callback	
@@ -640,19 +635,17 @@
 	 	str+="<tr><td>Prompt: </td><td><input id='prompt' class='is' style='width:270px'> ";
   	 	str+="<img src='img/editdot.gif' id='citeh'></td></tr>";
      	str+="<tr><td>North: </td><td><input id='north' class='is' style='width:40px'>";
-  	 	str+="&nbsp; South: <input id='south' class='is' style='width:40px'>";
- 	 	str+="&nbsp; Rotation: <input id='rotation' class='is' style='width:40px'></td></tr>";
- 	 	str+="<tr><td>East: </td><td><input id='east' class='is' style='width:40px'>";
+  	 	str+="&nbsp; South: <input id='south' class='is' style='width:40px'></td></tr>";
+  	 	str+="<tr><td>East: </td><td><input id='east' class='is' style='width:40px'>";
      	str+="&nbsp; West: &nbsp;<input id='west' class='is' style='width:40px'>";
-  	 	str+="&nbsp; Status: &nbsp;&nbsp; <input id='status' class='is' style='width:40px'></td></tr>";
- 	 	str+="<tr><td>Settings: </td><td><input id='settings' class='is' style='width:40px'>";
+     	str+="&nbsp; Rotation: <input id='rotation' class='is' style='width:40px'></td></tr>";
+  	 	str+="<tr><td>Settings: </td><td><input id='settings' class='is' style='width:40px'>";
      	str+="&nbsp; Base: &nbsp;<input id='base' class='is' style='width:40px'>";
-     	str+="&nbsp; Page: &nbsp; &nbsp; &nbsp; <input id='page' class='is' style='width:40px'></td></tr>";
+     	str+="&nbsp; Status: &nbsp;&nbsp; <input id='status' class='is' style='width:40px'></td></tr>";
  	 	str+="<tr><td>Small pic : </td><td><input id='small' class='is' style='width:95px'>";
      	str+="&nbsp; Med pic: &nbsp;<input id='med' class='is' style='width:94px'></td></tr>";
   		str+="<tr><td>Big / URL: </td><td><input id='url' class='is' style='width:270px'></td></tr>";
-   
-  		str+="</table>";		
+   		str+="</table>";		
 		str+="<br><b>Settings:</b><br><br>Help goes here";
 			$("#alertBoxDiv").append(""+str);	
 		var o=curJson[id];														// Point at mob
@@ -683,8 +676,6 @@
 			$("#base").val(o.base);												// Set end
 		if (o.settings != undefined)											// If set
 			$("#settings").val(o.settings);										// Set end
-		if (o.page != undefined)												// If set
-			$("#page").val(o.page);												// Set end
 		if (o.small != undefined)												// If set
 			$("#small").val(o.small);											// Set end
 		if (o.med != undefined)													// If set
@@ -707,7 +698,6 @@
 								o.status=$("#status").val();					// Set val
 								o.base=$("#base").val();						// Set val
 								o.settings=$("#settings").val();				// Set val
-								o.page=$("#page").val();						// Set val
 								o.small=$("#small").val();						// Set val
 								o.med=$("#med").val();							// Set val
 								o.url=$("#url").val();							// Set val
