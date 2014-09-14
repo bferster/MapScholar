@@ -107,8 +107,20 @@
 	{
 		if (e.data.indexOf("MapEdit=data") == 0)							// If load
 			LoadShow($.parseJSON(e.data.substr(13)));						// String -> JSON
-		if (e.data.indexOf("MapEdit=mob") == 0)								// If mob 
-			mps.sh.HighlightMob(e.data.substr(12)-0);						// Go there
+		if (e.data.indexOf("MapEdit=mob") == 0)	{							// If mob 
+			mps.sh.SetBookStartEnd();										// Set book start/end
+			var id=e.data.substr(12)-0;										// Get id
+			if (mps.mobs[id].type == "page") {								// If a page
+				if (mps.sh.presentMode != "Book")							// If not in book mode
+					mps.sh.PresentView({value:"Book"});						// Reset view
+		 		mps.sh.HighlightMob("goto"+(id+1-mps.sh.startBook));		// Show page
+				}
+			else{
+				if (mps.sh.presentMode == "Book")							// If in book mode
+					mps.sh.PresentView({value:"Atlas"});					// Reset view
+				mps.sh.HighlightMob(id);									// Go there
+			}
+		}
 	}
 
 	function SendShivaMessage(src, msg) 								// SEND SHIVA MESSAGE 
@@ -1474,8 +1486,19 @@ MapScholar_Shelf.prototype.PresentView=function(select)					// PRESENTATION MODE
 	if (this.presentMode == "Book")											// If coming from book
 		this.curMob=0;														// Start from scratch
 	this.presentMode=select.value;											// Set flag
+	this.SetBookStartEnd();													// Set book start/end
 	if (select.blur)														// If not an explict call
 		select.blur();														// Remove focus
+	this.Draw();															// Redraw shelf
+	if (select.value == "Slides")											// In slide mode	
+		this.DrawInfoPanel("show");											// Show it
+	else																	// Other node
+		this.DrawInfoPanel("close");										// Close panel
+	SendShivaMessage("MapScholar=resize",$("#controlBarDiv").width()+$("#shelfDiv").width());	// Send that size may have changed
+}	
+
+MapScholar_Shelf.prototype.SetBookStartEnd=function()					// SET BOOK START/END
+{
 	if (this.presentMode == "Book")	{										// If a book		
 		var n=mps.mobs.length;                            					// Number of mobs
 		for (var i=0;i<n;++i) {                                             // For each mob
@@ -1493,14 +1516,8 @@ MapScholar_Shelf.prototype.PresentView=function(select)					// PRESENTATION MODE
 				}
 			}
 		}
-	this.Draw();															// Redraw shelf
-	if (select.value == "Slides")											// In slide mode	
-		this.DrawInfoPanel("show");											// Show it
-	else																	// Other node
-		this.DrawInfoPanel("close");										// Close panel
-	SendShivaMessage("MapScholar=resize",$("#controlBarDiv").width()+$("#shelfDiv").width());	// Send that size may have changed
-}	
-	
+
+}
 
 MapScholar_Shelf.prototype.ShowPrompt=function(msg, time)				// SHOW PROMPT
 {

@@ -106,7 +106,6 @@
 	var butsty=" style='border-radius:10px;color#666;padding-left:12px;padding-right:12px;color:#222;background-color:#ccc;font-size:12px;' ";	// Button styling
 	var keyFlag="";																// Holds key flags												
 	var playerZoom=1;															// Zoom
-	var curEdit=-1;																// Hold current edit
 	var curPos;																	// Current earth locale
 	
 	$(document).ready(function() {											// WHEN PAGE LOADED
@@ -238,8 +237,7 @@
 			$("#paneDiv").html(str);											// Put editor up	
 			}
 		else if (curPane == "editmobs")  	MobEditPane();						// Mob edit pane
-		else if (curPane == "settings")  	SettingsEditPane();					// Settings pane
-		else if (curPane == "editpages")  	PageEditor();						// Page edit pane
+		else if (curPane == "editpages")  	PageEditPane();						// Page edit pane
 
 		$("#playerDiv").css({	"-webkit-transform-origin":"0 0", 				// Scale player window
 				"transform-origin":"0 0",			
@@ -249,55 +247,140 @@
 		$("#playerSiz").css({ left:(playerWid*playerZoom-3)+"px"});				// Set sizer pos
 	}
 
-	function PageEditor()													// PAGE EDITOR
+//////////////////////////////////////////// PAGE EDIT ///////////////////////////////////////////////
+
+	function PageEditPane()													// PAGE EDITOR
 	{
 		var h=$("#paneDiv").height()-220;										// Max height
-		var str="<div style='padding:12px'><br>"								// Container div
-		str+="<div style='font-size:36px;color:#999'><b>Edit page</b></div>"	// Title
-		str+="<br><br><div style='width:360px;max-height:"+h+"px;overflow-y:auto;background-color:#f8f8f8;padding:8px;border:1px solid #999;border-radius:8px'>";		// Scrollable container
-		str+="<textarea class='ckeditor' id='editor1'  rows='40' cols='20'></textarea><br>";
-		str+="&nbsp;&nbsp;<button"+butsty+"onclick='Preview()'>Preview</button>";	// Preview button
+		var str="<div style='padding:12px'><br>"									// Container div
+		str+="<div style='display:inline-block;font-size:36px;color:#999'><b>Edit pages</div>";
+		str+="<br><br><div style='max-height:"+h+"px;overflow-x:hidden;overflow-y:auto;background-color:#f8f8f8;padding:8px;border:1px solid #999;border-radius:8px'>";		// Scrollable container
+		str+="<table id='contentTable' style='font-size:12px;width:100%;padding:0px;border-collapse:collapse;'>";	// Add table
+		str+="</table></div><div style='font-size:12px'<br><br>";				// End table
+		str+="<button"+butsty+"id='addPageBut'>Add a new page</button>";		// Add button
+		str+="&nbsp;&nbsp;<button"+butsty+"onclick='Preview()'>Preview</button>";		// Preview button
 		$("#paneDiv").html(str+"</div>");										// Put editor up	
-		CKEDITOR.inline($("#editor1")[0]);
-	}
+		MakePageTable();														// Make table
 
-///////////// SETTINGS ////////////////
+		$("#addPageBut").on("click",function() {								// ON ADD
+			var o={};															// New obj
+			o.id=Math.floor(Math.random()*9999);								// Make up id
+			o.type="page";														// Assume chapter
+			o.title="Untitled"													// No title
+			curJson.push(o)														// Add startup mob
+			MakePageTable();													// Remake table
+			Sound("click");														// Click
+			});
 
-
-	function SettingsEditPane()												// SETTINGS EDITOR
-	{
-		curEdit=-1;																// Clear
-		var h=$("#paneDiv").height()-220;										// Max height
-		var str="<div style='padding:12px'><br>"								// Container div
-		str+="<div style='font-size:36px;color:#999'><b>Startup</b></div>"		// Title
-		str+="<br><br><div style='width:360px;max-height:"+h+"px;overflow-y:auto;background-color:#f8f8f8;padding:8px;border:1px solid #999;border-radius:8px'>";		// Scrollable container
-		str+="<table id='settingsTable' style='font-size:11px;padding:0px;border-collapse:collapse;'>";	// Add table
-		str+="<tr><td colspan=3><b>General<b></td></tr>";						// Heading
-		str+="<tr><td colspan=3><hr></td></tr>";								// Rule
-		str+="<tr><td width=18></td><td>Title</td><td><input class='bs' type='text' id='title' value='"+(curJson[0].title ? curJson[0].title :'')+"'></td></tr>";	// Get setting
-		str+="<tr><td></td><td>Overall width</td><td><input class='bs' type='text' id='width' value='"+playerWid+"'></td></tr>";	// Get setting
-		str+="<tr><td></td><td>InfoMap source</td><td><input class='bs' type='text' id='infoMapSource' value='"+(curJson.infoMapSource ? curJson.infoMapSource : '')+"'></td></tr>";	// Get setting
-		str+="<tr><td></td><td>External CSS stylesheet</td><td><input class='bs' type='text' id='extCSS' value='"+(curJson.extCSS ? curJson.extCSS : '')+"'></td></tr>";	// Get setting
-		str+="<tr><td></td><td>Transcript pane label</td><td><input class='bs' type='text' id='transLab' value='"+(curJson.transLab ? curJson.transLab : '')+"'></td></tr>";	// Get setting
-		str+="<tr><td></td><td>Information pane label</td><td><input class='bs' type='text' id='infoLab' value='"+(curJson.infoLab ? curJson.infoLab : '')+"'></td></tr>";	// Get setting
-		str+="<tr><td></td><td>Index pane label</td><td><input class='bs' type='text' id='contentsLab' value='"+(curJson.contentsLab ? curJson.contentsLab : '' )+"'></td></tr>";	// Get setting
-		str+="</table></div><br>";												// End table
-		str+="&nbsp;&nbsp;<button"+butsty+"onclick='Preview()'>Preview</button>";	// Preview button
-		$("#paneDiv").html(str+"</div>");										// Put editor up	
-		
-		$("#title").on("change", function() { curJson.title=$(this).val(); });					// Extract value	
-		$("#width").on("change", function() { playerWid=$(this).val(); });					// Extract value	
-		$("#infoMapSource").on("change", function() { curJson.infoMapSource=$(this).val(); });	// Extract value	
-		$("#extCSS").on("change", function() { curJson.extCSS=$(this).val(); });				// Extract value	
-		$("#transLab").on("change", function() { curJson.transLab=$(this).val(); });			// Extract value	
-		$("#infoLab").on("change", function() { curJson.infoLab=$(this).val(); });				// Extract value	
-		$("#contentsLab").on("change", function() { curJson.contentsLab=$(this).val(); });		// Extract value	
 		}
 
-	function MobEditPane()													/// MOB EDITOR
+	function MakePageTable() 												// MAKE PAGE TABLE
+	{	
+		var i,o; 
+		var	pic="images/pageicon.jpg";											// Use icon
+		var trsty=" style='background-color:#f8f8f8' onMouseOver='this.style.backgroundColor=\"#dee7f1\"' ";
+		trsty+="onMouseOut='this.style.backgroundColor=\"#f8f8f8\"'";
+		$("#contentTable").empty();												// Remove all rows
+		for (i=0;i<curJson.length;++i) {														// For each index
+			o=curJson[i];														// Point at row
+			if (o.type != "page") 												// If a page
+				continue;														// Dont show
+			str="<tr id='idx"+i+"' "+trsty+">";									// Row
+			str+="<td style='width:115px;vertical-align:top'><img style='border:1px solid #999' height='64' width='100' src='"+pic+"'></td>";	// Add thumbnail
+			str+="<td><div style='display:inline-block;width:45px;color:#777;vertical-align:4px'><b>Title:</b></div>";
+			str+="<textarea class='is' rows='1' style='width:204px;vertical-align:bottom' id='idt"+i+"'>"+(o.title ? o.title : '')+"</textarea>";
+			str+=" <img src='img/editdot.gif' id='idth"+i+"'>";
+			str+="<br><div style='display:inline-block;width:45px;color:#777;vertical-align:4px'><b>Desc:</b></div>";
+			str+="<textarea class='is' rows='1' style='width:204px;vertical-align:bottom' id='idd"+i+"'>"+(o.desc ? o.desc : '')+"</textarea>";
+			str+=" <img src='img/editdot.gif' id='iddh"+i+"'>";
+			str+="<br><div style='display:inline-block;width:45px;color:#777'><b>Page:</b></div>";
+			str+="<input class='is' style='width:30px' type='text' id='idp"+i+"' value='"+(o.page != undefined ? o.page : '')+"'>";
+			str+=" &nbsp; <div style='display:inline-block;color:#777'><b>ID:</b></div>";
+			str+=" &nbsp; <input class='is' style='width:30px' type='text' id='idi"+i+"' value='"+(o.id != undefined ? o.id : '')+"'>";
+			str+=" &nbsp; <button class='bs' style='color:#009900;background-color:#fff' id='idg"+i+"'>"+(o.goto ? 'Set goto' : 'Add goto')+"</button>";
+
+			str+="</td><td><img style='visibility:hidden' id='idtm"+i+"' src='images/movedot.gif'>";	// Add move icon
+			str+="<br><br><img style='visibility:hidden' id='idtr"+i+"' src='images/trashdot.gif' onclick='onDeleteMob(this.id)'></td></tr><tr><td colspan='3'><hr></td></tr>";	// Add trashcan
+			$("#contentTable").append(str);										// Add row
+			
+			$("#idx"+i).on("click", function(e) {								// ON ROW CLICK
+					var id=e.currentTarget.id.substr(3);						// Extract id
+					if (id == undefined)										// If deselecting
+						return;													// Quit
+					SendShivaMessage("MapEdit=mob",id);							// Go to this mob	   		
+ 					Sound("click");												// Click
+						for (var j=0;j<curJson.length;++j) {					// For each mob
+						$("#idtm"+j).css({"visibility":"hidden"});				// Hide move icons
+						$("#idtr"+j).css({"visibility":"hidden"});				// Hide trashcans
+						$("#idx"+j).droppable({ drop: function(event, ui) {		// On drop
+ 							Sound("click");										// Click
+							onMoveMob(id,event.target.id.substr(3));			// Move it				
+							MakePageTable();									// Remake table
+							}});
+						}
+					$("#idtm"+id).css({"visibility":"visible"});				// Show this move icon
+					$("#idtr"+id).css({"visibility":"visible"});				// Show this trashcan
+					$("#idtm"+id).draggable({ axis:"y"});						// Make icon draggable
+					});														
+
+			$("#idth"+i).on("click", function() {								// HTML EDITOR
+					var id=this.id.substr(4);									// Get id
+					HTMLEditor(id, curJson[id].title, function(d) {				// Edit text
+						curJson[id].title=d;									// Set val
+						MakePageTable();										// Remake table
+						});
+					});				
+
+			$("#iddh"+i).on("click", function() {								// HTML EDITOR
+					var id=this.id.substr(4);									// Get id
+					HTMLEditor(id, curJson[id].desc, function(d) {				// Edit text
+						curJson[id].desc=d;										// Set val
+						MakePageTable();										// Remake table
+						});
+					});				
+
+			$("#idt"+i).on("blur", function() {									// ON BLUR OF TITLE
+					var id=this.id.substr(3);									// Get id
+					curJson[id].title=$("#idt"+id).val();						// Get text
+					MakePageTable();											// Remake table
+					});				
+
+			$("#idi"+i).on("blur", function() {									// ON BLUR OF ID
+					var id=this.id.substr(3);									// Get id
+					curJson[id].id=$("#idi"+id).val();							// Get text
+					MakePageTable();											// Remake table
+					});				
+			
+			$("#idp"+i).on("blur", function() {									// ON BLUR OF PAGE
+					var id=this.id.substr(3);									// Get id
+					curJson[id].page=$("#idp"+id).val();						// Get text
+					MakePageTable();											// Remake table
+					});				
+	
+			$("#idd"+i).on("blur", function() {									// ON BLUR OF DESC
+					var id=this.id.substr(3);									// Get id
+					curJson[id].desc=$("#idd"+id).val();						// Get text
+					MakePageTable();											// Remake table
+					});				
+
+			$("#idg"+i).on("click", function() {								// GOTO EDITOR
+					var id=this.id.substr(3);									// Get id
+					GoToEditor(id, curJson[id].goto, function(w) {				// Edit source
+						curJson[id].goto=w;										// Set val
+						MakePageTable();										// Show
+						});
+					});				
+		}																	// End mob loop
+	}	
+
+	
+//////////////////////////////////////////// MOB EDIT ///////////////////////////////////////////////
+
+
+	function MobEditPane()													// MOB EDITOR
 	{
-		var h=$("#paneDiv").height()-220;														// Max height
-		var str="<div style='padding:12px'><br>"												// Container div
+		var h=$("#paneDiv").height()-220;										// Max height
+		var str="<div style='padding:12px'><br>"								// Container div
 		str+="<div style='display:inline-block;font-size:36px;color:#999'><b>Edit mobs</div>";
 		str+="<br><br><div style='max-height:"+h+"px;overflow-x:hidden;overflow-y:auto;background-color:#f8f8f8;padding:8px;border:1px solid #999;border-radius:8px'>";		// Scrollable container
 		str+="<table id='contentTable' style='font-size:12px;width:100%;padding:0px;border-collapse:collapse;'>";	// Add table
@@ -310,10 +393,9 @@
 		$("#addMobBut").on("click",function() {									// ON ADD
 			var o={};															// New obj
 			o.id=Math.floor(Math.random()*9999);								// Make up id
-			o.type="chapter";													// Assume chapter
+			o.type="text";														// Assume chapter
 			o.title="Untitled"													// No title
 			curJson.push(o)														// Add startup mob
-			curEdit=-1;															// Not editing anymore
 			MakeMobTable();														// Remake table
 			Sound("click");														// Click
 			});
@@ -362,13 +444,13 @@
 			str+="<td style='width:115px;vertical-align:top'><img style='border:1px solid #999' height='60' width='100' src='"+pic+"'></td>";	// Add thumbnail
 			str+="<td style='vertical-align:top;white-space:nowrap'><div style='display:inline-block;width:45px;color:#777'><b>Type: </b></div>";
 			str+=MakeSelect("ida"+i,false,["chapter","choro", "goto","header","info","layer","link","map","sound","startup","text"],o.type);	
-			str+=" &nbsp; <button class='bs' id='idg"+i+"'>"+(o.goto ? 'Set goto' : 'Add goto')+"</button> &nbsp; ";
-			str+="<button class='bs' style='width:auto%' id='idm"+i+"'>More...</button>";
+			str+=" &nbsp; <button class='bs' style='color:#009900;background-color:#fff' id='idg"+i+"'>"+(o.goto ? 'Set goto' : 'Add goto')+"</button> &nbsp; ";
+			str+="<button class='bs' style='color:#009900;background-color:#fff' id='idm"+i+"'>More...</button>";
 			str+="<br><div style='display:inline-block;width:45px;color:#777;vertical-align:4px'><b>Title:</b></div>";
-			str+="<textarea class='is' rows='1' style='width:204px;vertical-align:bottom' type='text' id='idt"+i+"'>"+(o.title ? o.title : '')+"</textarea>";
+			str+="<textarea class='is' rows='1' style='width:224px;vertical-align:bottom' type='text' id='idt"+i+"'>"+(o.title ? o.title : '')+"</textarea>";
 			str+=" <img src='img/editdot.gif' id='idth"+i+"'>";
 			str+="<br><div style='display:inline-block;width:45px;color:#777;vertical-align:4px'><b>Desc:</b></div>";
-			str+="<textarea class='is' rows='1' style='width:204px;vertical-align:bottom' type='text' id='idd"+i+"'>"+(o.desc ? o.desc : '')+"</textarea>";
+			str+="<textarea class='is' rows='1' style='width:224px;vertical-align:bottom' type='text' id='idd"+i+"'>"+(o.desc ? o.desc : '')+"</textarea>";
 			str+=" <img src='img/editdot.gif' id='iddh"+i+"'>";
 
 			str+="</td><td><img style='visibility:hidden' id='idtm"+i+"' src='images/movedot.gif'>";	// Add move icon
@@ -385,8 +467,8 @@
 						$("#idtm"+j).css({"visibility":"hidden"});				// Hide move icons
 						$("#idtr"+j).css({"visibility":"hidden"});				// Hide trashcans
 						$("#idx"+j).droppable({ drop: function(event, ui) {		// On drop
-  							trace(event.target.id)
-							Sound("click");										// Click
+  							Sound("ding");										// Ding
+							onMoveMob(id,event.target.id.substr(3));			// Move it				
 							MakeMobTable();										// Remake table
 							}});
 						}
@@ -411,12 +493,6 @@
 						});
 					});				
 
-			$("#idi"+i).on("blur", function() {									// ON BLUR OF ID
-					var id=this.id.substr(3);									// Get id
-					curJson[id].id=$("#idi"+id).val();							// Get text
-					MakeMobTable();												// Remake table
-					});				
-			
 			$("#idg"+i).on("click", function() {								// GOTO EDITOR
 					var id=this.id.substr(3);									// Get id
 					GoToEditor(id, curJson[id].goto, function(w) {				// Edit source
@@ -452,17 +528,25 @@
 
 	function onDeleteMob(id) 												// ON DELETE MOB
 	{	
-		id=id.substr(3);														// Strip off prefix
+		id=id.substr(4);														// Strip off prefix
+		var type=curJson[id].type;												// Get type
 		curJson.splice(id,1);													// Remove from json
 		$("#idx"+id).remove();													// Remove from table
 		Sound("delete");														// Delete sound
-		MakeMobTable();															// Redraw table
+		if (type == "page")														// If a page
+			MakePageTable();													// Redraw page table
+		else																	// A mob	
+			MakeMobTable();														// Redraw mob table
 		}
 
-	function onMoveMob(id) 													// ON MOVE MOB
+	function onMoveMob(id, to) 												// ON MOVE MOB
 	{	
-		id=id.substr(3);														// Strip off prefix
-		MakeMobTable();															// Redraw table
+		var type=curJson[id].type;												// Get type
+		curJson.splice(to,0,curJson.splice(id,1)[0]);							// Move		
+		if (type == "page")														// If a page
+			MakePageTable();													// Redraw page table
+		else																	// A mob	
+			MakeMobTable();														// Redraw mob table
 	}
 
 	function HTMLEditor(id, text, callback) 								// GOTO EDITOR
@@ -519,7 +603,7 @@
 		if (v[5] != undefined)													// If a speed set
 			$("#gotospd").val(v[5]);											// Set speed field,
 					
-		$("#alertBoxDiv").dialog({ width:622, buttons: {
+		$("#alertBoxDiv").dialog({ width:500, buttons: {
 	    	"OK": 			function() { 
 	    						where="";										// Normal move
 	    						where+=$("#gotolat").val()+",";					// Add lat
@@ -551,19 +635,23 @@
      	str+="<tr><td>Start date: </td><td><input id='sdate' class='is' style='width:40px'>";
   	 	str+="&nbsp; End Date: <input id='edate' class='is' style='width:40px'>";
    	 	str+="&nbsp; Mob ID: <input id='mobid' class='is' style='width:30px'></td></tr>";
-	 	str+="<tr><td>Citation: </td><td><input id='cite' class='is' style='width:250px'> ";
+	 	str+="<tr><td>Citation: </td><td><input id='cite' class='is' style='width:270px'> ";
   	 	str+="<img src='img/editdot.gif' id='citeh'></td></tr>";
-	 	str+="<tr><td>Prompt: </td><td><input id='prompt' class='is' style='width:250px'> ";
+	 	str+="<tr><td>Prompt: </td><td><input id='prompt' class='is' style='width:270px'> ";
   	 	str+="<img src='img/editdot.gif' id='citeh'></td></tr>";
      	str+="<tr><td>North: </td><td><input id='north' class='is' style='width:40px'>";
   	 	str+="&nbsp; South: <input id='south' class='is' style='width:40px'>";
- 	 	str+="&nbsp; Rotation: <input id='rotations' class='is' style='width:40px'></td></tr>";
+ 	 	str+="&nbsp; Rotation: <input id='rotation' class='is' style='width:40px'></td></tr>";
  	 	str+="<tr><td>East: </td><td><input id='east' class='is' style='width:40px'>";
      	str+="&nbsp; West: &nbsp;<input id='west' class='is' style='width:40px'>";
-  	 	str+="&nbsp; Status: &nbsp; <input id='status' class='is' style='width:40px'></td></tr>";
- 	 	str+="<tr><td>Settings: </td><td><input id='set' class='is' style='width:40px'>";
-     	str+="&nbsp; Base: &nbsp;<input id='base' class='is' style='width:40px'></td></tr>";
-  
+  	 	str+="&nbsp; Status: &nbsp;&nbsp; <input id='status' class='is' style='width:40px'></td></tr>";
+ 	 	str+="<tr><td>Settings: </td><td><input id='settings' class='is' style='width:40px'>";
+     	str+="&nbsp; Base: &nbsp;<input id='base' class='is' style='width:40px'>";
+     	str+="&nbsp; Page: &nbsp; &nbsp; &nbsp; <input id='page' class='is' style='width:40px'></td></tr>";
+ 	 	str+="<tr><td>Small pic : </td><td><input id='small' class='is' style='width:95px'>";
+     	str+="&nbsp; Med pic: &nbsp;<input id='med' class='is' style='width:94px'></td></tr>";
+  		str+="<tr><td>Big / URL: </td><td><input id='url' class='is' style='width:270px'></td></tr>";
+   
   		str+="</table>";		
 		str+="<br><b>Settings:</b><br><br>Help goes here";
 			$("#alertBoxDiv").append(""+str);	
@@ -579,15 +667,50 @@
 			$("#cite").val(o.citation);											// Set end
 		if (o.prompt != undefined)												// If set
 			$("#prompt").val(o.prompt);											// Set end
-		
-					
-		$("#alertBoxDiv").dialog({ width:622, buttons: {
+		if (o.north != undefined)												// If set
+			$("#north").val(o.north);											// Set end
+		if (o.south != undefined)												// If set
+			$("#south").val(o.south);											// Set end
+		if (o.east != undefined)												// If set
+			$("#east").val(o.east);												// Set end
+		if (o.west != undefined)												// If set
+			$("#west").val(o.west);												// Set end
+		if (o.rotation != undefined)											// If set
+			$("#rotation").val(o.rotation);										// Set end
+		if (o.status != undefined)												// If set
+			$("#status").val(o.status);											// Set end
+		if (o.base != undefined)												// If set
+			$("#base").val(o.base);												// Set end
+		if (o.settings != undefined)											// If set
+			$("#settings").val(o.settings);										// Set end
+		if (o.page != undefined)												// If set
+			$("#page").val(o.page);												// Set end
+		if (o.small != undefined)												// If set
+			$("#small").val(o.small);											// Set end
+		if (o.med != undefined)													// If set
+			$("#med").val(o.med);												// Set end
+		if (o.url != undefined)													// If set
+			$("#url").val(o.url);												// Set end
+						
+		$("#alertBoxDiv").dialog({ width:400, buttons: {
 	    	"OK": 			function() { 
 								o.start=$("#sdate").val();						// Set val
 								o.end=$("#edate").val();						// Set val
 								o.id=$("#mobid").val();							// Set val
 								o.citation=$("#cite").val();					// Set val
 								o.prompt=$("#prompt").val();					// Set val
+								o.north=$("#north").val();						// Set val
+								o.south=$("#south").val();						// Set val
+								o.east=$("#east").val();						// Set val
+								o.west=$("#west").val();						// Set val
+								o.rotation=$("#rotation").val();				// Set val
+								o.status=$("#status").val();					// Set val
+								o.base=$("#base").val();						// Set val
+								o.settings=$("#settings").val();				// Set val
+								o.page=$("#page").val();						// Set val
+								o.small=$("#small").val();						// Set val
+								o.med=$("#med").val();							// Set val
+								o.url=$("#url").val();							// Set val
 								MakeMobTable();									// Show
 		    					$(this).remove();								// Remove dialog
 	    						},
