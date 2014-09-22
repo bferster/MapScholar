@@ -1260,7 +1260,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				}
 			}
 		if (desc.match(/goto\(/)) {											// If an embedded goto
-			var j,k,vv,url,num;
+			var j,k,vv,url;
 			v=(desc+" ").match(/goto\((.*?)\)/ig);							// Extract url(s)
 			for (i=0;i<v.length;++i) {										// For each url
 				k=0;														// Reset
@@ -1277,7 +1277,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				}
 			}
 		if (desc.match(/toc\(/)) {											// If an embedded toc
-			var t,vv,num;
+			var t,vv;
 			v=(desc+" ").match(/toc\((.*?)\)/ig);							// Extract url(s)
 			for (i=0;i<v.length;++i) {										// For each url
 				t="";														// Clear string
@@ -1287,7 +1287,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				t+="<br>&nbsp; &nbsp; ";									// Add break
 				for (j=1;j<vv[1];++j)										// Add indent
 					t+="&nbsp; &nbsp; ";									// Add spaces
-				t+="<a href='javascript:mps.sh.HighlightMob(\"goto"+(vv[0]-num+1)+"\")'>"+mps.mobs[vv[0]].title+"</a>";	
+				t+="<a href='javascript:mps.sh.HighlightMob(\"goto"+(vv[0]-mps.sh.startBook+1)+"\")'>"+mps.mobs[vv[0]].title+"</a>";	
 				desc=desc.replace(RegExp(v[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&")),t);	// Replace with anchor tag
 				}
 			}
