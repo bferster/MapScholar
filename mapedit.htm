@@ -633,7 +633,7 @@
 	 	str+="<tr><td>Citation: </td><td><input id='cite' class='is' style='width:270px'> ";
   	 	str+="<img src='img/editdot.gif' id='citeh'></td></tr>";
 	 	str+="<tr><td>Prompt: </td><td><input id='prompt' class='is' style='width:270px'> ";
-  	 	str+="<img src='img/editdot.gif' id='citeh'></td></tr>";
+  	 	str+="<img src='img/editdot.gif' id='prompth'></td></tr>";
      	str+="<tr><td>North: </td><td><input id='north' class='is' style='width:40px'>";
   	 	str+="&nbsp; South: <input id='south' class='is' style='width:40px'></td></tr>";
   	 	str+="<tr><td>East: </td><td><input id='east' class='is' style='width:40px'>";
@@ -712,6 +712,18 @@
 		$(".ui-dialog-buttonpane.ui-widget-content.ui-helper-clearfix").css("border","none");
 		$(".ui-dialog").css({"border-radius":"14px", "box-shadow":"4px 4px 8px #ccc"});
  		$(".ui-button").css({"border-radius":"30px","outline":"none"});
+
+		$("#citeh").on("click", function() {									// HTML EDITOR
+				HTMLEditor(id, curJson[id].citation, function(d) {				// Edit text
+					curJson[id].citation=d;										// Set val
+					});
+				});				
+		$("#prompth").on("click", function() {									// HTML EDITOR
+				HTMLEditor(id, curJson[id].prompt, function(d) {				// Edit text
+					curJson[id].prompt=d;										// Set val
+					});
+				});				
+
 	}
 
 
@@ -736,6 +748,14 @@
 			$("#gotohdg").val(v[6]);											// Set heading field, if open
 			curPos=v[2]+","+v[3]+","+v[4]+","+v[5]+","+v[6];					// Make up goto
 			}	
+		else if (e.data.match(/MapScholar=rectify/))	{						// If rectifying
+			var v=e.data.split("|");											// Split
+			$("#north").val(v[2]);												// Set north field, if open
+			$("#south").val(v[3]);												// Set south field, if open
+			$("#east").val(v[4]);												// Set east field, if open
+			$("#west").val(v[5]);												// Set west field, if open
+			$("#rotation").val(v[6]);											// Set rotation field, if open
+			}
 	}
 		
 	function SendShivaMessage(cmd, msg) 									// SEND SHIVA MESSAGE 

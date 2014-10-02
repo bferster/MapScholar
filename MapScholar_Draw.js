@@ -158,8 +158,11 @@ MapScholar_Draw.prototype.DrawControlBar=function(mode)						// DRAW MAP CONTROL
 		$("#annUrl").val(url);													// Set url
 		$("#annRot").val(rot);													// Show cur rot
 		$("#annRot2").val(rot);													// Set rot text
-		if ((type == "Image") && (this.curSeg != -1))
-			$("#annPos").val(s.lats[0]+"\t"+s.lats[1]+"\t"+s.lons[0]+"\t"+s.lons[1]+"\t"+s.rot);		// Show cur pos for images
+		if ((type == "Image") && (this.curSeg != -1)) {							// If rectifying
+			str=s.lats[0]+"\t"+s.lats[1]+"\t"+s.lons[0]+"\t"+s.lons[1]+"\t"+s.rot;
+			$("#annPos").val(str);												// Show cur pos for images
+			SendShivaMessage("MapScholar=rectify",str.replace(/\t/g,"|"));		// Send rectify position to mapedit
+			}
 		}
 	else{
 		this.curSeg=-1;															// Not editing
