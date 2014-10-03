@@ -317,8 +317,7 @@ MapScholar_Draw.prototype.AddNewSeg=function(defs)							// ADD NEW SEGMENT
 		if (type == "Image") {													// If image
 			o.url="http://www.viseyes.org/shiva/map.jpg";						// Put in dummy
 			if (defs) {															// If defaults are provided
-				trace(defs)
-				var v=defs.split("|");										// Get parts
+				var v=defs.split("|");											// Get parts
 				if (v[2])		o.url=v[2];										// Med first
 				else if (v[3])	o.url=v[3];										// Large second
 				else if (v[1])	o.url=v[1];										// Small last resort
