@@ -283,7 +283,7 @@ MapScholar_Draw.prototype.DrawControlBar=function(mode)						// DRAW MAP CONTROL
 
 }
 
-MapScholar_Draw.prototype.AddNewSeg=function()								// ADD NEW SEGMENT
+MapScholar_Draw.prototype.AddNewSeg=function(defs)							// ADD NEW SEGMENT
 {
 	var type=$("#annType").val();												// Get type
 	this.DrawControlBar(true);													// Draw control bar
@@ -314,8 +314,16 @@ MapScholar_Draw.prototype.AddNewSeg=function()								// ADD NEW SEGMENT
 		o.lats.push(lookAt.getLatitude()-w);									// Add lat
 		o.lons.push(lookAt.getLongitude()-w);									// Add lon
 		o.rot=0;																// Set url
-		if (type == "Image") 													// If image
+		if (type == "Image") {													// If image
 			o.url="http://www.viseyes.org/shiva/map.jpg";						// Put in dummy
+			if (defs) {															// If defaults are provided
+				trace(defs)
+				var v=defs.split("|");										// Get parts
+				if (v[2])		o.url=v[2];										// Med first
+				else if (v[3])	o.url=v[3];										// Large second
+				else if (v[1])	o.url=v[1];										// Small last resort
+				}
+			}
 		}
 	else if ((type == "Shape") || (type == "Line") || (type == "Arrow")) {		// Shape/Line/Arrow
 		if (type == "Arrow")													// If arrow

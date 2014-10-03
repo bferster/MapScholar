@@ -107,7 +107,7 @@
 	{
 		if (e.data.indexOf("MapEdit=data") == 0)							// If load
 			LoadShow($.parseJSON(e.data.substr(13)));						// String -> JSON
-		if (e.data.indexOf("MapEdit=mob") == 0)	{							// If mob 
+		else if (e.data.indexOf("MapEdit=mob") == 0)	{					// If mob 
 			mps.sh.SetBookStartEnd();										// Set book start/end
 			var id=e.data.substr(12)-0;										// Get id
 			if (mps.mobs[id].type == "page") {								// If a page
@@ -119,8 +119,13 @@
 				if (mps.sh.presentMode == "Book")							// If in book mode
 					mps.sh.PresentView({value:"Atlas"});					// Reset view
 				mps.sh.HighlightMob(id);									// Go there
+				}
 			}
-		}
+		else if (e.data.indexOf("MapEdit=rectify") == 0)	{				// If rectify 
+			mps.dr.DrawControlBar(true);									// Go to draw mode
+			$("#annType").val("Image");										// Set val
+			mps.dr.AddNewSeg(e.data);										// Add image
+			}
 	}
 
 	function SendShivaMessage(src, msg) 								// SEND SHIVA MESSAGE 
