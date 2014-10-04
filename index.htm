@@ -112,7 +112,6 @@
 			if (mps.dr.inDraw)												// If in draw mode
 				mps.dr.DrawControlBar(false);								// Go to shelf mode
 			mps.sh.SetBookStartEnd();										// Set book start/end
-			trace(e.data)
 			var id=e.data.substr(12)-0;										// Get id
 			if (mps.mobs[id].type == "page") {								// If a page
 				if (mps.sh.presentMode != "Book")							// If not in book mode

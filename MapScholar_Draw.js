@@ -350,7 +350,7 @@ MapScholar_Draw.prototype.AddNewSeg=function(defs)							// ADD NEW SEGMENT
 		return false;															// Quit
 	this.Do();																	// Set undo	
 	this.segs.push(o);															// Add seg
-	this.AddSegsToEarth(this.segs.length-1);									// Add to EDOM
+	this.AddSegsToEarth(this.segs.length-1,defs != undefined);					// Add to EDOM
 	shivaLib.Sound("ding");														// Ding
 	this.curSeg=this.segs.length-1;												// Highlight current one																				
 	this.DrawMap();																// Redraw map
@@ -393,7 +393,7 @@ MapScholar_Draw.prototype.DrawMap=function()								// DRAW MAP
   	this.DrawControlDots((this.curSeg != -1));									// Add control dots	if editing
 }
 
-MapScholar_Draw.prototype.AddSegsToEarth=function(num)						// ADD SEGMENTS TO EDOM
+MapScholar_Draw.prototype.AddSegsToEarth=function(num, hasRectify)			// ADD SEGMENTS TO EDOM
 {	
 	var i,j,s,point,coords,polygon,seg;
 	var start=0,end=this.segs.length;											// Assume whole list
@@ -449,11 +449,11 @@ MapScholar_Draw.prototype.AddSegsToEarth=function(num)						// ADD SEGMENTS TO E
 			s.asp=0;															// No aspect yet
 			}
 		ge.getFeatures().appendChild(seg);										// Add seg to EDOM
-		this.StyleSeg(i);														// Style it
+		this.StyleSeg(i,hasRectify);											// Style it
 		}
 }
 
-MapScholar_Draw.prototype.StyleSeg=function(num)							// SET SEGMENT STYLING
+MapScholar_Draw.prototype.StyleSeg=function(num, hasRectify)				// SET SEGMENT STYLING
 {	
 	var r,g,b,a;
 	var ge=shivaLib.map;														// Local copy of earth
@@ -512,7 +512,8 @@ MapScholar_Draw.prototype.StyleSeg=function(num)							// SET SEGMENT STYLING
 			testImg.onload=function() {											// When loaded
 				var s=_this.segs[num];											// Point at seg
 				s.asp=this.height/this.width;  									// Get aspect ratio
-				s.lats[1]=s.lats[0]-Math.abs(s.lons[0]-s.lons[1])*s.asp;		// Set height
+				if (!hasRectify)												// If rectifaction coords do not already exist
+					s.lats[1]=s.lats[0]-Math.abs(s.lons[0]-s.lons[1])*s.asp;	// Set height
 				var a=s.rot;													// Get 0 -> 360 rot
 				if (a > 180) a=-(360-a);										// Convert -180 -> +180
 				latLonBox.setBox(s.lats[0],s.lats[1],s.lons[0],s.lons[1],Number(a));	// Set coords						
