@@ -705,8 +705,12 @@
 								o.url=$("#url").val();							// Set val
 								MakeMobTable();									// Show
 		    					$(this).remove();								// Remove dialog
+								SendShivaMessage("MapEdit=rectify","allDone");	// Done rectifying	   		
 	    						},
-	    	"Cancel":  		function() { $(this).remove(); 							}
+	    	"Cancel":  		function() { 
+		    					$(this).remove();								// Remove dialog
+								SendShivaMessage("MapEdit=rectify","allDone");	// Done rectifying	   		
+	    						}
 			}});	
 	
 		$("#alertBoxDiv").dialog("option","position",{ my:"center", at:"center", of:"#paneDiv" });

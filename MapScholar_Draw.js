@@ -285,7 +285,7 @@ MapScholar_Draw.prototype.DrawControlBar=function(mode)						// DRAW MAP CONTROL
 
 MapScholar_Draw.prototype.AddNewSeg=function(defs)							// ADD NEW SEGMENT
 {
-	var type=$("#annType").val();												// Get type
+	var type=$("#annType").val(),v;												// Get type
 	this.DrawControlBar(true);													// Draw control bar
 	this.curSeg=-1;																// Deselect
 	$("#annType").val("Draw");													// Reset control
@@ -309,15 +309,25 @@ MapScholar_Draw.prototype.AddNewSeg=function(defs)							// ADD NEW SEGMENT
 		o.lons.push(lookAt.getLongitude());										// Add lon
 		}
 	else if ((type == "Box") || (type == "Circle") || (type == "Image")) {		// Box/Image/Circle
-		o.lats.push(lookAt.getLatitude()+w);									// Add lat
-		o.lons.push(lookAt.getLongitude()+w);									// Add lon
-		o.lats.push(lookAt.getLatitude()-w);									// Add lat
-		o.lons.push(lookAt.getLongitude()-w);									// Add lon
-		o.rot=0;																// Set url
+		if (defs) 																// If defaults are provided
+			v=defs.split("|");													// Get parts
+		if (defs && v[4]) {														// If pos set
+			o.lats.push(v[4]-0);												// Set N
+			o.lats.push(v[5]-0);												// Set S
+			o.lons.push(v[6]-0);												// Set E
+			o.lons.push(v[7]-0);												// Set W
+			o.rot=v[8]-0;														// Set R
+			}
+		else{																	// Make one up
+			o.lats.push(lookAt.getLatitude()+w);								// Add lat
+			o.lons.push(lookAt.getLongitude()+w);								// Add lon
+			o.lats.push(lookAt.getLatitude()-w);								// Add lat
+			o.lons.push(lookAt.getLongitude()-w);								// Add lon
+			o.rot=0;															// Set url
+			}
 		if (type == "Image") {													// If image
 			o.url="http://www.viseyes.org/shiva/map.jpg";						// Put in dummy
 			if (defs) {															// If defaults are provided
-				var v=defs.split("|");											// Get parts
 				if (v[2])		o.url=v[2];										// Med first
 				else if (v[3])	o.url=v[3];										// Large second
 				else if (v[1])	o.url=v[1];										// Small last resort
@@ -733,6 +743,13 @@ MapScholar_Draw.prototype.RemoveSeg=function(num)							// REMOVE SEGMENT
 	this.segs.splice(num,1);													// Remove from segs
 }
 
+MapScholar_Draw.prototype.ClearSegs=function()								// REMOVE ALL SEGMENTS
+{
+	while (this.segs.length)													// For each seg
+		this.RemoveSeg(0);														// Remove it
+	this.curSeg=-1;																// Not editing
+}	
+
 MapScholar_Draw.prototype.GetNearestPoint=function(lat, lon)				// GET CLOSEST POINT
 {
 	var i,j,s,d;
@@ -1123,10 +1140,8 @@ MapScholar_Draw.prototype.ParseKML=function(data)							// PARSE KML FILE
 	var type,s=0,e,i,j,k,o,id,vis;
 	var kml=data.kml;															// Point at kml data
 	var _this=mps.dr;															// Point at draw module
-	if (!mps.controlKey) {														// If not appending (ie. control key is not pressed)
-		while (_this.segs.length)												// For each seg
-			_this.RemoveSeg(0);													// Remove it
-		}
+	if (!mps.controlKey) 														// If not appending (ie. control key is not pressed)
+		ClearSegs();															// Clear all segs		
 	while (1) {																	// Loop
 		j=kml.indexOf("|*GroundOverlay*|",s);									// Next ground
 		i=kml.indexOf("|*Placemark",s);											// Next place		

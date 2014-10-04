@@ -35,7 +35,7 @@
 <body>
 		<div id="containerDiv" style="position:absolute;width:900px;height:600px;left:20px;top:20px;"></div>
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> 
-			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>10/3/14</p>
+			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>10/4/14</p>
 			</div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
@@ -108,7 +108,11 @@
 		if (e.data.indexOf("MapEdit=data") == 0)							// If load
 			LoadShow($.parseJSON(e.data.substr(13)));						// String -> JSON
 		else if (e.data.indexOf("MapEdit=mob") == 0)	{					// If mob 
+			mps.dr.ClearSegs();												// Clear existing segs
+			if (mps.dr.inDraw)												// If in draw mode
+				mps.dr.DrawControlBar(false);								// Go to shelf mode
 			mps.sh.SetBookStartEnd();										// Set book start/end
+			trace(e.data)
 			var id=e.data.substr(12)-0;										// Get id
 			if (mps.mobs[id].type == "page") {								// If a page
 				if (mps.sh.presentMode != "Book")							// If not in book mode
@@ -122,10 +126,16 @@
 				}
 			}
 		else if (e.data.indexOf("MapEdit=rectify") == 0)	{				// If rectify 
+			mps.dr.ClearSegs();												// Clear existing segs
+			if (e.data.match(/allDone/)) {									// If finished
+				mps.dr.DrawControlBar(false);								// Go to shelf mode
+				return;														// Quit
+				}
 			mps.dr.DrawControlBar(true);									// Go to draw mode
 			$("#annType").val("Image");										// Set val
 			mps.dr.AddNewSeg(e.data);										// Add image
 			}
+
 	}
 
 	function SendShivaMessage(src, msg) 								// SEND SHIVA MESSAGE 
