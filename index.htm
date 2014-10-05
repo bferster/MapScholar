@@ -1255,7 +1255,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 		var desc=o.desc;													// Get desc
 		if (o.title) 														// If it has a title
 			str+="<center><b>"+shivaLib.LinkToAnchor(o.title)+"</b></center><br>";	// Add it
-		if (desc.match(/mob\(/)) {											// If an embedded mob
+		if (desc && desc.match(/mob\(/)) {									// If an embedded mob
 			var vv,url,num;
 			v=(desc+" ").match(/mob\((.*?)\)/ig);							// Extract url(s)
 			for (i=0;i<v.length;++i) {										// For each url
@@ -1273,7 +1273,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 					adds.push(num);											// Add shelf array
 				}
 			}
-		if (desc.match(/goto\(/)) {											// If an embedded goto
+		if (desc && desc.match(/goto\(/)) {									// If an embedded goto
 			var j,k,vv,url;
 			v=(desc+" ").match(/goto\((.*?)\)/ig);							// Extract url(s)
 			for (i=0;i<v.length;++i) {										// For each url
@@ -1290,7 +1290,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				desc=desc.replace(RegExp(v[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&"))," <a href='javascript:mps.Goto(\""+url+"\")'>"+title+"</a> ");	// Replace with anchor tag
 				}
 			}
-		if (desc.match(/toc\(/)) {											// If an embedded toc
+		if (desc && desc.match(/toc\(/)) {									// If an embedded toc
 			var t,vv;
 			v=(desc+" ").match(/toc\((.*?)\)/ig);							// Extract url(s)
 			for (i=0;i<v.length;++i) {										// For each url
@@ -1305,14 +1305,14 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				desc=desc.replace(RegExp(v[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&")),t);	// Replace with anchor tag
 				}
 			}
-		if (desc.match(/foot\(/)) {											// If embedded footnotes
+		if (desc && desc.match(/foot\(/)) {									// If embedded footnotes
 			v=(desc+" ").match(/foot\(.*?\)/ig);							// Extract footnotes(s)
 			for (i=0;i<v.length;++i) {										// For each url
 				title=v[i].substr(5,v[i].length-6);							// Extract actual note
 				desc=desc.replace(RegExp(v[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&"))," <a href='#' title='"+title+"'><b><sup>["+(i+1)+"]</b></sup></a> ");	// Replace with anchor tag
 				}	
 			}
-		if (desc.match(/more\(\)/)) {										// If more tag
+		if (desc && desc.match(/more\(\)/)) {								// If more tag
 			v=desc.split("more()");											// Split
 			desc=v[0]+"<span id='moreHead' style='color:#009900;text-align:center' onclick='toggleMore()'";
 			desc+="> More...</span><span id='moreText' style='display:none'>"+v[1]+"</span>"; 											
