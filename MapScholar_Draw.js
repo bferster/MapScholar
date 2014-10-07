@@ -1142,7 +1142,7 @@ MapScholar_Draw.prototype.ParseKML=function(data)							// PARSE KML FILE
 	var kml=data.kml;															// Point at kml data
 	var _this=mps.dr;															// Point at draw module
 	if (!mps.controlKey) 														// If not appending (ie. control key is not pressed)
-		ClearSegs();															// Clear all segs		
+		_this.ClearSegs();														// Clear all segs		
 	while (1) {																	// Loop
 		j=kml.indexOf("|*GroundOverlay*|",s);									// Next ground
 		i=kml.indexOf("|*Placemark",s);											// Next place		
