@@ -786,11 +786,17 @@
 			curPos=v[2]+","+v[3]+","+v[4]+","+v[5]+","+v[6];					// Make up goto
 			}	
 		else if (e.data.match(/MapScholar=mob/))	{							// If mob clicked
-			var v=e.data.split("|");											// Split
-			for (var i=0;i<curJson.length;++i) 									// For each mob
+			var i;
+			var id=e.data.split("|")[2]-0;										// Split to get id
+			for (i=0;i<curJson.length;++i)  									// For each mob
 				$("#idx"+i).css("backgroundColor","#f8f8f8");					// Clear all
-			$("#idx"+v[2]).css("backgroundColor","#dee7f1");					// Color current one
-			$("#mobList").scrollTop(87*v[2]);									// Set scroll
+			for (i=0;i<curJson.length;++i) { 									// For each mob
+				if (curJson[i].id == id) {										// If ids match
+					$("#mobList").scrollTop(87*i);								// Set scroll
+					$("#idx"+i).css("backgroundColor","#dee7f1");				// Color current one
+					break;														// Quit looking
+					}
+				}
 			}
 		else if (e.data.match(/MapScholar=rectify/))	{						// If rectifying
 			var v=e.data.split("|");											// Split

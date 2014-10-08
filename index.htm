@@ -1237,7 +1237,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			else
 				shivaLib.Sound("click");									// Click once
 			mps.sh.HighlightMob(id,e.shiftKey,false);						// Highlight mob
-			SendShivaMessage("MapScholar=mob",id);							// Send that mob has been clicked
+			SendShivaMessage("MapScholar=mob",mps.mobs[id].id);				// Send that mob has been clicked
 			lastClick=now;													// Then is now	
 			});
 		$("#heading"+i).click( function(e) {								// Add click handler
