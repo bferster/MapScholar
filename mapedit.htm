@@ -107,6 +107,7 @@
 	var keyFlag="";																// Holds key flags												
 	var playerZoom=1;															// Zoom
 	var curPos;																	// Current earth locale
+	var curEdit=0;
 	
 	$(document).ready(function() {											// WHEN PAGE LOADED
 		if (window.addEventListener) 											// If supported this way
@@ -381,7 +382,7 @@
 		var h=$("#paneDiv").height()-220;										// Max height
 		var str="<div style='padding:12px'><br>"								// Container div
 		str+="<div style='display:inline-block;font-size:36px;color:#999'><b>Edit mobs</div>";
-		str+="<br><br><div style='max-height:"+h+"px;overflow-x:hidden;overflow-y:auto;background-color:#f8f8f8;padding:8px;border:1px solid #999;border-radius:8px'>";		// Scrollable container
+		str+="<br><br><div id='mobList' style='max-height:"+h+"px;overflow-x:hidden;overflow-y:auto;background-color:#f8f8f8;padding:8px;border:1px solid #999;border-radius:8px'>";		// Scrollable container
 		str+="<table id='contentTable' style='font-size:12px;width:100%;padding:0px;border-collapse:collapse;'>";	// Add table
 		str+="</table></div><div style='font-size:12px'<br><br>";				// End table
 		str+="<button"+butsty+"id='addMobBut'>Add a new mob</button>";			// Add button
@@ -784,6 +785,13 @@
 			$("#gotohdg").val(v[6]);											// Set heading field, if open
 			curPos=v[2]+","+v[3]+","+v[4]+","+v[5]+","+v[6];					// Make up goto
 			}	
+		else if (e.data.match(/MapScholar=mob/))	{							// If mob clicked
+			var v=e.data.split("|");											// Split
+			for (var i=0;i<curJson.length;++i) 									// For each mob
+				$("#idx"+i).css("backgroundColor","#f8f8f8");					// Clear all
+			$("#idx"+v[2]).css("backgroundColor","#dee7f1");					// Color current one
+			$("#mobList").scrollTop(87*v[2]);									// Set scroll
+			}
 		else if (e.data.match(/MapScholar=rectify/))	{						// If rectifying
 			var v=e.data.split("|");											// Split
 			$("#north").val(v[2]);												// Set north field, if open
