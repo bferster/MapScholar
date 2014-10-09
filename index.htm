@@ -215,6 +215,9 @@ MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT
 				mps.ShowMapScale(mps.showScale);							// Show scale
 				}
 			}
+		trace(o.type == "startup" ? 1 : 0,o.type)
+		
+		mps.sh.HighlightMob(o.type == "startup" ? 1 : 0,false,true);		// First content mob
 		return;
 		}
 }
