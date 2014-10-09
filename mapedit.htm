@@ -227,7 +227,7 @@
 		var str;
 		var wid=playerWid;														// Copy width
 		var w=window.innerWidth-(wid*playerZoom)-16;							// Editor width
-		var h=window.innerHeight-64;											// Editor height
+		var h=Math.max(window.innerHeight-64,650);								// Editor height
 		$("#playerIF").prop("width",wid);										// Player wid
 		$("#playerIF").prop("height",h);										// Hgt
 		$("#editDiv").css({width:w+"px",left:wid*playerZoom+6+"px",height:h-8+"px"}); // Overall div
