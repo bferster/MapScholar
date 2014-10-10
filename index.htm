@@ -113,6 +113,8 @@
 				mps.dr.DrawControlBar(false);								// Go to shelf mode
 			mps.sh.SetBookStartEnd();										// Set book start/end
 			var id=e.data.substr(12)-0;										// Get id
+			if (!mps.mobs[id])												// No mob there
+				return;														// Quit
 			if (mps.mobs[id].type == "page") {								// If a page
 				if (mps.sh.presentMode != "Book")							// If not in book mode
 					mps.sh.PresentView({value:"Book"});						// Reset view

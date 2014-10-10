@@ -280,9 +280,9 @@
 			curJson.push(o)														// Add startup mob
 			MakePageTable();													// Remake table
 			Sound("click");														// Click
-			trace(lastPage)
 			if (lastPage != -1)													// If already pages there
 				onMoveMob(curJson.length-1,lastPage+1);							// Move to end of them
+			
 			});
 
 		}
@@ -405,6 +405,7 @@
 			curJson.push(o)														// Add startup mob
 			MakeMobTable();														// Remake table
 			Sound("click");														// Click
+			HighlightMob(o.id);													// Highlight it in list
 			});
 
 		}
@@ -792,19 +793,8 @@
 			$("#gotohdg").val(v[6]);											// Set heading field, if open
 			curPos=v[2]+","+v[3]+","+v[4]+","+v[5]+","+v[6];					// Make up goto
 			}	
-		else if (e.data.match(/MapScholar=mob/))	{							// If mob clicked
-			var i;
-			var id=e.data.split("|")[2]-0;										// Split to get id
-			for (i=0;i<curJson.length;++i)  									// For each mob
-				$("#idx"+i).css("backgroundColor","#f8f8f8");					// Clear all
-			for (i=0;i<curJson.length;++i) { 									// For each mob
-				if (curJson[i].id == id) {										// If ids match
-					$("#mobList").scrollTop(87*i);								// Set scroll
-					$("#idx"+i).css("backgroundColor","#dee7f1");				// Color current one
-					break;														// Quit looking
-					}
-				}
-			}
+		else if (e.data.match(/MapScholar=mob/))								// If mob clicked
+			HighlightMob(e.data.split("|")[2]);									// Highlight mob entry
 		else if (e.data.match(/MapScholar=rectify/))	{						// If rectifying
 			var v=e.data.split("|");											// Split
 			$("#north").val(v[2]);												// Set north field, if open
@@ -812,6 +802,20 @@
 			$("#east").val(v[4]);												// Set east field, if open
 			$("#west").val(v[5]);												// Set west field, if open
 			$("#rotation").val(v[6]);											// Set rotation field, if open
+			}
+	}
+
+	function HighlightMob(id) 												// HIGHLIGHT MOB IN LIST
+	{
+		var i;
+		for (i=0;i<curJson.length;++i)  										// For each mob in project
+			$("#idx"+i).css("backgroundColor","#f8f8f8");						// Clear all
+		for (i=0;i<curJson.length;++i) { 										// For each mob
+			if (curJson[i].id == id) {											// If ids match
+				$("#mobList").scrollTop(83*i);									// Set scroll
+				$("#idx"+i).css("backgroundColor","#dee7f1");					// Color current one
+				break;															// Quit looking
+				}
 			}
 	}
 		
