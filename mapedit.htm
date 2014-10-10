@@ -812,7 +812,8 @@
 			$("#idx"+i).css("backgroundColor","#f8f8f8");						// Clear all
 		for (i=0;i<curJson.length;++i) { 										// For each mob
 			if (curJson[i].id == id) {											// If ids match
-				$("#mobList").scrollTop(83*i);									// Set scroll
+				id=$("#mobList").scrollTop()+$("#idx"+i).position().top-$("#mobList").offset().top+9;	// Calc scroll
+				$("#mobList").scrollTop(id);									// Set scroll
 				$("#idx"+i).css("backgroundColor","#dee7f1");					// Color current one
 				break;															// Quit looking
 				}
