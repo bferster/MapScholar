@@ -269,13 +269,20 @@
 		MakePageTable();														// Make table
 
 		$("#addPageBut").on("click",function() {								// ON ADD
+			var i,lastPage=-1;
 			var o={};															// New obj
+			for (i=0;i<curJson.length;++i) 										// For each mob
+				if (curJson[i].type == "page")									// If a page
+					lastPage=i;													// Mark as last page
 			o.id=Math.floor(Math.random()*9999);								// Make up id
 			o.type="page";														// Assume chapter
 			o.title="Untitled"													// No title
 			curJson.push(o)														// Add startup mob
 			MakePageTable();													// Remake table
 			Sound("click");														// Click
+			trace(lastPage)
+			if (lastPage != -1)													// If already pages there
+				onMoveMob(curJson.length-1,lastPage+1);							// Move to end of them
 			});
 
 		}
