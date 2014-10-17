@@ -52,7 +52,7 @@
 						border:1px solid #999;font-size:12px;height;20px;cursor:pointer;
 						}
 		.is {			border-radius:10px;padding-left:8px;padding-right:8px;padding-top:1px;
-						border:1px solid #999;font-size:12px;height;20px;width:200px;
+						border:1px solid #999;font-size:12px;height:16px;width:200px;
 						]
 
  	</style>
@@ -300,15 +300,15 @@
 				continue;														// Dont show
 			str="<tr id='idx"+i+"' "+trsty+">";									// Row
 			str+="<td style='width:115px;vertical-align:top'><img style='border:1px solid #999' height='64' width='100' src='"+pic+"'></td>";	// Add thumbnail
-			str+="<td><div style='display:inline-block;width:45px;color:#777;vertical-align:4px'><b>Title:</b></div>";
-			str+="<textarea class='is' rows='1' style='width:204px;vertical-align:bottom' id='idt"+i+"'>"+(o.title ? o.title : '')+"</textarea>";
+			str+="<td><div style='display:inline-block;width:45px;color:#777;vertical-align:5px'><b>Title:</b></div>";
+			str+="<textarea class='is' rows='1' style='width:204px;vertical-align:bottom;height:15px;margin-bottom:2px' id='idt"+i+"'>"+(o.title ? o.title : '')+"</textarea>";
 			str+=" <img src='img/editdot.gif' id='idth"+i+"'>";
 			str+="<br><div style='display:inline-block;width:45px;color:#777;vertical-align:4px'><b>Desc:</b></div>";
-			str+="<textarea class='is' rows='1' style='width:204px;vertical-align:bottom' id='idd"+i+"'>"+(o.desc ? o.desc : '')+"</textarea>";
+			str+="<textarea class='is' rows='1' style='width:204px;vertical-align:bottom;height:15px;margin-bottom:2px' id='idd"+i+"'>"+(o.desc ? o.desc : '')+"</textarea>";
 			str+=" <img src='img/editdot.gif' id='iddh"+i+"'>";
 			str+="<br><div style='display:inline-block;width:45px;color:#777'><b>ID:</b></div>";
 			str+="<input class='is' style='width:30px' type='text' id='idi"+i+"' value='"+(o.id != undefined ? o.id : '')+"'>";
-			str+=" &nbsp; <button class='bs' style='color:#009900;background-color:#fff' id='idg"+i+"'>"+(o.goto ? 'Set goto' : 'Add goto')+"</button>";
+			str+=" &nbsp; <button class='bs' style='color:#009900;background-color:#fff;' id='idg"+i+"'>"+(o.goto ? 'Set goto' : 'Add goto')+"</button>";
 
 			str+="</td><td><img style='visibility:hidden' id='idtm"+i+"' src='images/movedot.gif'>";	// Add move icon
 			str+="<br><br><img style='visibility:hidden' id='idtr"+i+"' src='images/trashdot.gif' onclick='onDeleteMob(this.id)'></td>"; // Add trashcan
@@ -455,10 +455,10 @@
 			str+=" &nbsp; <button class='bs' style='color:#009900;background-color:#fff' id='idg"+i+"'>"+(o.goto ? 'Set goto' : 'Add goto')+"</button> &nbsp; ";
 			str+="<button class='bs' style='color:#009900;background-color:#fff' id='idm"+i+"'>More...</button>";
 			str+="<br><div style='display:inline-block;width:45px;color:#777;vertical-align:4px'><b>Title:</b></div>";
-			str+="<textarea class='is' rows='1' style='width:224px;vertical-align:bottom' type='text' id='idt"+i+"'>"+(o.title ? o.title : '')+"</textarea>";
+			str+="<textarea class='is' rows='1' style='width:214px;vertical-align:bottom;height:15px;margin-top:2px' type='text' id='idt"+i+"'>"+(o.title ? o.title : '')+"</textarea>";
 			str+=" <img src='img/editdot.gif' id='idth"+i+"'>";
 			str+="<br><div style='display:inline-block;width:45px;color:#777;vertical-align:4px'><b>Desc:</b></div>";
-			str+="<textarea class='is' rows='1' style='width:224px;vertical-align:bottom' type='text' id='idd"+i+"'>"+(o.desc ? o.desc : '')+"</textarea>";
+			str+="<textarea class='is' rows='1' style='width:214px;vertical-align:bottom;height:15px;margin-top:2px' type='text' id='idd"+i+"'>"+(o.desc ? o.desc : '')+"</textarea>";
 			str+=" <img src='img/editdot.gif' id='iddh"+i+"'>";
 			str+="</td><td><img style='visibility:hidden' id='idtm"+i+"' src='images/movedot.gif'>";	// Add move icon
 			str+="<br><br><img style='visibility:hidden' id='idtr"+i+"' src='images/trashdot.gif' onclick='onDeleteMob(this.id)'></td>"; // Add trashcan
@@ -699,7 +699,7 @@
 		if (o.url != undefined)													// If set
 			$("#url").val(o.url);												// Set end
 						
-		$("#alertBoxDiv").dialog({ width:400, buttons: {
+		$("#alertBoxDiv").dialog({ width:405, buttons: {
 	    	"OK": 			function() { 
 								o.start=$("#sdate").val();						// Set val
 								o.end=$("#edate").val();						// Set val
