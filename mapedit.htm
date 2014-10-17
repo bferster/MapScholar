@@ -128,6 +128,7 @@
 		sessionStorage.clear();													// Reset undos
 		$("#menu" ).menu({ position:{my:"left top", at: "left top+40" }});		// Set menu
 		$("#menu").on("menuselect", function(event,ui) { 						// On menu select
+				qmf.xPos=$("#paneDiv").offset().left+8;							// Set pos of popup dialogs
 				var id=ui.item[0].id.substr(1);									// Get id
 				if (id)	Sound("click");											// Click
 				switch(id) {													// Route on id
