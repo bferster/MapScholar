@@ -396,6 +396,7 @@
 		str+="<button"+butsty+"id='addMobBut'>Add a new mob</button>";			// Add button
 		str+="&nbsp;&nbsp;<button"+butsty+"onclick='Preview()'>Preview</button>";		// Preview button
 		$("#paneDiv").html(str+"</div>");										// Put editor up	
+		curEdit=0;																// Start at top
 		MakeMobTable();															// Make table
 
 		$("#addMobBut").on("click",function() {									// ON ADD
@@ -404,11 +405,14 @@
 			o.type="text";														// Assume chapter
 			o.title="Untitled"													// No title
 			curJson.push(o)														// Add startup mob
+			var id=curEdit-0+1;													// Point to new mob
+			curJson.splice(id,0,curJson.splice(curJson.length-1,1)[0]);			// Move		
 			MakeMobTable();														// Remake table
 			Sound("click");														// Click
-			HighlightMob(o.id);													// Highlight it in list
+			HighlightMob(id);													// Highlight it in list
+			trace(id)
+			
 			});
-
 		}
 
 	function MakeMobTable() 												// MAKE TABLE
@@ -471,9 +475,10 @@
 					var id=e.currentTarget.id.substr(3);						// Extract id
 					if (id == undefined)										// If deselecting
 						return;													// Quit
+					curEdit=id;													// This is current edit
 					SendShivaMessage("MapEdit=mob",id);							// Go to this mob	   		
  					Sound("click");												// Click
-						for (var j=0;j<curJson.length;++j) {					// For each mob
+					for (var j=0;j<curJson.length;++j) {						// For each mob
 						$("#idtm"+j).css({"visibility":"hidden"});				// Hide move icons
 						$("#idtr"+j).css({"visibility":"hidden"});				// Hide trashcans
 						$("#idx"+j).droppable({ drop: function(event, ui) {		// On drop
@@ -813,6 +818,7 @@
 			$("#idx"+i).css("backgroundColor","#f8f8f8");						// Clear all
 		for (i=0;i<curJson.length;++i) { 										// For each mob
 			if (curJson[i].id == id) {											// If ids match
+				curEdit=id;														// Set curEdit
 				id=$("#mobList").scrollTop()+$("#idx"+i).position().top-$("#mobList").offset().top+9;	// Calc scroll
 				$("#mobList").scrollTop(id);									// Set scroll
 				$("#idx"+i).css("backgroundColor","#dee7f1");					// Color current one
