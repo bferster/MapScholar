@@ -12,7 +12,8 @@
  	<script type="text/javascript" src='//www.google.com/jsapi?autoload={"modules":[{"name":"earth","version":"1"},{"name":"visualization","version":"1"}]}'></script>
  	<script type="text/javascript" src="//www.viseyes.org/shiva/shivalib-min.js"></script>
  	<script type="text/javascript" src="MapScholar_Draw.js"></script>
-	<style type="text/css">
+  	<script src="http://openlayers.org/en/v3.0.0/build/ol.js" type="text/javascript"></script>
+  	<style type="text/css">
 		body { font-family:Verdana,Geneva,sans-serif; font-size:xx-small}
 		p.pb { text-align:right; color:#fff; }
 		.rounded-corners { -moz-border-radius:8px;-webkit-border-radius:8px;-khtml-border-radius:8px;border-radius:8px;}
@@ -41,9 +42,8 @@
 		<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
 			<div id="infoPanelText" style="position:absolute;height:582px;left:0px;top:0px;padding:8px;background-color:#fafafa;overflow-x:hidden;overflow-y:auto;border-top:1px solid #ccc;border-right:2px solid #ccc;"> </div> 
 		</div>
-		
-<script>
 
+ <script>
 
 	var mps=null;
 	var shivaLib=null;
@@ -85,6 +85,7 @@
 		}
 		
      $(document).ready(function() {										// ON JQUERY LOADED
+
 		mps=new MapScholar();												// Main object
 		if (window.addEventListener) 										// WC3	
 			window.addEventListener("message",shivaEventHandler,false);		// Add listener	
@@ -177,15 +178,25 @@ function MapScholar()													// CONSTRUCTOR
 	this.showScale=false;													// Hide scale
 	this.showOverview=false;												// No overview
 	this.popupOpen=-1;														// Popup not open
+	shivaLib=new SHIVA_Show("containerDiv");								// Alloc SHIVA_Show
+	shivaLib.ShivaEventHandler("init");										// Init shivaevent listener
 	if (this.mm == "ge") {													// If using GE
-		shivaLib=new SHIVA_Show("containerDiv");							// Alloc SHIVA_Show
-		shivaLib.ShivaEventHandler("init");									// Init shivaevent listener
 		shivaLib.options={ 	shivaGroup:"Earth", height:"600", width:"900", 
 	 						mapcenter:"33,-85", range:"15000000", tilt:"0", heading:"0",
 	 						panControl:"true", draggable:"true", scrollwheel:"true", overviewMapControl:"false",
 	 						terrainexag:"1", borders:"false", roads:"false"
 	 						};
 		shivaLib.Draw(shivaLib.options);									// Draw map
+		}
+	else if (this.mm == "ol") {												// If using OL
+	    shivaLib.map=new ol.Map( { target: 'containerDiv',					// Alloc OL
+		        layers: [ new ol.layer.Tile({								// Layers									
+		            	  	source: new ol.source.MapQuest({layer: 'sat'})	// Source
+		         			}) ],
+		        view: new ol.View({
+		          		center: ol.proj.transform([37.41, 8.82], 'EPSG:4326', 'EPSG:3857'),
+		          		zoom: 4 })
+			});
 		}
 	Sound("click","init");													// Init sound
 	Sound("ding","init");													// Init sound
