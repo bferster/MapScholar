@@ -92,6 +92,16 @@
 			window.attachEvent("message",shivaEventHandler);				// Add listener	
 		});
 
+	function Sound(sound, mode)											// PLAY SOUND
+	{
+		var snd=new Audio();
+		if (!snd.canPlayType("audio/mpeg") || (snd.canPlayType("audio/mpeg") == "maybe")) 
+			snd=new Audio(sound+".ogg");
+		else	
+			snd=new Audio(sound+".mp3");
+		if (mode != "init")
+			snd.play();
+	}
 	
 	function LoadShow(data)												// ON INIT OR QMF CALL
 	{
@@ -160,24 +170,26 @@ var lastClick=0;
 function MapScholar()													// CONSTRUCTOR
 {
 	mps=this;																// Point to this
+	this.mm="ge";															// Map mode
 	this.controlKey=this.shiftKey=false;									// Shift/control key flags
 	this.showBoxes=false;													// Show boxes
 	this.showRoads=false;													// Hide Roads/borders
 	this.showScale=false;													// Hide scale
 	this.showOverview=false;												// No overview
 	this.popupOpen=-1;														// Popup not open
-	shivaLib=new SHIVA_Show("containerDiv");								// Alloc SHIVA_Show
-	shivaLib.ShivaEventHandler("init");										// Init shivaevent listener
-	shivaLib.options={ 	shivaGroup:"Earth", height:"600", width:"900", 
- 						mapcenter:"33,-85", range:"15000000", tilt:"0", heading:"0",
- 						panControl:"true", draggable:"true", scrollwheel:"true", overviewMapControl:"false",
- 						terrainexag:"1", borders:"false", roads:"false"
- 						};
-	
-	shivaLib.Sound("click","init");											// Init sound
-	shivaLib.Sound("ding","init");											// Init sound
-	shivaLib.Sound("delete","init");										// Init sound
-	shivaLib.Draw(shivaLib.options);										// Draw map
+	if (this.mm == "ge") {													// If using GE
+		shivaLib=new SHIVA_Show("containerDiv");							// Alloc SHIVA_Show
+		shivaLib.ShivaEventHandler("init");									// Init shivaevent listener
+		shivaLib.options={ 	shivaGroup:"Earth", height:"600", width:"900", 
+	 						mapcenter:"33,-85", range:"15000000", tilt:"0", heading:"0",
+	 						panControl:"true", draggable:"true", scrollwheel:"true", overviewMapControl:"false",
+	 						terrainexag:"1", borders:"false", roads:"false"
+	 						};
+		shivaLib.Draw(shivaLib.options);									// Draw map
+		}
+	Sound("click","init");													// Init sound
+	Sound("ding","init");													// Init sound
+	Sound("delete","init");													// Init sound
 	this.dr=new MapScholar_Draw();											// Alloc draw module
 	this.sh=new MapScholar_Shelf();											// Alloc shelf module
 }	
@@ -249,7 +261,7 @@ MapScholar.prototype.AddMapBoxes=function()								// ADD MAP WIREFRAMES
 	var x,y,cx,cy,x1,y1,lx,ly,ar,sin,cos;
 	var i,j,coords,seg,m,sty;
 	var ge=shivaLib.map;													// Point to earth												
-     var folder=ge.createFolder("mywireframes"+Math.floor(Math.random()*99999999));	// Create folder
+    var folder=ge.createFolder("mywireframes"+Math.floor(Math.random()*99999999));	// Create folder
     ge.getFeatures().appendChild(folder);									// Add folder to EDOM
  	for (i=0;i<this.mobs.length;++i) {										// For each seg
 		m=this.mobs[i];														// Point at mob
@@ -768,7 +780,7 @@ MapScholar.prototype.ClickHandler=function(e)							// HANDLE CLICKS TO EARTH
 	if (id.indexOf("WIRE-") == 0) {											// If a wireframe
 		for (i=0;i<mps.mobs.length;++i) 									// For each seg
 			if (id == mps.mobs[i].gid) {									// A match
-				shivaLib.Sound("click");									// Click
+				Sound("click");												// Click
 				mps.sh.HighlightMob(i,e.getShiftKey(),true);				// Highlight mob
 				}
 			}
@@ -827,25 +839,25 @@ function MapScholar_Shelf()												// CONSTRUCTOR
 			mps.sh.HighlightMob("next",false,true);							// Next mob
 			if (mps.sh.presentMode == "Book")								// If book mode
 				mps.sh.HighlightMob(mps.sh.firstPageMob);					// Show 1st mob on page
-			shivaLib.Sound("click");										// Click
+			Sound("click");													// Click
 			}
 		else if ((e.keyCode == 38) || (e.keyCode == 33)){					// Up arrow, pg-up
 			mps.sh.HighlightMob("last",false,true);							// Previous mob
 			if (mps.sh.presentMode == "Book")								// If book mode
 				mps.sh.HighlightMob(mps.sh.firstPageMob);					// Show 1st mob on page
-			shivaLib.Sound("click");										// Click
+			Sound("click");													// Click
 			}
 		else if (e.keyCode == 36) {											// Home
 			mps.sh.HighlightMob(0,false,true);								// First mob
 			if (mps.sh.presentMode == "Book")								// If book mode
 				mps.sh.HighlightMob(mps.sh.firstPageMob);					// Show 1st mob on page
-			shivaLib.Sound("click");										// Click
+			Sound("click");													// Click
 			}
 		else if (e.keyCode == 35) {											// End
 			mps.sh.HighlightMob(mps.mobs.length-1,false,true);				// Last mob
 			if (mps.sh.presentMode == "Book")								// If book mode
 				mps.sh.HighlightMob(mps.sh.firstPageMob);					// Show 1st mob on page
-			shivaLib.Sound("click");										// Click
+			Sound("click");													// Click
 			}
 		else if (e.keyCode == 16) {											// Shift key
 			mps.shiftKey=true;												// Shift key on
@@ -1087,20 +1099,20 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 		$("#lastPageBut").click(function() {							// GO TO LAST PAGE
 			$("#contentShelf").scrollTop(0);								// Scroll to top
 			mps.sh.HighlightMob("last");									// Set page
-			shivaLib.Sound("click");										// Click
+			Sound("click");													// Click
 			mps.sh.HighlightMob(mps.sh.firstPageMob);						// Show 1st mob on page
 			});
 		
 		$("#playbut").click(function() {								// GO TO NEXT PAGE
 			$("#contentShelf").scrollTop(0);								// Scroll to top
 			mps.sh.HighlightMob("next");									// Set page
-			shivaLib.Sound("click");										// Click
+			Sound("click");													// Click
 			mps.sh.HighlightMob(mps.sh.firstPageMob);						// Show 1st mob on page
 			});
 	}	
 	
 	$("#expandAll").click(function(e) {									// EXPAND/COLLAPSE ALL
-		shivaLib.Sound("click");											// Click
+		Sound("click");														// Click
 		mps.sh.ToggleExpandCollapse();										// Expand or collapse
 		});
 
@@ -1196,7 +1208,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			}
 		$("#contentShelf").scrollTop(0);									// Scroll to top
  		mps.sh.HighlightMob("goto"+val);									// Show page
- 		shivaLib.Sound("click");											// Click
+ 		Sound("click");														// Click
  		mps.sh.HighlightMob(mps.sh.firstPageMob);							// Show first mob		
  		}
  		
@@ -1229,7 +1241,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 	for (i=0;i<n;++i) {														// For each mob
 		$("#timedot"+i).click( function(e) {								// Add click handler
 			var id=this.id.substr(7);										// Get id
-			shivaLib.Sound("click");										// Click
+			Sound("click");													// Click
 			mps.sh.HighlightMob(id,e.shiftKey,false);						// Highlight mob
 			});
 		$("#mob"+i).click( function(e) {									// Add click handler
@@ -1238,7 +1250,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			if (now-lastClick < 500)										// Within double-click time
 				id=-id;
 			else
-				shivaLib.Sound("click");									// Click once
+				Sound("click");												// Click once
 			mps.sh.HighlightMob(id,e.shiftKey,false);						// Highlight mob
 			SendShivaMessage("MapScholar=mob",mps.mobs[id].id);				// Send that mob has been clicked
 			lastClick=now;													// Then is now	
@@ -1251,6 +1263,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 		
  // HELPERS ///////////////////////////////////////////////////////////////////////////////////////////////////////
  
+	
 	function AddPageToShelf(num) {	
 		var title;
 		var v,i,adds=[];
@@ -1471,19 +1484,19 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
  		}	
    
 	$("#mobInfo").click( function(e) {										// CLICK ON INFO BUTTON
-		shivaLib.Sound("click");											// Click
+		Sound("click");														// Click
 		mps.sh.DrawInfoPanel("cite");										// Show citation
 		});
 
 	$("#hiresmap").click( function(e) {										// CLICK ON HIRES MAP
-		shivaLib.Sound("click");											// Click
+		Sound("click");														// Click
 		mps.SetHiResMapImage(thisMob);										// Set hi-res map
 		mps.sh.ShowPrompt("<span style='color:#990000;font-size:12px'>High-resolution map is loading</span>| &nbsp;<i>Please wait...</i>",4000);				// Show timed prompt
 		});
 
 	$("#showpopup").click( function(e) {									// CLICK ON POPUP
 		e.stopPropagation();												// Don't redraw
-		shivaLib.Sound("click");											// Click
+		Sound("click");														// Click
 		mps.ShowText(mps.sh.curMob,true);									// Show it
 		});
 
@@ -1583,7 +1596,7 @@ MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 	$("#OKBut").button().click(function() { $("#shivaLightBoxDiv").remove(); $("#containerDiv").height($("#containerDiv").height()*100); });  // OK
 
 	$("#wireframes").click(function(e) {								// SHOW BOXES?
-		shivaLib.Sound("click");											// Click
+		Sound("click");														// Click
 		mps.showBoxes=e.target.checked;										// Set var
 		if (e.target.checked)												// If checked
 			mps.ShowMapBoxes(-1,"on");										// Show them
@@ -1591,25 +1604,25 @@ MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 			mps.ShowMapBoxes(-1,"off");										// Hide
 		});
 	$("#roads").click(function(e) {										// SHOW ROADS?
-		shivaLib.Sound("click");											// Click
+		Sound("click");														// Click
 		mps.showRoads=e.target.checked;										// Set var
 		mps.ShowMapRoads(mps.showRoads);									// Show/hide them
 		});
 	
 	$("#scale").click(function(e) {										// SHOW SCALE?
-		shivaLib.Sound("click");											// Click
+		Sound("click");														// Click
 		mps.showScale=e.target.checked;										// Set var
 		mps.ShowMapScale(mps.showScale);									// Show/hide them
 		});
 
 	$("#overview").click(function(e) {									// SHOW OVERVIEW?
-		shivaLib.Sound("click");											// Click
+		Sound("click");														// Click
 		mps.showOverview=e.target.checked;									// Set var
 		mps.ShowMapOverview(mps.showOverview);								// Show/hide 
 		});
 	
 	$("#queryGo").click(function(e) {									// CREATE QUERY
-		shivaLib.Sound("click");											// Click
+		Sound("click");														// Click
 		new SHIVA_QueryEditor($("#querySrc").val(),"","",true,function(q){	// Run query maker
  					$("#containerDiv").height($("#containerDiv").height()*100);
  					q=q.substr(7).replace(/,/g,"+");						// Remove SELECT, add +'s
@@ -1710,7 +1723,7 @@ MapScholar_Shelf.prototype.Play=function(again, chapter)				// PLAY
 					break;													// Quit looking
 					}
 			}
-		shivaLib.Sound("click");											// Click
+		Sound("click");											// Click
 		if (this.playSpeed < 50)											// Slowing down
 			time*=((50-this.playSpeed)/10);									// Slow it down
 		if (this.playSpeed > 50)											// Speeding up
@@ -1727,10 +1740,10 @@ MapScholar_Shelf.prototype.Play=function(again, chapter)				// PLAY
 	else{																	// If playing
 		if (again == "1") { 												// Starting over
 			this.curMob=this.playStart;										// From the top
-			shivaLib.Sound("click");										// Click
+			Sound("click");													// Click
 			return;															// Don't stop
 			}
-		shivaLib.Sound("delete");											// Click
+		Sound("delete");													// Click
 		window.clearInterval(this.inPlay);									// Stop timer
 		this.inPlay=null;													// Clear
 		$("#playbut").attr("src","img/playbut.gif");						// Change icon
