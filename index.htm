@@ -14,7 +14,7 @@
  	<script type="text/javascript" src="MapScholar_Draw.js"></script>
    	<link rel="stylesheet" href="http://openlayers.org/en/v3.0.0/css/ol.css" type="text/css">
    	<script src="http://openlayers.org/en/v3.0.0/build/ol.js" type="text/javascript"></script>
-  	<style type="text/css">
+   	<style type="text/css">
 		body { font-family:Verdana,Geneva,sans-serif; font-size:xx-small}
 		p.pb { text-align:right; color:#fff; }
 		.rounded-corners { -moz-border-radius:8px;-webkit-border-radius:8px;-khtml-border-radius:8px;border-radius:8px;}
@@ -47,6 +47,7 @@
  <script>
 
 	var mps=null;
+	var map=null;
 	var shivaLib=null;
 	var geocoder=geocoder=new google.maps.Geocoder();
 
@@ -108,11 +109,15 @@
 	function LoadShow(data)												// ON INIT OR QMF CALL
 	{
 		mps.InitProject("",data);											// Init project
-		var ge=shivaLib.map;												// Point to earth												
-		var features=ge.getFeatures();										// Point to features
-		while (features.getFirstChild())									// While one
-		   features.removeChild(features.getFirstChild());					// Remove it
-		mps.AddMapBoxes();													// Add boxes
+		var m=shivaLib.map;													// Point to map												
+		if (this.mm == "ol") {												// OL
+			}
+		else if (this.mm == "ge") {											// GE
+			var features=m.getFeatures();									// Point to features
+			while (features.getFirstChild())								// While one
+		   	features.removeChild(features.getFirstChild());					// Remove it
+			mps.AddMapBoxes();												// Add boxes
+			}
 	}		
 	
 	function shivaEventHandler(e)										// ON SHIVA MESSAGE
@@ -172,7 +177,7 @@ var lastClick=0;
 function MapScholar()													// CONSTRUCTOR
 {
 	mps=this;																// Point to this
-	this.mm="ge";															// Map mode
+	this.mm="ol";															// Map mode
 	this.controlKey=this.shiftKey=false;									// Shift/control key flags
 	this.showBoxes=false;													// Show boxes
 	this.showRoads=false;													// Hide Roads/borders
@@ -180,8 +185,14 @@ function MapScholar()													// CONSTRUCTOR
 	this.showOverview=false;												// No overview
 	this.popupOpen=-1;														// Popup not open
 	shivaLib=new SHIVA_Show("containerDiv");								// Alloc SHIVA_Show
-	shivaLib.ShivaEventHandler("init");										// Init shivaevent listener
+	Sound("click","init");													// Init sound
+	Sound("ding","init");													// Init sound
+	Sound("delete","init");													// Init sound
+	this.dr=new MapScholar_Draw();											// Alloc draw module
+	this.sh=new MapScholar_Shelf();											// Alloc shelf module
+	
 	if (this.mm == "ge") {													// If using GE
+		shivaLib.ShivaEventHandler("init");									// Init shiva event listener
 		shivaLib.options={ 	shivaGroup:"Earth", height:"600", width:"900", 
 	 						mapcenter:"33,-85", range:"15000000", tilt:"0", heading:"0",
 	 						panControl:"true", draggable:"true", scrollwheel:"true", overviewMapControl:"false",
@@ -190,25 +201,66 @@ function MapScholar()													// CONSTRUCTOR
 		shivaLib.Draw(shivaLib.options);									// Draw map
 		}
 	else if (this.mm == "ol") {												// If using OL
-	    shivaLib.map=new ol.Map( { target: 'containerDiv',					// Alloc OL
-		        layers: [ new ol.layer.Tile({								// Layers									
-		            	  	source: new ol.source.MapQuest({layer: 'sat'})	// Source
-		         			}) ],
-				controls: ol.control.defaults({
-				    	attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
-				   		   	collapsible: false
-				    		}),
-				  		}),
-		        view: new ol.View({
-		          		center: ol.proj.transform([37.41, 8.82], 'EPSG:4326', 'EPSG:3857'),
-		          		zoom: 4 })
- 			});
-		}
-	Sound("click","init");													// Init sound
-	Sound("ding","init");													// Init sound
-	Sound("delete","init");													// Init sound
-	this.dr=new MapScholar_Draw();											// Alloc draw module
-	this.sh=new MapScholar_Shelf();											// Alloc shelf module
+		this.layers=[														// Hold layers
+			new ol.layer.Tile({												// Sat 
+					visible:true,											// Show it
+					source: new ol.source.MapQuest({layer: 'sat'})			// MapQuest sat
+				}),
+			new ol.layer.Tile({												// Roads
+					visible:false,											// Hide it
+					source: new ol.source.MapQuest({layer: 'osm'})			// MapQuest roads
+				})
+			];
+	    
+	    map=shivaLib.map=new ol.Map( { target: 'containerDiv',				// Alloc OL
+		        layers:this.layers,											// Layers array									
+		        controls: ol.control.defaults({								// Controls
+ 						}).extend([ new ol.control.ScaleLine() ]),			// Add scale
+		        view: new ol.View({											// Views
+		          		center: ol.proj.transform( [-34,18],'EPSG:4326','EPSG:3857'),
+		          		zoom: 2.8 })
+ 				});
+ 			ShivaPostInit();
+ 		}	
+
+
+/*/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+var featureOverlay=new ol.FeatureOverlay({									// Feature overlay
+	style: new ol.style.Style({												// Feature styling
+			fill: new ol.style.Fill({ color: 'rgba(255, 255, 255, 0.2)' }),	// Final fill
+  		  	stroke: new ol.style.Stroke({ color: '#ff9900', width: 1   }),	// Final stroke
+    		image: new ol.style.Circle({ radius:8, fill: new ol.style.Fill({ color: '#ffcc33' }) // Final image
+    		})
+  		})
+  	});
+featureOverlay.setMap(map);
+
+var modify = new ol.interaction.Modify({
+  features: featureOverlay.getFeatures(),
+  // the SHIFT key must be pressed to delete vertices, so
+  // that new vertices can be drawn at the same position
+  // of existing vertices
+  deleteCondition: function(event) {
+    return ol.events.condition.shiftKeyOnly(event) &&
+        ol.events.condition.singleClick(event);
+  }
+});
+map.addInteraction(modify);
+
+var draw; // global so we can remove it later
+function addInteraction() {
+  draw = new ol.interaction.Draw({
+    features: featureOverlay.getFeatures(),
+    type: "Polygon"
+  });
+  map.addInteraction(draw);
+}
+ 
+addInteraction();
+
+///////////////////////////////////////////////////////////////////////////////////////////*/
+
 }	
 
 MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT 
@@ -460,10 +512,16 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 
 MapScholar.prototype.ShowMapRoads=function(mode)						// HIDE/SHOW ROADS/BORDER
 {
-	var ge=shivaLib.map;													// Point to earth												
-	ge.getLayerRoot().enableLayerById(ge.LAYER_BORDERS,mode);				// Set borders
-	ge.getLayerRoot().enableLayerById(ge.LAYER_ROADS,mode);					// Set roads
-}
+	var m=shivaLib.map;														// Point to map												
+	if (this.mm == "ge") {													// GE
+		m.getLayerRoot().enableLayerById(m.LAYER_BORDERS,mode);				// Set borders
+		m.getLayerRoot().enableLayerById(m.LAYER_ROADS,mode);				// Set roads
+		}
+	if (this.mm == "ol") {													// OL
+    	this.layers[0].set('visible',!mode);								// Set layer 1
+    	this.layers[1].set('visible',mode);									// Set layer 2
+    	}
+	}
 
 MapScholar.prototype.ShowMapScale=function(mode)						// HIDE/SHOW MAP SCALE
 {
@@ -631,6 +689,10 @@ MapScholar.prototype.Goto=function(pos)									// SET EARTH VIEWPOINT
 	if ((!pos) || (pos.length < 5))											// No where to go
 		return;																// Quit
 	var ge=shivaLib.map;													// Point to earth												
+	if (this.mm == "ol") {													// If OL
+		return;
+		}
+	
 	pos=pos.replace(/"/g,"");												// Remove quotes
 	var v=pos.split(",");													// Split up
 	if (v[5] != undefined)													// If set
@@ -1584,9 +1646,16 @@ MapScholar_Shelf.prototype.ShowPrompt=function(msg, time)				// SHOW PROMPT
 	
 MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 {
-	var la=shivaLib.map.getView().copyAsLookAt(shivaLib.map.ALTITUDE_RELATIVE_TO_GROUND);
-	var pos=Math.floor(la.getLatitude()*10000)/10000+","+Math.floor(la.getLongitude()*10000)/10000+",";
-	pos+=Math.floor(la.getRange())+","+Math.floor(la.getTilt()*100)/100+","+Math.floor(la.getHeading()*100)/100;
+	var pos;
+	if (this.mm == "ol") {													// If OL
+		pos="1,2,3,4,5";
+		} 													
+	else if (this.mm == "ge") {												// If GE
+		var la=shivaLib.map.getView().copyAsLookAt(shivaLib.map.ALTITUDE_RELATIVE_TO_GROUND);
+		pos=Math.floor(la.getLatitude()*10000)/10000+","+Math.floor(la.getLongitude()*10000)/10000+",";
+		pos+=Math.floor(la.getRange())+","+Math.floor(la.getTilt()*100)/100+","+Math.floor(la.getHeading()*100)/100;
+		}
+
 	var str="<br/><table id='ez-maintbl' cellspacing=0 cellpadding=0 style='font-size:small'>";
 	str+="<tr><td>Show map boxes? </td><td><input type='checkbox'";			// Boxes
 	if (mps.showBoxes)														// If set

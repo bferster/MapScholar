@@ -779,6 +779,9 @@ MapScholar_Draw.prototype.GetNearestPoint=function(lat, lon)				// GET CLOSEST P
 
 MapScholar_Draw.prototype.InitEvents=function()								// INIT EVENTS
 {	
+	if (mps.mm != "ge")															// If not GE
+		return;																	// Quit
+
 	var _this=mps.dr;															// Point to draw obj
 	var ge=shivaLib.map;														// Point at earth
 
