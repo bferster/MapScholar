@@ -37,7 +37,7 @@
 <body>
 		<div id="containerDiv" style="position:absolute;width:900px;height:600px;left:20px;top:20px;"></div>
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> 
-			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>10/17/14</p>
+			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>11/9/14</p>
 			</div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
@@ -177,7 +177,7 @@ var lastClick=0;
 function MapScholar()													// CONSTRUCTOR
 {
 	mps=this;																// Point to this
-	this.mm="ge";															// Map mode
+	this.mm="ol";															// Map mode
 	this.controlKey=this.shiftKey=false;									// Shift/control key flags
 	this.showBoxes=false;													// Show boxes
 	this.showRoads=false;													// Hide Roads/borders
@@ -227,10 +227,20 @@ function MapScholar()													// CONSTRUCTOR
 					source: new ol.source.Stamen({layer: 'toner-lite'}),	// Stamen toner
 					title: "B&W"											// Set name
 					}),
-			new ol.layer.Tile({												// Roadmao
+			new ol.layer.Tile({												// Earth
+					visible: false,											// Invisible
+  					source: new ol.source.TileJSON({
+        				url: 'http://api.tiles.mapbox.com/v3/' +
+            			'mapbox.natural-earth-hypso-bathy.jsonp',
+        				crossOrigin: 'anonymous'
+   						}),
+   					title: "Earth"											// Set name
+					}),
+			
+			new ol.layer.Tile({												// Roadmap
 					visible:false,											// Hide it
 					source: new ol.source.MapQuest({layer: 'osm'}),			// MapQuest roads
-					title: "Roadmap"											// Set name
+					title: "Roadmap"										// Set name
 					}),
 			];
 	    map=shivaLib.map=new ol.Map( { target: 'containerDiv',				// Alloc OL
@@ -1731,7 +1741,7 @@ MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 		str+=" checked='checked'"											// Check it			
 	if (mps.mm == "ol") {													// If OL
 		str+="<tr><td>Base Layer </td><td>";								// Base layer
-		str+=shivaLib.MakeSelect("setbaselayer",false,["Satellite","Terrain","Watercolor","B&W","Roadmap"],mps.baseLayer);
+		str+=shivaLib.MakeSelect("setbaselayer",false,["Satellite","Terrain","Earth","Watercolor","B&W","Roadmap"],mps.baseLayer);
 		str+="</td></tr>";													// End
 		}
 	else{																	// GE
