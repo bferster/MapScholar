@@ -110,14 +110,12 @@
 	{
 		var m=shivaLib.map;													// Point to map												
 		mps.InitProject("",data);											// Init project
-		if (mps.mm == "ol") {												// OL
-			}
-		else if (mps.mm == "ge") {											// GE
+		if (mps.mm == "ge") {												// GE
 			var features=m.getFeatures();									// Point to features
 			while (features.getFirstChild())								// While one
-		   		features.removeChild(features.getFirstChild());					// Remove it
-			mps.AddMapBoxes();												// Add boxes
+		   		features.removeChild(features.getFirstChild());				// Remove it
 			}
+		mps.AddMapBoxes();													// Add boxes
 	}		
 	
 	function shivaEventHandler(e)										// ON SHIVA MESSAGE
@@ -240,22 +238,28 @@ function MapScholar()													// CONSTRUCTOR
 			new ol.layer.Tile({												// Roadmap
 					visible:false,											// Hide it
 					source: new ol.source.MapQuest({layer: 'osm'}),			// MapQuest roads
+ 					projection: "EPSG:3857",
 					title: "Roadmap"										// Set name
-					}),
+ 					}),
 			];
-	    map=shivaLib.map=new ol.Map( { target: 'containerDiv',				// Alloc OL
+	   
+		    map=shivaLib.map=new ol.Map( { target: 'containerDiv',			// Alloc OL
 		        layers:this.layers,											// Layers array									
 		        controls: ol.control.defaults({								// Controls
  						}).extend([ new ol.control.ScaleLine() ]),			// Add scale
 		        view: new ol.View({											// Views
 		          		center: ol.proj.transform( [-50,50],'EPSG:4326','EPSG:3857'),
-		          		zoom: 6 })
+		          		zoom: 6 }),
+ 				
  				});
-    	for (i=0;i<this.layers.length-1;++i) 								// For each layer
-	    	this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
- 		ShivaPostInit();
- 		}	
-
+  
+			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); // Create layer
+			map.addLayer(this.boxLayer);									// Add to map
+		
+	     	for (i=0;i<this.layers.length-1;++i) 							// For each layer
+		    	this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
+	 		ShivaPostInit();
+	 		}	
 
 /*/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -360,18 +364,39 @@ MapScholar.prototype.ShowHelp=function(context)							// SHOW HELP
 
 MapScholar.prototype.AddMapBoxes=function()								// ADD MAP WIREFRAMES
 {
+	var i,m;
+	if (mps.mm == "ol") {													// OL
+	 	for (i=0;i<this.mobs.length;++i) {									// For each seg
+			var r=[];														// Init coords
+			m=this.mobs[i];													// Point at mob
+			if (m.type != "map")											// If not a map
+				continue;													// Continue
+			var p1=ol.proj.transform([m.west-0,m.north-0],'EPSG:4326','EPSG:3857');	// Transform
+			var p2=ol.proj.transform([m.east-0,m.south-0],'EPSG:4326','EPSG:3857'); // Transform
+			r[0]=p1;														// Add corner
+			r[1]=[p2[0],p1[1]]; 											// Add corner
+			r[2]=p2;														// Add corner
+			r[3]=[p1[0],p2[1]];												// Add corner
+			r[4]=p1;														// Add corner
+			var f=new ol.Feature(new ol.geom.LineString(r));				// Make line			f.setId("mapBox"+i);												// Add id
+			this.boxLayer.getSource().addFeatures([f]);						// Add it
+			}
+//		this.AddMapImages();												// Add images
+		this.ShowMapBoxes(-1,"on");											// Show only open ones											
+		return;																// Quit
+		}
 	var x,y,cx,cy,x1,y1,lx,ly,ar,sin,cos;
-	var i,j,coords,seg,m,sty;
+	var j,coords,seg,sty;
 	var ge=shivaLib.map;													// Point to earth												
     var folder=ge.createFolder("mywireframes"+Math.floor(Math.random()*99999999));	// Create folder
     ge.getFeatures().appendChild(folder);									// Add folder to EDOM
  	for (i=0;i<this.mobs.length;++i) {										// For each seg
 		m=this.mobs[i];														// Point at mob
+		if (m.type != "map")												// If not a map
+			continue;														// Continue
 		ar=m.rotation*(Math.PI/180);										// Angle to radians
 		sin=Math.sin(ar);													// Get sine
 		cos=Math.cos(ar);													// Get cosine
-		if (m.type != "map")												// If not a map
-			continue;														// Continue
 		m.gid="WIRE-"+Math.floor(Math.random()*99999999);					// Make random #
 		coords=ge.createLineString('');										// Holds coords
 		seg=ge.createPlacemark(m.gid);										// Create holder
@@ -693,10 +718,16 @@ MapScholar.prototype.ShowMapBoxes=function(num, mode)					// HIDE/SHOW WIREFRAME
 	var i,seg,m,sty;
 	var ge=shivaLib.map;													// Point to earth												
 	var start=num,end=num-0+1;												// Assume one
+	if (this.mm == "ol") {													// If OL
+		var styleOn = new ol.style.Style({ 									// Box line style
+			stroke: new ol.style.Stroke({ width: 1, color: "#ffff00" })		// Yellow line
+			});
+	  	var styleOff = new ol.style.Style({ stroke: null	});				// No line
+		}
 	if (num < 0)															// If doing all
 		start=0,end=this.mobs.length;										// Whole list
 	this.ShowMapImages(num);												// Control images
-	if (!mps.showBoxes || (mps.showBoxes == "off"))						// If not showing wireframes
+	if (!mps.showBoxes || (mps.showBoxes == "off"))							// If not showing wireframes
 		mode="off";															// Force mode off
 	for (i=start;i<end;++i) {												// For each seg
 		m=this.mobs[i];														// Point at mob
@@ -708,13 +739,28 @@ MapScholar.prototype.ShowMapBoxes=function(num, mode)					// HIDE/SHOW WIREFRAME
 			mps.ShowText(i,mps.sh.mobVis[i] > 0);							// Show/hide text iframe
 		if (m.type != "map")												// If not a map
 			continue;														// Continue
-		if (m.gid) {														// If loaded
-			seg=ge.getElementById(m.gid);									// Get object
-			if ((!$("#mobPos"+i).position()) || (mode == "off")) {			// If it's chapter is not open
-				seg.setVisibility(false);									// Hide it
-				continue;													// Next map
+		if (this.mm == "ge") {												// If GE
+			if (m.gid) {													// If loaded
+				seg=ge.getElementById(m.gid);								// Get object
+				if ((!$("#mobPos"+i).position()) || (mode == "off")) {		// If it's chapter is not open
+					seg.setVisibility(false);								// Hide it
+					continue;												// Next map
+					}
+				seg.setVisibility(!(mps.sh.mobVis[i] > 0));					// Show it 
 				}
-			seg.setVisibility(!(mps.sh.mobVis[i] > 0));						// Show it 
+			}
+		else if (this.mm == "ol") {											// If OL
+			seg=this.boxLayer.getSource().getFeatureById("mapBox"+i);		// Point at box
+			if (seg) {
+				if ((!$("#mobPos"+i).position()) || (mode == "off")) {		// If it's chapter is not open
+					seg.setStyle([styleOff]);								// Hide it
+					continue;												// Next map
+					}
+				if (mps.sh.mobVis[i] > 0)									// ??
+					seg.setStyle([styleOff]);								// Hide it
+				else														// ??
+					seg.setStyle([styleOn]);								// Show it		
+				}
 			}
 		}
 }
