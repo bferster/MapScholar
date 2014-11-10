@@ -176,6 +176,7 @@ function MapScholar()													// CONSTRUCTOR
 {
 	mps=this;																// Point to this
 	this.mm="ol";															// Map mode
+//	this.mm="ge";															// Map mode
 	this.controlKey=this.shiftKey=false;									// Shift/control key flags
 	this.showBoxes=false;													// Show boxes
 	this.showRoads=false;													// Hide Roads/borders
@@ -378,8 +379,9 @@ MapScholar.prototype.AddMapBoxes=function()								// ADD MAP WIREFRAMES
 			r[2]=p2;														// Add corner
 			r[3]=[p1[0],p2[1]];												// Add corner
 			r[4]=p1;														// Add corner
-			var f=new ol.Feature(new ol.geom.LineString(r));				// Make line			f.setId("mapBox"+i);												// Add id
-			this.boxLayer.getSource().addFeatures([f]);						// Add it
+			var f=new ol.Feature(new ol.geom.LineString(r));				// Make line			f.setId("mapBox"+i);											// Add id
+			this.boxLayer.getSource().addFeature(f);						// Add it
+			this.boxLayer.getSource().getFeatureById("mapBox"+i).on("singleclick",function(e) { trace(333)});
 			}
 //		this.AddMapImages();												// Add images
 		this.ShowMapBoxes(-1,"on");											// Show only open ones											
