@@ -259,6 +259,17 @@ function MapScholar()													// CONSTRUCTOR
 		
 	     	for (i=0;i<this.layers.length-1;++i) 							// For each layer
 		    	this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
+			
+			map.on('click',function(e) {									// ON MAP CLICK
+				map.forEachFeatureAtPixel(e.pixel,							// Look at features
+					function(f) {											// Found one
+						Sound("click");										// Click
+//						mps.sh.HighlightMob(f.getId().substr(6),e.getShiftKey(),true);	// Highlight mob
+						mps.sh.HighlightMob(f.getId().substr(6),false,true);	// Highlight mob
+
+
+		   				})
+				});
 	 		ShivaPostInit();
 	 		}	
 
@@ -381,7 +392,6 @@ MapScholar.prototype.AddMapBoxes=function()								// ADD MAP WIREFRAMES
 			r[4]=p1;														// Add corner
 			var f=new ol.Feature(new ol.geom.LineString(r));				// Make line			f.setId("mapBox"+i);											// Add id
 			this.boxLayer.getSource().addFeature(f);						// Add it
-			this.boxLayer.getSource().getFeatureById("mapBox"+i).on("singleclick",function(e) { trace(333)});
 			}
 //		this.AddMapImages();												// Add images
 		this.ShowMapBoxes(-1,"on");											// Show only open ones											
@@ -395,7 +405,6 @@ MapScholar.prototype.AddMapBoxes=function()								// ADD MAP WIREFRAMES
  	for (i=0;i<this.mobs.length;++i) {										// For each seg
 		m=this.mobs[i];														// Point at mob
 		if (m.type != "map")												// If not a map
-			continue;														// Continue
 		ar=m.rotation*(Math.PI/180);										// Angle to radians
 		sin=Math.sin(ar);													// Get sine
 		cos=Math.cos(ar);													// Get cosine
