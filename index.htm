@@ -180,7 +180,7 @@ function MapScholar()													// CONSTRUCTOR
 	this.controlKey=this.shiftKey=false;									// Shift/control key flags
 	this.showBoxes=false;													// Show boxes
 	this.showRoads=false;													// Hide Roads/borders
-	this.showScale=false;													// Hide scale
+	this.showScale=(this.mm == "ol");										// Hide or show scale
 //	this.showOverview=false;												// No overview
 	this.popupOpen=-1;														// Popup not open
 	this.baseLayer="Satellite";												// Default layer
@@ -263,8 +263,10 @@ function MapScholar()													// CONSTRUCTOR
 			map.on('click',function(e) {									// ON MAP CLICK
 				map.forEachFeatureAtPixel(e.pixel,							// Look at features
 					function(f) {											// Found one
-						Sound("click");										// Click
-						mps.sh.HighlightMob(f.getId().substr(6),e.originalEvent.shiftKey,true);	// Highlight mob
+						if (f && f.getId().match(/mapBox/)) {				// A map box
+							Sound("click");									// Click
+							mps.sh.HighlightMob(f.getId().substr(6),e.originalEvent.shiftKey,true);	// Highlight mob
+		   					}
 		   				})
 				});
 	 		ShivaPostInit();
@@ -374,19 +376,31 @@ MapScholar.prototype.ShowHelp=function(context)							// SHOW HELP
 MapScholar.prototype.AddMapBoxes=function()								// ADD MAP WIREFRAMES
 {
 	var i,m;
+	var x,y,cx,cy,x1,y1,lx,ly,ar,sin,cos;
 	if (mps.mm == "ol") {													// OL
 	 	for (i=0;i<this.mobs.length;++i) {									// For each seg
-			var r=[];														// Init coords
+			var r=[[0,0],[0,0],[0,0],[0,0],[0,0]];							// Init coords
 			m=this.mobs[i];													// Point at mob
 			if (m.type != "map")											// If not a map
 				continue;													// Continue
 			var p1=ol.proj.transform([m.west-0,m.north-0],'EPSG:4326','EPSG:3857');	// Transform
 			var p2=ol.proj.transform([m.east-0,m.south-0],'EPSG:4326','EPSG:3857'); // Transform
-			r[0]=p1;														// Add corner
-			r[1]=[p2[0],p1[1]]; 											// Add corner
-			r[2]=p2;														// Add corner
-			r[3]=[p1[0],p2[1]];												// Add corner
-			r[4]=p1;														// Add corner
+			ar=m.rotation*(Math.PI/180);									// Angle to radians
+			sin=Math.sin(ar);												// Get sine
+			cos=Math.cos(ar);												// Get cosine
+			cx=((p2[0]-p1[0])/2)+(p1[0]-0);									// Center x
+			cy=((p2[1]-p1[1])/2)+(p1[1]-0);									// Center y
+			lx=cx+(p1[0]-cx)*cos-(p1[1]-cy)*sin;							// Rotate x
+			ly=cy+(p1[0]-cx)*sin+(p1[1]-cy)*cos;							// Rotate y
+			r[0][0]=cx+(p1[0]-cx)*cos-(p1[1]-cy)*sin;						// Rotate x
+			r[0][1]=cy+(p1[0]-cx)*sin+(p1[1]-cy)*cos;						// Rotate y
+			r[1][0]=cx+(p2[0]-cx)*cos-(p1[1]-cy)*sin;						// Rotate x
+			r[1][1]=cy+(p2[0]-cx)*sin+(p1[1]-cy)*cos;						// Rotate y
+			r[2][0]=cx+(p2[0]-cx)*cos-(p2[1]-cy)*sin;						// Rotate x
+			r[2][1]=cy+(p2[0]-cx)*sin+(p2[1]-cy)*cos;						// Rotate y
+			r[3][0]=cx+(p1[0]-cx)*cos-(p2[1]-cy)*sin;						// Rotate x
+			r[3][1]=cy+(p1[0]-cx)*sin+(p2[1]-cy)*cos;						// Rotate y
+			r[4]=r[0];														// Last
 			var f=new ol.Feature(new ol.geom.LineString(r));				// Make line			f.setId("mapBox"+i);											// Add id
 			this.boxLayer.getSource().addFeature(f);						// Add it
 			}
@@ -394,7 +408,6 @@ MapScholar.prototype.AddMapBoxes=function()								// ADD MAP WIREFRAMES
 		this.ShowMapBoxes(-1,"on");											// Show only open ones											
 		return;																// Quit
 		}
-	var x,y,cx,cy,x1,y1,lx,ly,ar,sin,cos;
 	var j,coords,seg,sty;
 	var ge=shivaLib.map;													// Point to earth												
     var folder=ge.createFolder("mywireframes"+Math.floor(Math.random()*99999999));	// Create folder
@@ -402,6 +415,7 @@ MapScholar.prototype.AddMapBoxes=function()								// ADD MAP WIREFRAMES
  	for (i=0;i<this.mobs.length;++i) {										// For each seg
 		m=this.mobs[i];														// Point at mob
 		if (m.type != "map")												// If not a map
+			continue;														// Skip
 		ar=m.rotation*(Math.PI/180);										// Angle to radians
 		sin=Math.sin(ar);													// Get sine
 		cos=Math.cos(ar);													// Get cosine
@@ -728,7 +742,7 @@ MapScholar.prototype.ShowMapBoxes=function(num, mode)					// HIDE/SHOW WIREFRAME
 	var start=num,end=num-0+1;												// Assume one
 	if (this.mm == "ol") {													// If OL
 		var styleOn = new ol.style.Style({ 									// Box line style
-			stroke: new ol.style.Stroke({ width: 1, color: "#ffff00" })		// Yellow line
+			stroke: new ol.style.Stroke({ width: 2, color: "#ffff00" })		// Yellow line
 			});
 	  	var styleOff = new ol.style.Style({ stroke: null	});				// No line
 		}
@@ -789,7 +803,8 @@ MapScholar.prototype.Goto=function(pos)									// SET EARTH VIEWPOINT
 		var fs=o.getResolution();											// Get from resolution
 		var r=v[4]*Math.PI/180;												// Get to rotation	
 v[2]=500;
-		o.setRotation(v[4]*Math.PI/180);									// Set res
+		if (v[4] != undefined)												// If defined
+			o.setRotation(v[4]*Math.PI/180);								// Set rotation
 		if ((Math.abs(fc[0]-c[0]) < 2) && (Math.abs(fc[1]-c[1]) < 2)		// Center match
 				&& (Math.abs(fs-v[2]) < 2) && (Math.abs(fs-v[2]) < 2)		// Resolution  match
 				&& (Math.abs(fr-r) < 1) && (Math.abs(fr-r) < 1)				// Rotation  match
@@ -1351,24 +1366,18 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
  		      	mps.ChoroQuery(val.substr(1),"ff0000");						// Do it
  		      	     
         geocoder.geocode( {'address': request.term }, function(results, status) {
-          response($.map(results, function(item) {
-            return {
-              label:  item.formatted_address,
-              value: item.formatted_address,
-              latitude: item.geometry.location.lat(),
-              longitude: item.geometry.location.lng()
-            }
-          }));
-        })
-      },
- 	select: function(event, ui) {										// GOTO
-		var lookAt=shivaLib.map.getView().copyAsLookAt(shivaLib.map.ALTITUDE_RELATIVE_TO_GROUND);
-		shivaLib.options.mapcenter=(Math.floor(ui.item.latitude*1000)/1000+","+Math.floor(ui.item.longitude*1000)/1000);
-		shivaLib.options.range=150000;
-		shivaLib.Draw(shivaLib.options);
-      	}
+        	response($.map(results, function(item) {
+	            return {
+	              label: item.formatted_address,
+	              value: item.formatted_address,
+	              latitude: item.geometry.location.lat(),
+	              longitude: item.geometry.location.lng()
+		          }
+		    })); 
+		    })
+		    },
+	 		select: function(event, ui) { mps.Goto(ui.item.latitude+","+ui.item.longitude); }
     });
-	
 }
 
 MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
