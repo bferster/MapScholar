@@ -264,10 +264,7 @@ function MapScholar()													// CONSTRUCTOR
 				map.forEachFeatureAtPixel(e.pixel,							// Look at features
 					function(f) {											// Found one
 						Sound("click");										// Click
-//						mps.sh.HighlightMob(f.getId().substr(6),e.getShiftKey(),true);	// Highlight mob
-						mps.sh.HighlightMob(f.getId().substr(6),false,true);	// Highlight mob
-
-
+						mps.sh.HighlightMob(f.getId().substr(6),e.originalEvent.shiftKey,true);	// Highlight mob
 		   				})
 				});
 	 		ShivaPostInit();
