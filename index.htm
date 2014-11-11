@@ -253,12 +253,11 @@ function MapScholar()													// CONSTRUCTOR
  				
  				});
   
-			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); // Create layer
-			map.addLayer(this.boxLayer);									// Add to map
-		
+			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); 	// Create box layer
+			map.addLayer(this.boxLayer);									// Add to map	
+	
 	     	for (i=0;i<this.layers.length-1;++i) 							// For each layer
 		    	this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
-			
 			map.on('click',function(e) {									// ON MAP CLICK
 				map.forEachFeatureAtPixel(e.pixel,							// Look at features
 					function(f) {											// Found one
@@ -272,6 +271,82 @@ function MapScholar()													// CONSTRUCTOR
 	 		}	
 
 /*/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+	
+/*
+
+	p=ol.proj.transform( [-78,40],'EPSG:4326','EPSG:3857')
+	var f=new ol.Feature({ geometry: new ol.geom.Point(p) });
+	var imgStyle=new ol.style.Style({
+		image: new ol.style.Icon(({
+	    	rotateWithView: true,
+	    	anchor: [.5,.5],
+	   	 	anchorXUnits: 'fraction', anchorYUnits: 'fraction',
+	    	opacity: 0.75,
+	    	src: 'http://www.viseyes.org/shiva/map.jpg'
+   			}))
+   		});
+	f.setId("mapImg"+0);											// Add id
+	f.setStyle(imgStyle);
+	this.boxLayer.getSource().addFeature(f);						// Add it
+
+
+	this.imgLayer=new ol.layer.Image({
+		source: new ol.source.ImageStatic({
+	      	url: 'http://imgs.xkcd.com/comics/online_communities.png',
+	        imageSize: [1024,968],
+	    	projection:'EPSG:4326',
+	       	imageExtent: [0,0,1024000,9680000]
+      	
+      	})
+    })
+
+			map.addLayer(this.imgLayer);									// Add to map
+
+
+function cnf(extent, resolution, pixelRatio, size, projection)
+{
+	trace(extent)
+	var canvas = document.createElement('canvas');
+	var context = canvas.getContext('2d');
+ 	var canvasWidth = size[0], canvasHeight = size[1];
+	canvas.setAttribute('width', canvasWidth);
+	canvas.setAttribute('height', canvasHeight);
+
+var sqsize = 100;
+var ox = (canvasWidth - sqsize) / 2;
+var oy = (canvasHeight - sqsize) / 2;
+context.fillStyle = 'grey';
+context.strokeStyle = 'white';
+context.fillRect(ox, oy, sqsize, sqsize);
+context.strokeRect(ox, oy, sqsize, sqsize);
+	return canvas;
+}
+
+this.imgLayer=new ol.layer.Image({ source: new ol.source.ImageCanvas({ canvasFunction: cnf, projection: 'EPSG:4326'}) }); // Create image layer
+map.addLayer(this.imgLayer);									// Add to map
+
+	p=ol.proj.transform( [-78,40],'EPSG:4326','EPSG:3857')
+	var f=new ol.Feature({ geometry: new ol.geom.Point(p) });
+
+	var imgStyle=new ol.style.Style({
+		image: new ol.style.Icon(({
+	    	rotateWithView: true,
+	    	anchor: [.5,.5],
+	   	 	anchorXUnits: 'fraction', anchorYUnits: 'fraction',
+	    	opacity: 0.75,
+	    	src: 'http://www.viseyes.org/shiva/map.jpg'
+   			}))
+   		});
+
+
+			f.setId("mapImg"+0);											// Add id
+			f.setStyle(imgStyle);
+			this.boxLayer.getSource().addFeature(f);						// Add it
+
+
+
 
 var featureOverlay=new ol.FeatureOverlay({									// Feature overlay
 	style: new ol.style.Style({												// Feature styling
