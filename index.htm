@@ -499,7 +499,8 @@ MapScholar.prototype.AddMapBoxes=function()								// ADD MAP WIREFRAMES
 			r[3][0]=cx+(p1[0]-cx)*cos-(p2[1]-cy)*sin;						// Rotate x
 			r[3][1]=cy+(p1[0]-cx)*sin+(p2[1]-cy)*cos;						// Rotate y
 			r[4]=r[0];														// Last
-			var f=new ol.Feature(new ol.geom.LineString(r));				// Make line			f.setId("mapBox"+i);											// Add id
+			var f=new ol.Feature(new ol.geom.LineString(r));				// Make line
+			f.setId("mapBox"+i);											// Add id
 			this.boxLayer.getSource().addFeature(f);						// Add it
 			}
 		this.AddMapImages();												// Add images
@@ -1652,7 +1653,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				}
 			}
 		if (desc && desc.match(/foot\(/)) {									// If embedded footnotes
-			v=(desc+" ").match(/foot\(.*?\)/ig);							// Extract footnotes(s)
+			v=(desc+" ").match(/foot\((?:[^()]|\([^()]*\))*\)/ig);							// Extract footnotes(s)
 			for (i=0;i<v.length;++i) {										// For each url
 				title=v[i].substr(5,v[i].length-6);							// Extract actual note
 				desc=desc.replace(RegExp(v[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&"))," <a href='#' title='"+title+"'><b><sup>["+(i+1)+"]</b></sup></a> ");	// Replace with anchor tag
