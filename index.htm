@@ -724,14 +724,15 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 					b=mps.FindMobByID(b);									// Get index from id
 					if (b != -1)											// If a valid base set
 						seg=this.kmlLayers[this.mobs[b].mid.substr(6)];		// Point at base kml of features
+					this.SetChoroplethFeatures(seg,m.url,m.med,false);		// Set features
 					}
-				if (seg)													// If valid seg
-					seg.set('visible',true),trace(seg);								// Show it
+				if (seg) {													// If valid seg
+					seg.set("opacity",mps.sh.mobVis[i]/100);				// Set alpha
+					seg.set('visible',true);								// Show it
 					}
+				}
 				continue;
 			}
-		
-		
 		if (m.type == "layer")												// If a layer
 			seg=m.seg;														// Get seg from saved seg
 		else																// A map
@@ -781,6 +782,10 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
  	var range=[];
  	if (!seg || !features)													// If invalid seg or nor features
  		return;																// Quit
+	if (this.mm == "ol") {
+		trace(features)
+		return;
+		}
 	var f=seg.getFeatures().getChildNodes();								// Point at seg 
 	if (f.item(0).getType() == "KmlFolder")									// If a folder
 		f=f.item(0).getFeatures().getChildNodes();							// Recurse into it
@@ -798,7 +803,7 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 		var results=[];														// Blank array
 		a=query;															// Copy query
 		d="";																// No extra field
-		if (a.match(/ CLEAR/)) {												// If has clear tag
+		if (a.match(/ CLEAR/)) {											// If has clear tag
 			hide=true;														// Add clear elements
 			a=a.replace(/ CLEAR/,"");										// Remove tag
 			}
