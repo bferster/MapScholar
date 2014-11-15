@@ -575,17 +575,32 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 		this.kmlLayers=[];
 		for (i=0;i<n;++i) {													// For each seg
 			m=this.mobs[i];													// Point at mob
-			if (m.type == "layer") {										// If a layer
+			if (m.type == "map") {											// If a map
+				}
+			else if (m.type == "layer") {									// If a layer
+				m.mid="LAYER-"+this.kmlLayers.length;						// Make id
 				this.kmlLayers.push(new ol.layer.Vector({  source: new ol.source.KML({	// New layer
-						title: "KML"+i,										// Set name
+						title: "LAYER-"+i,									// Set name
 			   			projection: ol.proj.get(mps.curProjection),			// Set KML projection
 			    		url:"proxy.php?url="+m.url,							// Proxied URL
+			  			visible:false										// Hide it
 			  			})
 					}));
 				shivaLib.map.addLayer(this.kmlLayers[this.kmlLayers.length-1]);	// Add to map	
 				}
-			else if (m.type == "map") {										// If a map
-			}
+			else if (m.type == "choro") {									// If a choropleth
+				m.mid="CHORO-"+Math.floor(Math.random()*99999999);			// Make random #
+				if (m.url.match(/http/)) {									// If a valis url
+					shivaLib.GetSpreadsheet(m.url,false,"",function(data,url){	// Get from docs
+					for (var j=0;j<mps.mobs.length;++j) 					// For each seg
+						if (mps.mobs[j].url == url)							// If a match
+							break;											// Quit looking
+						mps.mobs[j].url=data;								// Save data to url
+						},true);
+					}
+				}
+			
+			
 			}
 		return;
 		}
@@ -669,6 +684,18 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 		start=0,end=this.mobs.length;										// Whole list
 	for (i=start;i<end;++i) {												// For each seg
 		m=this.mobs[i];														// Point at mob
+		if (!m.mid)															// If no id yet
+			continue;														// Skip
+		if (this.mm == "ol") {												// OL
+			seg=null;
+			if (m.type == "map")  											// If a map 
+				seg=null;
+			else if (m.type == "layer")  									// If a layer 
+				seg=this.kmlLayers[m.mid.substr(6)];						// Point at layer
+			if (seg)														// If a valid seg
+				seg.set('visible',false);									// Hide it
+			continue;
+			}
 		if (((m.type != "map") && (m.type != "layer") && (m.type != "choro")) || !(m.mid))// If not a map, layer, choro
 			continue;														// Continue
 		if (m.type == "layer")												// If a layer
@@ -684,6 +711,27 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 			continue;														// Continue
 		if (!m.west)														// If not west set, must be a poster
 			this.SetPoster(i);												// Reset coords
+		if (this.mm == "ol") {												// OL
+			if (mps.sh.mobVis[i]) {											// If visible
+				if (m.type == "map")  										// If a map 
+					seg=null;
+				else if (m.type == "layer")									// If a layer
+					seg=this.kmlLayers[m.mid.substr(6)];					// Point at layer
+				else if (m.type == "choro") {								// If a choro
+					var b=(""+m.base).split(",");							// Get bases array
+					if (b && b.length)										// If one
+						b=b[b.length-1];									// Get last one
+					b=mps.FindMobByID(b);									// Get index from id
+					if (b != -1)											// If a valid base set
+						seg=this.kmlLayers[this.mobs[b].mid.substr(6)];		// Point at base kml of features
+					}
+				if (seg)													// If valid seg
+					seg.set('visible',true),trace(seg);								// Show it
+					}
+				continue;
+			}
+		
+		
 		if (m.type == "layer")												// If a layer
 			seg=m.seg;														// Get seg from saved seg
 		else																// A map
