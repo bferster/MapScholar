@@ -709,8 +709,6 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 		m=this.mobs[i];														// Point at mob
 		if (((m.type != "map") && (m.type != "layer") && (m.type != "choro")) || !(m.mid))// If not a map, layer, choro
 			continue;														// Continue
-		if (!m.west)														// If not west set, must be a poster
-			this.SetPoster(i);												// Reset coords
 		if (this.mm == "ol") {												// OL
 			if (mps.sh.mobVis[i]) {											// If visible
 				if (m.type == "map")  										// If a map 
@@ -733,6 +731,8 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 				}
 				continue;
 			}
+		if (!m.west)														// If not west set, must be a poster
+			this.SetPoster(i);												// Reset coords
 		if (m.type == "layer")												// If a layer
 			seg=m.seg;														// Get seg from saved seg
 		else																// A map
@@ -782,13 +782,6 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
  	var range=[];
  	if (!seg || !features)													// If invalid seg or nor features
  		return;																// Quit
-	if (this.mm == "ol") {
-		trace(features)
-		return;
-		}
-	var f=seg.getFeatures().getChildNodes();								// Point at seg 
-	if (f.item(0).getType() == "KmlFolder")									// If a folder
-		f=f.item(0).getFeatures().getChildNodes();							// Recurse into it
 	if (typeof(features) == "string") {										// If set literally
 		if (features.match(/http/))											// If data still not loaded
 			return;															// Quit
@@ -847,6 +840,45 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 		for (i=0;i<n;++i)													// For each feature
 			features.splice(1,0,[i,0,"000000","000000",0]);					// Add hider
 		}
+	if (this.mm == "ol") {
+		var fr,fg,fb,sr,sg,sb,a,w;
+		var fa=seg.getSource().getFeatures();								// Get KML feature array
+		for (i=1;i<features.length;++i)	{									// For each feature to style
+			o=features[i];							 	 			 	 	// Point at feature data
+			f=fa[o[0]];														// Point at KML feature
+			
+			w=1;
+			a=1;
+			sr=255;	sg=255;	sb=255;
+			fr=255;	fg=0;	fb=0;
+
+			sty=f.getStyle();											// Get Style
+			if (o && o[1])													// If alpha set
+				a=o[1]/100;													// Convert 0-100 to 0-1
+			if (o && o[2]) {												// If fill set
+				fr=parseInt("0x"+o[2].substr(0,2),16);						// R
+				fg=parseInt("0x"+o[2].substr(2,2),16);						// G
+				fb=parseInt("0x"+o[2].substr(4,2),16);						// B
+				}
+			if (o && o[3]) {												// If line col set
+				sr=parseInt("0x"+o[2].substr(0,2),16);						// R
+				sg=parseInt("0x"+o[2].substr(2,2),16);						// G
+				sb=parseInt("0x"+o[2].substr(4,2),16);						// B
+				}
+			if (o && o[4] != undefined) 									// If line wid set
+				w=o[4]-0;													// Set wid
+			sty=new ol.style.Style({										// Create style
+		     	stroke: new ol.style.Stroke({ color: "rgba("+sr+","+sg+","+sb+","+a+")",	width: w }),
+		  		fill: new ol.style.Fill({ color: "rgba("+fr+","+fg+","+fb+","+a+")" })
+		   		});
+			f.setStyle(sty);												// Set feature
+			}
+		return;
+		}
+
+	var f=seg.getFeatures().getChildNodes();								// Point at seg 
+	if (f.item(0).getType() == "KmlFolder")									// If a folder
+		f=f.item(0).getFeatures().getChildNodes();							// Recurse into it
 	for (i=1;i<features.length;++i) {										// For each feature
 		o=features[i];							 	 			  	 	  	// Point at data data
 		s=f.item(o[0]-0).getComputedStyle(); 				 	 	 		// Get style
@@ -1511,11 +1543,18 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 	   			if ((mps.sh.curMob == -1) || (mps.mobs[mps.sh.curMob].type != "layer"))	// If not a layer
 						return;												// Quit
 	  			var str="";
-	   			var seg=mps.mobs[mps.sh.curMob].seg;						// Get seg from saved seg
-				var f=seg.getFeatures().getChildNodes();					// Point at seg 
-				if (f.item(0).getType() == "KmlFolder")						// If a folder
-					f=f.item(0).getFeatures().getChildNodes();				// Recurse into it
-				f=f.getLength();											// Get number of features
+  				if (mps.mm == "ge") {										// GE
+	   				var seg=mps.mobs[mps.sh.curMob].seg;					// Get seg from saved seg
+					var f=seg.getFeatures().getChildNodes();				// Point at seg 
+					if (f.item(0).getType() == "KmlFolder")					// If a folder
+						f=f.item(0).getFeatures().getChildNodes();			// Recurse into it
+					f=f.getLength();										// Get number of features
+					}
+				else if (mps.mm == "ol") {									// OL
+					seg=mps.mobs[mps.sh.curMob].mid.substr(6);				// Get id
+					seg=mps.kmlLayers[seg];									// Get seg
+					f=seg.getSource().getFeatures().length;					// Get number of features
+					}
 				for (var i=0;i<f;++i)										// For each feature
 					str+=i+",50,cccccc,000000,1;";							// Make it bland
 				mps.SetChoroplethFeatures(seg,str,null,false);				// Set feature
