@@ -861,9 +861,9 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 				fb=parseInt("0x"+o[2].substr(4,2),16);						// B
 				}
 			if (o && o[3]) {												// If line col set
-				sr=parseInt("0x"+o[2].substr(0,2),16);						// R
-				sg=parseInt("0x"+o[2].substr(2,2),16);						// G
-				sb=parseInt("0x"+o[2].substr(4,2),16);						// B
+				sr=parseInt("0x"+o[3].substr(0,2),16);						// R
+				sg=parseInt("0x"+o[3].substr(2,2),16);						// G
+				sb=parseInt("0x"+o[3].substr(4,2),16);						// B
 				}
 			if (o && o[4] != undefined) 									// If line wid set
 				w=o[4]-0;													// Set wid
