@@ -49,6 +49,7 @@
 	var map=null;
 	var shivaLib=null;
 	var geocoder=geocoder=new google.maps.Geocoder();
+	var mapMode="ge";
 
 	function ShivaPostInit()
  	{
@@ -58,6 +59,8 @@
 			var s=regex.exec(url);											// Get mob id, if one
 			if (s) 															// If there was one
 				mps.sh.curMob=s[1];											// Set mob
+			url=url.replace(/&ol=./i,"");									// Remove tag	
+			url=url.replace(/\\?ol=./i,"");									// Remove tag	
 			}
 		if (!url)															// Nothing on query line
 			url="https://docs.google.com/spreadsheet/pub?key=0AohdE1_3ZElJdDhIbTRVRkhHSWNBWUUtYS1rZmJoSEE";
@@ -86,8 +89,10 @@
 		}
 		
      $(document).ready(function() {										// ON JQUERY LOADED
-
-		mps=new MapScholar();												// Main object
+		var url=window.location.search.substring(1);						// Get query string
+		if (url && url.match(/ol=/))										// If tagged
+			mapMode="ol";													// Force mode
+		mps=new MapScholar(mapMode);										// Main object
 		if (window.addEventListener) 										// WC3	
 			window.addEventListener("message",shivaEventHandler,false);		// Add listener	
 		else																// IE
@@ -171,11 +176,10 @@
 
 var lastClick=0;
 
-function MapScholar()													// CONSTRUCTOR
+function MapScholar(mapMode)											// CONSTRUCTOR
 {
 	mps=this;																// Point to this
-	this.mm="ol";															// Map mode
-	this.mm="ge";															// Map mode
+	this.mm=mapMode;														// Def map mode is GE
 	this.curProjection="EPSG:3857";											// Current projection
 	this.controlKey=this.shiftKey=false;									// Shift/control key flags
 	this.showBoxes=false;													// Show boxes
