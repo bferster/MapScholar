@@ -12,7 +12,7 @@
  	<script type="text/javascript" src="//www.viseyes.org/shiva/shivalib-min.js"></script>
  	<script type="text/javascript" src="MapScholar_Draw.js"></script>
    	<link rel="stylesheet" href="http://openlayers.org/en/v3.0.0/css/ol.css" type="text/css">
-   	<script src="http://openlayers.org/en/v3.0.0/build/ol.js" type="text/javascript"></script>
+   	<script src="http://openlayers.org/en/v3.0.0/build/ol-debug.js" type="text/javascript"></script>
    	<style type="text/css">
 		body { font-family:Verdana,Geneva,sans-serif; font-size:xx-small}
 		p.pb { text-align:right; color:#fff; }
@@ -176,6 +176,7 @@ function MapScholar()													// CONSTRUCTOR
 	mps=this;																// Point to this
 	this.mm="ol";															// Map mode
 //	this.mm="ge";															// Map mode
+	this.curProjection="EPSG:3857";											// Current projection
 	this.controlKey=this.shiftKey=false;									// Shift/control key flags
 	this.showBoxes=false;													// Show boxes
 	this.showRoads=false;													// Hide Roads/borders
@@ -204,6 +205,7 @@ function MapScholar()													// CONSTRUCTOR
 			new ol.layer.Tile({												// Sat 
 					visible: false,											// Invisible
 					source: new ol.source.MapQuest({layer: 'sat'}),			// MapQuest sat
+					projection: this.curProjection,							// Default projection
 					title: "Satellite"										// Set name
 					}),
 			new ol.layer.Tile({												// Terrain
@@ -212,16 +214,19 @@ function MapScholar()													// CONSTRUCTOR
      						url: 'http://demo.opengeo.org/geoserver/wms',	// Url
      						params: { 'LAYERS': 'ne:NE1_HR_LC_SR_W_DR' }	// Params
     						}),
+					projection: this.curProjection,							// Default projection
 					title: "Terrain"										// Set name
 					}),
 			new ol.layer.Tile({												// Watercolor
 					visible: false,											// Invisible
 					source: new ol.source.Stamen({layer: 'watercolor'}),	// Stamen watercolor
+					projection: this.curProjection,							// Default projection
 					title: "Watercolor"										// Set name
 					}),
 			new ol.layer.Tile({												// Toner
 					visible: false,											// Invisible
 					source: new ol.source.Stamen({layer: 'toner-lite'}),	// Stamen toner
+					projection: this.curProjection,							// Default projection
 					title: "B&W"											// Set name
 					}),
 			new ol.layer.Tile({												// Earth
@@ -231,23 +236,25 @@ function MapScholar()													// CONSTRUCTOR
             			'mapbox.natural-earth-hypso-bathy.jsonp',
         				crossOrigin: 'anonymous'
    						}),
-   					title: "Earth"											// Set name
+ 					projection: this.curProjection,							// Default projection
+  					title: "Earth"											// Set name
 					}),
 			
 			new ol.layer.Tile({												// Roadmap
 					visible:false,											// Hide it
 					source: new ol.source.MapQuest({layer: 'osm'}),			// MapQuest roads
- 					projection: "EPSG:3857",
+					projection: this.curProjection,							// Default projection
 					title: "Roadmap"										// Set name
  					}),
 			];
+
 	   
 		    map=shivaLib.map=new ol.Map( { target: 'containerDiv',			// Alloc OL
 		        layers:this.layers,											// Layers array									
 		        controls: ol.control.defaults({								// Controls
  						}).extend([ new ol.control.ScaleLine() ]),			// Add scale
 		        view: new ol.View({											// Views
-		          		center: ol.proj.transform( [-50,50],'EPSG:4326','EPSG:3857'),
+		          		center: ol.proj.transform( [-50,50],'EPSG:4326',this.curProjection),
 		          		zoom: 6 }),
  				
  				});
@@ -255,28 +262,19 @@ function MapScholar()													// CONSTRUCTOR
 			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); 	// Create box layer
 			map.addLayer(this.boxLayer);									// Add to map	
 
-	p=ol.proj.transform( [-78,40],'EPSG:4326','EPSG:3857')
-	var f=new ol.Feature({ geometry: new ol.geom.Point(p) });
+	var imageLayer = new ol.layer.Image({ opacity: 0.75,
+	source: new ol.source.ImageStatic({ 
+            url: 'https://www.lib.utexas.edu/maps/historical/newark_nj_1922.jpg',
+            imageSize: [691, 541],
+            projection: this.curProjection,
+            imageExtent: ol.extent.applyTransform([-77.0297, 38.9111, -77.0126, 38.90246], ol.proj.getTransform("EPSG:4326", this.curProjection))
+        })
+    });
+ //   map.addLayer(imageLayer);     	
 
-function styleit(feature, resolution) {
- 				xx=new ol.style.Style({
-   				image: new ol.style.Icon({
-     			src: 'http://www.viseyes.org/shiva/map.jpg',
-     			scale: 100,
-     			rotateWithView: true
-     			})
-   			 })
- trace(xx)
-  return xx;
-}
-
-	f.setId("mapImg"+0);											// Add id
-	f.setStyle(styleit);
-	this.boxLayer.getSource().addFeature(f);						// Add it
-
-
-     	for (i=0;i<this.layers.length-1;++i) 							// For each layer
+    	for (i=0;i<this.layers.length;++i) 									// For each layer
 		    	this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
+			
 			
 			map.on('click',function(e) {									// ON MAP CLICK
 				map.forEachFeatureAtPixel(e.pixel,							// Look at features
@@ -580,12 +578,14 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 			if (m.type == "layer") {										// If a layer
 				this.kmlLayers.push(new ol.layer.Vector({  source: new ol.source.KML({	// New layer
 						title: "KML"+i,										// Set name
-			   			projection: ol.proj.get('EPSG:3857'),				// Set KML projection
-			    		url:"proxy.php?url="+m.url							// Proxied URL
+			   			projection: ol.proj.get(mps.curProjection),			// Set KML projection
+			    		url:"proxy.php?url="+m.url,							// Proxied URL
 			  			})
 					}));
 				shivaLib.map.addLayer(this.kmlLayers[this.kmlLayers.length-1]);	// Add to map	
 				}
+			else if (m.type == "map") {										// If a map
+			}
 			}
 		return;
 		}
