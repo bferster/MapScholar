@@ -911,7 +911,7 @@ MapScholar.prototype.Goto=function(pos)									// SET EARTH VIEWPOINT
 		var fr=o.getRotation();												// Get from rotation		
 		var fs=o.getResolution();											// Get from resolution
 		var r=v[4]*Math.PI/180;												// Get to rotation	
-v[2]=500;
+		v[2]=RangeToResolution(v[2],900);									// Get to resolution
 		if (v[4] != undefined)												// If defined
 			o.setRotation(v[4]*Math.PI/180);								// Set rotation
 		if ((Math.abs(fc[0]-c[0]) < 2) && (Math.abs(fc[1]-c[1]) < 2)		// Center match
@@ -919,7 +919,6 @@ v[2]=500;
 				&& (Math.abs(fr-r) < 1) && (Math.abs(fr-r) < 1)				// Rotation  match
 				)															// Already there
 			return;															// Quit
-r=500;
 		var duration=2000;													// Duration
 		var start =+new Date();												// Start time
 		var pan=ol.animation.pan({											// Pan
@@ -947,7 +946,7 @@ r=500;
 	  		map.beforeRender(pan,rotate,zoom);								// Move to
 		else																// Fly in
 	  		map.beforeRender(pan,rotate,bounce);							// Pan, rotate and bounce
-		 o.setResolution(r);												// Set resolution								
+		 o.setResolution(v[2]);												// Set resolution								
 		 o.setCenter(c);													// Set center
 		return;
 		}
@@ -2100,6 +2099,15 @@ MapScholar_Shelf.prototype.Play=function(again, chapter)				// PLAY
 		$("#moreText").css("display",$("#moreText").css("display") == "inline" ? "none" : "inline" );
 	}
 
+	function RangeToResolution(range, width)							// GOOGLE EARTH RANGLE TO OPENLAYERS RESOLUTION
+	{
+		return((Math.tan(60*(Math.PI/360))*range*2)/(width));				// Code from Shane Lin 
+	}
+
+	function ResolutionToRange(resolution, width)						// OPENLAYERS RESOLUTION TO GOOGLE EARTH RANGLE
+	{
+		return((resolution*width)/(2*Math.tan(60*(Math.PI/360))));			// Code from Shane Lin 
+	}
 
 </script>
 </body>
