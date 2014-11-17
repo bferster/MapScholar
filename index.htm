@@ -290,79 +290,70 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 	 		}	
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	map.addInteraction( selInt=new ol.interaction.Select());				// Add select
+	selInt.getFeatures().on('change:length', function(e) {					// On new point added
+		var i=mps.drawLayer.getFeatures().getArray().length;				// Get length of features already drawn
+		if (e.target.getArray().length !== 0) 								// If something there
+       		e.target.item(0).once("change",function(e) { 					// On change 
+       			mps.curSketch=e.currentTarget; 								// Set sketch feature
+				mps.curSketch.setId("dseg"+i);								// Set id
+     			})
+		});
 
-	map.addInteraction( new ol.interaction.Modify({						// Add modify
-	 		features: this.drawLayer.getFeatures(),						// Point at features
-	  		deleteCondition: function(e) {								// On delete
-				var state=(ol.events.condition.shiftKeyOnly(e) && ol.events.condition.singleClick(e))	// Shift-click
-				if (state)												// Deleting
-					Sound("delete");									// Delete sound
-  	    		return state;											// Retrun state
+	map.addInteraction( new ol.interaction.Modify({							// Add modify
+	 		features: this.drawLayer.getFeatures(),							// Point at features
+	  		deleteCondition: function(e) {									// On delete
+				var state=(ol.events.condition.shiftKeyOnly(e) && ol.events.condition.singleClick(e));	// Shift-click
+				if (state)													// Deleting
+					Sound("delete");										// Delete sound
+  	    		return state;												// Retrun state
 	  			}
 			})
 		);
 
-	map.addInteraction( this.drawTool=new ol.interaction.Draw({			// Add draw tool
-	 		features: this.drawLayer.getFeatures(),						// Point at features
+	map.addInteraction( this.drawTool=new ol.interaction.Draw({				// Add draw tool
+	 		features: this.drawLayer.getFeatures(),							// Point at features
 			type: "LineString"
  			})
 		);
 
-	map.addInteraction( xx=new ol.interaction.Select({			// Add draw tool
- 			})
-
-	this.drawTool.on("drawstart",function(e, f) { 						// ON STARTING SEGMENT
-		var i=mps.drawLayer.getFeatures().getArray().length;			// Get length of features already drawn
-		trace(e)
-		mps.drawTool.sketchFeature_.setId("dseg"+i);					// Set id
-		})
-
-	$(document).on("keyup",function(e) { 								// HANDLE KEYS
-   		if (e.which == 27) {											// ESC key
-    		if (mps.drawTool.curSketch)									// If sketching
-	  			mps.drawTool.finishDrawing_(e);							// Close drawing
+	$(document).on("keyup",function(e) { 									// HANDLE KEYS
+   		if (e.which == 27) {												// ESC key
+    		if (mps.drawTool.curSketch)										// If sketching
+	  			mps.drawTool.finishDrawing_(e);								// Close drawing
     		SaveAsKML();
   			}
-   		if (e.which == 8) {												// DEL key
-    			if (!mps.drawTool.curSketch)							// If not sketching
-    			return;													// Quit
- 			a=mps.drawTool.curSketch.getGeometry().getCoordinates();  	// Get ccords
-			if (a.length > 1) {											// If more than moveto point
-				a.pop();												// Remove it
-				Sound("delete");										// Delete
+   		if (e.which == 8) {													// DEL key
+    		if (!mps.drawTool.curSketch)									// If not sketching
+    			return;														// Quit
+ 			a=mps.drawTool.curSketch.getGeometry().getCoordinates();  		// Get ccords
+			if (a.length > 1) {												// If more than moveto point
+				a.pop();													// Remove it
+				Sound("delete");											// Delete
 				mps.drawTool.curSketch.getGeometry().setCoordinates(a,"XY");// Reset coords
 				}
    			}
   	 })
   
- function SaveAsKML()												// SAVE LAYER AS KML
+ function SaveAsKML()													// SAVE LAYER AS KML
  {
-    var features=[];													// Hold features
-    var a=mps.drawLayer.getFeatures().getArray();						// Get features drawn
-    for (i=0;i<a.length;++i) {											// For each feature
-        var clone=a[i].clone();											// Clone feature
-        clone.setId("KF-"+i);  											// Set id
-       	clone.getGeometry().transform("EPSG:3857","EPSG:4326");			// Project
-        features.push(clone);											// Add to list
+    var features=[];														// Hold features
+    var a=mps.drawLayer.getFeatures().getArray();							// Get features drawn
+    for (i=0;i<a.length;++i) {												// For each feature
+        var clone=a[i].clone();												// Clone feature
+        clone.setId("KF-"+i);  												// Set id
+       	clone.getGeometry().transform("EPSG:3857","EPSG:4326");				// Project
+        features.push(clone);												// Add to list
       }
-     var node=new ol.format.KML().writeFeatures(features);				// Format as KML/XML
-     var str=new XMLSerializer().serializeToString((node));				// Serialize as string
+     var node=new ol.format.KML().writeFeatures(features);					// Format as KML/XML
+     var str=new XMLSerializer().serializeToString((node));					// Serialize as string
 }
 
- function LoadKML()													// CONVERT KML TO LAYER
+ function LoadKML()														// CONVERT KML TO LAYER
  {
  }
   
- 
-xx.on("add",function(e) {
-     if (e.target.getArray().length === 0) {
-            trace("no selected feature");
-        } else {
-            e.target.item(0).on("change",function(e) { mps.curFeature=e.currentTarget; })
-            
-      	}
-});
-
 	sty=new ol.style.Style({									
 			fill: new ol.style.Fill({ color: 'rgba(255, 255, 255, 0.2)' }),	// Final fill
 			stroke: new ol.style.Stroke({ color: '#ff9900', width: 1 }),	// Final stroke
