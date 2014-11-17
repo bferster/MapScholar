@@ -1995,7 +1995,7 @@ MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 	if (mps.mm == "ol") {													// If OL
 		var o=map.getView();												// Point at view
 		var c=ol.proj.transform(o.getCenter(),'EPSG:3857','EPSG:4326');		// Get center
-		pos=Math.floor(c[1]*10000)/10000+","+Math.floor(c[0]*10000)/10000+","+o.getResolution();	
+		pos=Math.floor(c[1]*10000)/10000+","+Math.floor(c[0]*10000)/10000+","+ResolutionToRange(o.getResolution(),900);	
 		pos+=",0,"+Math.floor((o.getRotation()*180/Math.PI)*1000)/1000;		// Rotation
 		} 													
 	else if (mps.mm == "ge") {												// If GE
