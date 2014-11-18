@@ -36,7 +36,7 @@
 <body>
 		<div id="containerDiv" style="position:absolute;width:900px;height:600px;left:20px;top:20px;"></div>
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> 
-			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>11/15/14</p>
+			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>11/18/14</p>
 			</div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
@@ -659,12 +659,18 @@ MapScholar.prototype.ShowMapScale=function(mode)						// HIDE/SHOW MAP SCALE
 		$(".ol-scale-line").css("visibility",mode ? "visible" : "hidden");	// Hide show scale
 }
 
+
 MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) // SET CHOROPLETH FEATURES
 {
 	var i,j,s,d,a,c,o;
  	var range=[];
  	if (!seg || !features)													// If invalid seg or nor features
  		return;																// Quit
+	if (mps.mm == "ge") {													// If GE
+		var f=seg.getFeatures().getChildNodes();							// Point at seg 
+		if (f.item(0).getType() == "KmlFolder")								// If a folder
+			f=f.item(0).getFeatures().getChildNodes();						// Recurse into it
+		}
 	if (typeof(features) == "string") {										// If set literally
 		if (features.match(/http/))											// If data still not loaded
 			return;															// Quit
@@ -679,7 +685,7 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 		var results=[];														// Blank array
 		a=query;															// Copy query
 		d="";																// No extra field
-		if (a.match(/ CLEAR/)) {											// If has clear tag
+		if (a.match(/ CLEAR/)) {												// If has clear tag
 			hide=true;														// Add clear elements
 			a=a.replace(/ CLEAR/,"");										// Remove tag
 			}
@@ -718,12 +724,8 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 				}
 			}
 		}
-	if (hide) {
-		var n=f.getLength();												// Get number of features
-		for (i=0;i<n;++i)													// For each feature
-			features.splice(1,0,[i,0,"000000","000000",0]);					// Add hider
-		}
-	if (this.mm == "ol") {
+	
+	if (mps.mm == "ol") {													// If OL
 		var fr,fg,fb,sr,sg,sb,a,w;
 		var fa=seg.getSource().getFeatures();								// Get KML feature array
 		for (i=1;i<features.length;++i)	{									// For each feature to style
@@ -758,10 +760,12 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 			}
 		return;
 		}
-
-	var f=seg.getFeatures().getChildNodes();								// Point at seg 
-	if (f.item(0).getType() == "KmlFolder")									// If a folder
-		f=f.item(0).getFeatures().getChildNodes();							// Recurse into it
+	
+	if (hide) {
+		var n=f.getLength();												// Get number of features
+		for (i=0;i<n;++i)													// For each feature
+			features.splice(1,0,[i,0,"000000","000000",0]);					// Add hider
+		}
 	for (i=1;i<features.length;++i) {										// For each feature
 		o=features[i];							 	 			  	 	  	// Point at data data
 		s=f.item(o[0]-0).getComputedStyle(); 				 	 	 		// Get style
