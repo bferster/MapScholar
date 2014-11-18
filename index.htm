@@ -49,7 +49,7 @@
 	var map=null;
 	var shivaLib=null;
 	var geocoder=geocoder=new google.maps.Geocoder();
-	var mapMode="ol";
+	var mapMode="ge";
 
 	function ShivaPostInit()
  	{
@@ -280,7 +280,7 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 							mps.sh.HighlightMob(f.getId().substr(6),e.originalEvent.shiftKey,true);	// Highlight mob
 	   						}
 	   				else if (id.match(/dseg/)) {							// A just-drawn feature
-	   						mps.drawTool.curSketch=f;						// Save feature
+	   						mps.dr.curSketch=f;								// Save feature
 	   						trace("id="+f.getId().substr(4))
 	   						}
 	   					}													// End feature w/ id
@@ -288,83 +288,6 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 				});															// End click
 	 		ShivaPostInit();
 	 		}	
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	map.addInteraction( selInt=new ol.interaction.Select());				// Add select
-	selInt.getFeatures().on('change:length', function(e) {					// On new point added
-		var i=mps.drawLayer.getFeatures().getArray().length;				// Get length of features already drawn
-		if (e.target.getArray().length !== 0) 								// If something there
-       		e.target.item(0).once("change",function(e) { 					// On change 
-       			mps.curSketch=e.currentTarget; 								// Set sketch feature
-				mps.curSketch.setId("dseg"+i);								// Set id
-     			})
-		});
-
-	map.addInteraction( new ol.interaction.Modify({							// Add modify
-	 		features: this.drawLayer.getFeatures(),							// Point at features
-	  		deleteCondition: function(e) {									// On delete
-				var state=(ol.events.condition.shiftKeyOnly(e) && ol.events.condition.singleClick(e));	// Shift-click
-				if (state)													// Deleting
-					Sound("delete");										// Delete sound
-  	    		return state;												// Retrun state
-	  			}
-			})
-		);
-
-	map.addInteraction( this.drawTool=new ol.interaction.Draw({				// Add draw tool
-	 		features: this.drawLayer.getFeatures(),							// Point at features
-			type: "LineString"
- 			})
-		);
-
-	$(document).on("keyup",function(e) { 									// HANDLE KEYS
-   		if (e.which == 27) {												// ESC key
-    		if (mps.drawTool.curSketch)										// If sketching
-	  			mps.drawTool.finishDrawing_(e);								// Close drawing
-    		SaveAsKML();
-  			}
-   		if (e.which == 8) {													// DEL key
-    		if (!mps.drawTool.curSketch)									// If not sketching
-    			return;														// Quit
- 			a=mps.drawTool.curSketch.getGeometry().getCoordinates();  		// Get ccords
-			if (a.length > 1) {												// If more than moveto point
-				a.pop();													// Remove it
-				Sound("delete");											// Delete
-				mps.drawTool.curSketch.getGeometry().setCoordinates(a,"XY");// Reset coords
-				}
-   			}
-  	 })
-  
- function SaveAsKML()													// SAVE LAYER AS KML
- {
-    var features=[];														// Hold features
-    var a=mps.drawLayer.getFeatures().getArray();							// Get features drawn
-    for (i=0;i<a.length;++i) {												// For each feature
-        var clone=a[i].clone();												// Clone feature
-        clone.setId("KF-"+i);  												// Set id
-       	clone.getGeometry().transform("EPSG:3857","EPSG:4326");				// Project
-        features.push(clone);												// Add to list
-      }
-     var node=new ol.format.KML().writeFeatures(features);					// Format as KML/XML
-     var str=new XMLSerializer().serializeToString((node));					// Serialize as string
-}
-
- function LoadKML()														// CONVERT KML TO LAYER
- {
- }
-  
-	sty=new ol.style.Style({									
-			fill: new ol.style.Fill({ color: 'rgba(255, 255, 255, 0.2)' }),	// Final fill
-			stroke: new ol.style.Stroke({ color: '#ff9900', width: 1 }),	// Final stroke
-			})
-
-
-	this.drawLayer.setStyle(sty) 
-
-
-///////////////////////////////////////////////////////////////////////////////////////////
-
 }	
 
 MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT 
