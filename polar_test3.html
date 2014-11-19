@@ -4,7 +4,7 @@
     <link rel="stylesheet" href="http://openlayers.org/en/v3.0.0/css/ol.css" type="text/css">
     <style>
         .map {
-            height: 900px;
+            height: 500px;
             width: 100%;
         }
     </style>
@@ -13,11 +13,11 @@
     <title>OpenLayers 3 example</title>
 </head>
 <body>
-<h2>On-the-go Reprojection test</h2>
+<h2>On-the-go Reprojection test (3)</h2>
 <div id="map" class="map"></div>
 <button id='epsg3574'>EPSG:3574</button>
-<button id='epsg3857'>EPSG:3857</button>
-<button id='esri53009'>ESRI:53009</button>
+<button id='epsg3857'>EPSG:3857 (Web Mercator)</button>
+<button id='esri53009'>ESRI:53009 (Sphere Mollweide)</button>
 
 <script type="text/javascript">
 
@@ -55,14 +55,14 @@
         center: [0, 0],
         projection: googprojection,
         resolutions: [65536, 32768, 16384, 8192, 4096, 2048],
-        zoom: 0
+        zoom: 2
     });
 
     smolview = new ol.View({
         center: [0, 0],
         projection: smolprojection,
         resolutions: [65536, 32768, 16384, 8192, 4096, 2048],
-        zoom: 0
+        zoom: 2
     });
 
 
@@ -86,16 +86,18 @@
     function setSMolProjection() {
         smollayer.setVisible(true);
         googlayer.setVisible(false);
+        smolview.setCenter(ol.proj.transform(googview.getCenter(), 'EPSG:3857', 'ESRI:53009'));
     }
 
     function setGoogProjection() {
         googlayer.setVisible(true);
         smollayer.setVisible(false);
+        googview.setCenter(ol.proj.transform(smolview.getCenter(), 'ESRI:53009', 'EPSG:3857'));
     }
 
 
     document.getElementById('epsg3574').onclick = setPolProjection;
-    document.getElementById('epsfiB2358g3857').onclick = setGoogProjection;
+    document.getElementById('epsg3857').onclick = setGoogProjection;
     document.getElementById('esri53009').onclick = setSMolProjection
 
 
