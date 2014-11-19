@@ -12,7 +12,7 @@
  	<script type="text/javascript" src="//www.viseyes.org/shiva/shivalib-min.js"></script>
  	<script type="text/javascript" src="MapScholar_Draw.js"></script>
    	<link rel="stylesheet" href="http://openlayers.org/en/v3.0.0/css/ol.css" type="text/css">
-   	<script src="http://openlayers.org/en/v3.0.0/build/ol.js" type="text/javascript"></script>
+   	<script src="http://openlayers.org/en/v3.0.0/build/ol-debug.js" type="text/javascript"></script>
    	<style type="text/css">
 		body { font-family:Verdana,Geneva,sans-serif; font-size:xx-small}
 		p.pb { text-align:right; color:#fff; }
@@ -36,7 +36,7 @@
 <body>
 		<div id="containerDiv" style="position:absolute;width:900px;height:600px;left:20px;top:20px;"></div>
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> 
-			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>11/11/14</p>
+			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>11/18/14</p>
 			</div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
@@ -49,6 +49,7 @@
 	var map=null;
 	var shivaLib=null;
 	var geocoder=geocoder=new google.maps.Geocoder();
+	var mapMode="ge";
 
 	function ShivaPostInit()
  	{
@@ -58,6 +59,8 @@
 			var s=regex.exec(url);											// Get mob id, if one
 			if (s) 															// If there was one
 				mps.sh.curMob=s[1];											// Set mob
+			url=url.replace(/&ol=./i,"");									// Remove tag	
+			url=url.replace(/\\?ol=./i,"");									// Remove tag	
 			}
 		if (!url)															// Nothing on query line
 			url="https://docs.google.com/spreadsheet/pub?key=0AohdE1_3ZElJdDhIbTRVRkhHSWNBWUUtYS1rZmJoSEE";
@@ -86,8 +89,10 @@
 		}
 		
      $(document).ready(function() {										// ON JQUERY LOADED
-
-		mps=new MapScholar();												// Main object
+		var url=window.location.search.substring(1);						// Get query string
+		if (url && url.match(/ol=/))										// If tagged
+			mapMode="ol";													// Force mode
+		mps=new MapScholar(mapMode);										// Main object
 		if (window.addEventListener) 										// WC3	
 			window.addEventListener("message",shivaEventHandler,false);		// Add listener	
 		else																// IE
@@ -171,17 +176,15 @@
 
 var lastClick=0;
 
-function MapScholar()													// CONSTRUCTOR
+function MapScholar(mapMode)											// CONSTRUCTOR
 {
 	mps=this;																// Point to this
-	this.mm="ol";															// Map mode
-//	this.mm="ge";															// Map mode
+	this.mm=mapMode;														// Def map mode is GE
 	this.controlKey=this.shiftKey=false;									// Shift/control key flags
 	this.showBoxes=false;													// Show boxes
 	this.showRoads=false;													// Hide Roads/borders
 	this.showScale=(this.mm == "ol");										// Hide or show scale
 	this.popupOpen=-1;														// Popup not open
-	this.baseLayer="Satellite";												// Default layer
 	shivaLib=new SHIVA_Show("containerDiv");								// Alloc SHIVA_Show
 	Sound("click","init");													// Init sound
 	Sound("ding","init");													// Init sound
@@ -200,10 +203,13 @@ function MapScholar()													// CONSTRUCTOR
 		}
 
 	else if (this.mm == "ol") {												// If using OL
+		this.curProjection="EPSG:3857";										// Current projection
+		this.baseLayer="Satellite";											// Default layer
 		this.layers=[														// Hold layers
 			new ol.layer.Tile({												// Sat 
 					visible: false,											// Invisible
 					source: new ol.source.MapQuest({layer: 'sat'}),			// MapQuest sat
+					projection: this.curProjection,							// Default projection
 					title: "Satellite"										// Set name
 					}),
 			new ol.layer.Tile({												// Terrain
@@ -212,16 +218,19 @@ function MapScholar()													// CONSTRUCTOR
      						url: 'http://demo.opengeo.org/geoserver/wms',	// Url
      						params: { 'LAYERS': 'ne:NE1_HR_LC_SR_W_DR' }	// Params
     						}),
+					projection: this.curProjection,							// Default projection
 					title: "Terrain"										// Set name
 					}),
 			new ol.layer.Tile({												// Watercolor
 					visible: false,											// Invisible
 					source: new ol.source.Stamen({layer: 'watercolor'}),	// Stamen watercolor
+					projection: this.curProjection,							// Default projection
 					title: "Watercolor"										// Set name
 					}),
 			new ol.layer.Tile({												// Toner
 					visible: false,											// Invisible
 					source: new ol.source.Stamen({layer: 'toner-lite'}),	// Stamen toner
+					projection: this.curProjection,							// Default projection
 					title: "B&W"											// Set name
 					}),
 			new ol.layer.Tile({												// Earth
@@ -231,13 +240,14 @@ function MapScholar()													// CONSTRUCTOR
             			'mapbox.natural-earth-hypso-bathy.jsonp',
         				crossOrigin: 'anonymous'
    						}),
-   					title: "Earth"											// Set name
+ 					projection: this.curProjection,							// Default projection
+  					title: "Earth"											// Set name
 					}),
 			
 			new ol.layer.Tile({												// Roadmap
 					visible:false,											// Hide it
 					source: new ol.source.MapQuest({layer: 'osm'}),			// MapQuest roads
- 					projection: "EPSG:3857",
+					projection: this.curProjection,							// Default projection
 					title: "Roadmap"										// Set name
  					}),
 			];
@@ -247,7 +257,7 @@ function MapScholar()													// CONSTRUCTOR
 		        controls: ol.control.defaults({								// Controls
  						}).extend([ new ol.control.ScaleLine() ]),			// Add scale
 		        view: new ol.View({											// Views
-		          		center: ol.proj.transform( [-50,50],'EPSG:4326','EPSG:3857'),
+		          		center: ol.proj.transform( [-50,50],'EPSG:4326',this.curProjection),
 		          		zoom: 6 }),
  				
  				});
@@ -255,158 +265,29 @@ function MapScholar()													// CONSTRUCTOR
 			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); 	// Create box layer
 			map.addLayer(this.boxLayer);									// Add to map	
 
-	p=ol.proj.transform( [-78,40],'EPSG:4326','EPSG:3857')
-	var f=new ol.Feature({ geometry: new ol.geom.Point(p) });
-
-function styleit(feature, resolution) {
- 				xx=new ol.style.Style({
-   				image: new ol.style.Icon({
-     			src: 'http://www.viseyes.org/shiva/map.jpg',
-     			scale: 100,
-     			rotateWithView: true
-     			})
-   			 })
- trace(xx)
-  return xx;
-}
-
-	f.setId("mapImg"+0);											// Add id
-	f.setStyle(styleit);
-	this.boxLayer.getSource().addFeature(f);						// Add it
-
-
-     	for (i=0;i<this.layers.length-1;++i) 							// For each layer
-		    	this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
+			this.drawLayer=new ol.FeatureOverlay();							// Feature overlay
+			this.drawLayer.setMap(map);										// Add to map
+											
+		   	for (i=0;i<this.layers.length;++i) 								// For each layer
+			    	this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
 			
 			map.on('click',function(e) {									// ON MAP CLICK
-				map.forEachFeatureAtPixel(e.pixel,							// Look at features
-					function(f) {											// Found one
-						if (f && f.getId().match(/mapBox/)) {				// A map box
+				map.forEachFeatureAtPixel(e.pixel,function(f) {				// Look at features
+					var id;
+					if (f && (id=f.getId())) {								// If a feature with an id
+						if (id.match(/mapBox/)){							// A map box
 							Sound("click");									// Click
 							mps.sh.HighlightMob(f.getId().substr(6),e.originalEvent.shiftKey,true);	// Highlight mob
-		   					}
-		   				})
-				});
+	   						}
+	   				else if (id.match(/dseg/)) {							// A just-drawn feature
+	   						mps.dr.curSketch=f;								// Save feature
+	   						trace("id="+f.getId().substr(4))
+	   						}
+	   					}													// End feature w/ id
+			   		})														// End each feature											
+				});															// End click
 	 		ShivaPostInit();
 	 		}	
-
-/*/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-	
-/*
-
-	p=ol.proj.transform( [-78,40],'EPSG:4326','EPSG:3857')
-	var f=new ol.Feature({ geometry: new ol.geom.Point(p) });
-	var imgStyle=new ol.style.Style({
-		image: new ol.style.Icon(({
-	    	rotateWithView: true,
-	    	anchor: [.5,.5],
-	   	 	anchorXUnits: 'fraction', anchorYUnits: 'fraction',
-	    	opacity: 0.75,
-	    	src: 'http://www.viseyes.org/shiva/map.jpg'
-   			}))
-   		});
-	f.setId("mapImg"+0);											// Add id
-	f.setStyle(imgStyle);
-	this.boxLayer.getSource().addFeature(f);						// Add it
-
-
-var extent = ol.proj.transformExtent(
-    [-78., 38.3331, 80.6607, 39.0559], 'EPSG:4326', 'EPSG:3857');
-
-  x=new ol.layer.Image({
-      source: new ol.source.ImageStatic({
-      url: 'http://www.viseyes.org/shiva/map.jpg',
-        imageExtent: extent,
-        imageSize: [1176,724],
-       	projection:'EPSG:4326'
-     })
-    })
-	
-	x.setOpacity(.65)
-	map.addLayer(x);									// Add to map
-
-	
-
-function cnf(extent, resolution, pixelRatio, size, projection)
-{
-	trace(extent)
-	var canvas = document.createElement('canvas');
-	var context = canvas.getContext('2d');
- 	var canvasWidth = size[0], canvasHeight = size[1];
-	canvas.setAttribute('width', canvasWidth);
-	canvas.setAttribute('height', canvasHeight);
-
-var sqsize = 100;
-var ox = (canvasWidth - sqsize) / 2;
-var oy = (canvasHeight - sqsize) / 2;
-context.fillStyle = 'grey';
-context.strokeStyle = 'white';
-context.fillRect(ox, oy, sqsize, sqsize);
-context.strokeRect(ox, oy, sqsize, sqsize);
-	return canvas;
-}
-
-this.imgLayer=new ol.layer.Image({ source: new ol.source.ImageCanvas({ canvasFunction: cnf, projection: 'EPSG:4326'}) }); // Create image layer
-map.addLayer(this.imgLayer);									// Add to map
-
-	p=ol.proj.transform( [-78,40],'EPSG:4326','EPSG:3857')
-	var f=new ol.Feature({ geometry: new ol.geom.Point(p) });
-
-	var imgStyle=new ol.style.Style({
-		image: new ol.style.Icon(({
-	    	rotateWithView: true,
-	    	anchor: [.5,.5],
-	   	 	anchorXUnits: 'fraction', anchorYUnits: 'fraction',
-	    	opacity: 0.75,
-	    	src: 'http://www.viseyes.org/shiva/map.jpg'
-   			}))
-   		});
-
-
-			f.setId("mapImg"+0);											// Add id
-			f.setStyle(imgStyle);
-			this.boxLayer.getSource().addFeature(f);						// Add it
-
-
-
-
-var featureOverlay=new ol.FeatureOverlay({									// Feature overlay
-	style: new ol.style.Style({												// Feature styling
-			fill: new ol.style.Fill({ color: 'rgba(255, 255, 255, 0.2)' }),	// Final fill
-  		  	stroke: new ol.style.Stroke({ color: '#ff9900', width: 1   }),	// Final stroke
-    		image: new ol.style.Circle({ radius:8, fill: new ol.style.Fill({ color: '#ffcc33' }) // Final image
-    		})
-  		})
-  	});
-featureOverlay.setMap(map);
-
-var modify = new ol.interaction.Modify({
-  features: featureOverlay.getFeatures(),
-  // the SHIFT key must be pressed to delete vertices, so
-  // that new vertices can be drawn at the same position
-  // of existing vertices
-  deleteCondition: function(event) {
-    return ol.events.condition.shiftKeyOnly(event) &&
-        ol.events.condition.singleClick(event);
-  }
-});
-map.addInteraction(modify);
-
-var draw; // global so we can remove it later
-function addInteraction() {
-  draw = new ol.interaction.Draw({
-    features: featureOverlay.getFeatures(),
-    type: "Polygon"
-  });
-  map.addInteraction(draw);
-}
- 
-addInteraction();
-
-///////////////////////////////////////////////////////////////////////////////////////////*/
-
 }	
 
 MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT 
@@ -578,15 +459,32 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 		this.kmlLayers=[];
 		for (i=0;i<n;++i) {													// For each seg
 			m=this.mobs[i];													// Point at mob
-			if (m.type == "layer") {										// If a layer
+			if (m.type == "map") {											// If a map
+				}
+			else if (m.type == "layer") {									// If a layer
+				m.mid="LAYER-"+this.kmlLayers.length;						// Make id
 				this.kmlLayers.push(new ol.layer.Vector({  source: new ol.source.KML({	// New layer
-						title: "KML"+i,										// Set name
-			   			projection: ol.proj.get('EPSG:3857'),				// Set KML projection
-			    		url:"proxy.php?url="+m.url							// Proxied URL
+						title: "LAYER-"+i,									// Set name
+			   			projection: ol.proj.get(mps.curProjection),			// Set KML projection
+			    		url:"proxy.php?url="+m.url,							// Proxied URL
+			  			visible:false										// Hide it
 			  			})
 					}));
 				shivaLib.map.addLayer(this.kmlLayers[this.kmlLayers.length-1]);	// Add to map	
 				}
+			else if (m.type == "choro") {									// If a choropleth
+				m.mid="CHORO-"+Math.floor(Math.random()*99999999);			// Make random #
+				if (m.url.match(/http/)) {									// If a valis url
+					shivaLib.GetSpreadsheet(m.url,false,"",function(data,url){	// Get from docs
+					for (var j=0;j<mps.mobs.length;++j) 					// For each seg
+						if (mps.mobs[j].url == url)							// If a match
+							break;											// Quit looking
+						mps.mobs[j].url=data;								// Save data to url
+						},true);
+					}
+				}
+			
+			
 			}
 		return;
 		}
@@ -670,6 +568,18 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 		start=0,end=this.mobs.length;										// Whole list
 	for (i=start;i<end;++i) {												// For each seg
 		m=this.mobs[i];														// Point at mob
+		if (!m.mid)															// If no id yet
+			continue;														// Skip
+		if (this.mm == "ol") {												// OL
+			seg=null;
+			if (m.type == "map")  											// If a map 
+				seg=null;
+			else if (m.type == "layer")  									// If a layer 
+				seg=this.kmlLayers[m.mid.substr(6)];						// Point at layer
+			if (seg)														// If a valid seg
+				seg.set('visible',false);									// Hide it
+			continue;
+			}
 		if (((m.type != "map") && (m.type != "layer") && (m.type != "choro")) || !(m.mid))// If not a map, layer, choro
 			continue;														// Continue
 		if (m.type == "layer")												// If a layer
@@ -683,6 +593,28 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 		m=this.mobs[i];														// Point at mob
 		if (((m.type != "map") && (m.type != "layer") && (m.type != "choro")) || !(m.mid))// If not a map, layer, choro
 			continue;														// Continue
+		if (this.mm == "ol") {												// OL
+			if (mps.sh.mobVis[i]) {											// If visible
+				if (m.type == "map")  										// If a map 
+					seg=null;
+				else if (m.type == "layer")									// If a layer
+					seg=this.kmlLayers[m.mid.substr(6)];					// Point at layer
+				else if (m.type == "choro") {								// If a choro
+					var b=(""+m.base).split(",");							// Get bases array
+					if (b && b.length)										// If one
+						b=b[b.length-1];									// Get last one
+					b=mps.FindMobByID(b);									// Get index from id
+					if (b != -1)											// If a valid base set
+						seg=this.kmlLayers[this.mobs[b].mid.substr(6)];		// Point at base kml of features
+					this.SetChoroplethFeatures(seg,m.url,m.med,false);		// Set features
+					}
+				if (seg) {													// If valid seg
+					seg.set("opacity",mps.sh.mobVis[i]/100);				// Set alpha
+					seg.set('visible',true);								// Show it
+					}
+				}
+				continue;
+			}
 		if (!m.west)														// If not west set, must be a poster
 			this.SetPoster(i);												// Reset coords
 		if (m.type == "layer")												// If a layer
@@ -728,15 +660,18 @@ MapScholar.prototype.ShowMapScale=function(mode)						// HIDE/SHOW MAP SCALE
 		$(".ol-scale-line").css("visibility",mode ? "visible" : "hidden");	// Hide show scale
 }
 
+
 MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) // SET CHOROPLETH FEATURES
 {
 	var i,j,s,d,a,c,o;
  	var range=[];
  	if (!seg || !features)													// If invalid seg or nor features
  		return;																// Quit
-	var f=seg.getFeatures().getChildNodes();								// Point at seg 
-	if (f.item(0).getType() == "KmlFolder")									// If a folder
-		f=f.item(0).getFeatures().getChildNodes();							// Recurse into it
+	if (mps.mm == "ge") {													// If GE
+		var f=seg.getFeatures().getChildNodes();							// Point at seg 
+		if (f.item(0).getType() == "KmlFolder")								// If a folder
+			f=f.item(0).getFeatures().getChildNodes();						// Recurse into it
+		}
 	if (typeof(features) == "string") {										// If set literally
 		if (features.match(/http/))											// If data still not loaded
 			return;															// Quit
@@ -790,6 +725,43 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 				}
 			}
 		}
+	
+	if (mps.mm == "ol") {													// If OL
+		var fr,fg,fb,sr,sg,sb,a,w;
+		var fa=seg.getSource().getFeatures();								// Get KML feature array
+		for (i=1;i<features.length;++i)	{									// For each feature to style
+			o=features[i];							 	 			 	 	// Point at feature data
+			f=fa[o[0]];														// Point at KML feature
+			
+			w=1;
+			a=1;
+			sr=255;	sg=255;	sb=255;
+			fr=255;	fg=0;	fb=0;
+
+			sty=f.getStyle();											// Get Style
+			if (o && o[1])													// If alpha set
+				a=o[1]/100;													// Convert 0-100 to 0-1
+			if (o && o[2]) {												// If fill set
+				fr=parseInt("0x"+o[2].substr(0,2),16);						// R
+				fg=parseInt("0x"+o[2].substr(2,2),16);						// G
+				fb=parseInt("0x"+o[2].substr(4,2),16);						// B
+				}
+			if (o && o[3]) {												// If line col set
+				sr=parseInt("0x"+o[3].substr(0,2),16);						// R
+				sg=parseInt("0x"+o[3].substr(2,2),16);						// G
+				sb=parseInt("0x"+o[3].substr(4,2),16);						// B
+				}
+			if (o && o[4] != undefined) 									// If line wid set
+				w=o[4]-0;													// Set wid
+			sty=new ol.style.Style({										// Create style
+		     	stroke: new ol.style.Stroke({ color: "rgba("+sr+","+sg+","+sb+","+a+")",	width: w }),
+		  		fill: new ol.style.Fill({ color: "rgba("+fr+","+fg+","+fb+","+a+")" })
+		   		});
+			f.setStyle(sty);												// Set feature
+			}
+		return;
+		}
+	
 	if (hide) {
 		var n=f.getLength();												// Get number of features
 		for (i=0;i<n;++i)													// For each feature
@@ -912,7 +884,7 @@ MapScholar.prototype.Goto=function(pos)									// SET EARTH VIEWPOINT
 		var fr=o.getRotation();												// Get from rotation		
 		var fs=o.getResolution();											// Get from resolution
 		var r=v[4]*Math.PI/180;												// Get to rotation	
-v[2]=500;
+		v[2]=RangeToResolution(v[2],900);									// Get to resolution
 		if (v[4] != undefined)												// If defined
 			o.setRotation(v[4]*Math.PI/180);								// Set rotation
 		if ((Math.abs(fc[0]-c[0]) < 2) && (Math.abs(fc[1]-c[1]) < 2)		// Center match
@@ -920,7 +892,6 @@ v[2]=500;
 				&& (Math.abs(fr-r) < 1) && (Math.abs(fr-r) < 1)				// Rotation  match
 				)															// Already there
 			return;															// Quit
-r=500;
 		var duration=2000;													// Duration
 		var start =+new Date();												// Start time
 		var pan=ol.animation.pan({											// Pan
@@ -948,7 +919,7 @@ r=500;
 	  		map.beforeRender(pan,rotate,zoom);								// Move to
 		else																// Fly in
 	  		map.beforeRender(pan,rotate,bounce);							// Pan, rotate and bounce
-		 o.setResolution(r);												// Set resolution								
+		 o.setResolution(v[2]);												// Set resolution								
 		 o.setCenter(c);													// Set center
 		return;
 		}
@@ -1460,11 +1431,18 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 	   			if ((mps.sh.curMob == -1) || (mps.mobs[mps.sh.curMob].type != "layer"))	// If not a layer
 						return;												// Quit
 	  			var str="";
-	   			var seg=mps.mobs[mps.sh.curMob].seg;						// Get seg from saved seg
-				var f=seg.getFeatures().getChildNodes();					// Point at seg 
-				if (f.item(0).getType() == "KmlFolder")						// If a folder
-					f=f.item(0).getFeatures().getChildNodes();				// Recurse into it
-				f=f.getLength();											// Get number of features
+  				if (mps.mm == "ge") {										// GE
+	   				var seg=mps.mobs[mps.sh.curMob].seg;					// Get seg from saved seg
+					var f=seg.getFeatures().getChildNodes();				// Point at seg 
+					if (f.item(0).getType() == "KmlFolder")					// If a folder
+						f=f.item(0).getFeatures().getChildNodes();			// Recurse into it
+					f=f.getLength();										// Get number of features
+					}
+				else if (mps.mm == "ol") {									// OL
+					seg=mps.mobs[mps.sh.curMob].mid.substr(6);				// Get id
+					seg=mps.kmlLayers[seg];									// Get seg
+					f=seg.getSource().getFeatures().length;					// Get number of features
+					}
 				for (var i=0;i<f;++i)										// For each feature
 					str+=i+",50,cccccc,000000,1;";							// Make it bland
 				mps.SetChoroplethFeatures(seg,str,null,false);				// Set feature
@@ -1901,7 +1879,7 @@ MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 	if (mps.mm == "ol") {													// If OL
 		var o=map.getView();												// Point at view
 		var c=ol.proj.transform(o.getCenter(),'EPSG:3857','EPSG:4326');		// Get center
-		pos=Math.floor(c[1]*10000)/10000+","+Math.floor(c[0]*10000)/10000+","+o.getResolution();	
+		pos=Math.floor(c[1]*10000)/10000+","+Math.floor(c[0]*10000)/10000+","+ResolutionToRange(o.getResolution(),900);	
 		pos+=",0,"+Math.floor((o.getRotation()*180/Math.PI)*1000)/1000;		// Rotation
 		} 													
 	else if (mps.mm == "ge") {												// If GE
@@ -2101,6 +2079,15 @@ MapScholar_Shelf.prototype.Play=function(again, chapter)				// PLAY
 		$("#moreText").css("display",$("#moreText").css("display") == "inline" ? "none" : "inline" );
 	}
 
+	function RangeToResolution(range, width)							// GOOGLE EARTH RANGLE TO OPENLAYERS RESOLUTION
+	{
+		return((Math.tan(60*(Math.PI/360))*range*2)/(width));				// Code from Shane Lin 
+	}
+
+	function ResolutionToRange(resolution, width)						// OPENLAYERS RESOLUTION TO GOOGLE EARTH RANGLE
+	{
+		return((resolution*width)/(2*Math.tan(60*(Math.PI/360))));			// Code from Shane Lin 
+	}
 
 </script>
 </body>

@@ -112,6 +112,7 @@ MapScholar_Draw.prototype.DrawControlBar=function(mode)						// DRAW MAP CONTROL
 			shivaLib.Sound("click");											// Click
 		this.inDraw=mode;														// Set mode
 		}
+	this.InitGraphics();														// Init graphics mode
 	if (this.inDraw) {															// If annotation
 		if (mps.sh.inPlay)														// If playing
 			mps.sh.Play();														// Stop
@@ -288,6 +289,8 @@ MapScholar_Draw.prototype.AddNewSeg=function(defs)							// ADD NEW SEGMENT
 	var type=$("#annType").val(),v;												// Get type
 	this.DrawControlBar(true);													// Draw control bar
 	this.curSeg=-1;																// Deselect
+	if (mps.mm == "ol")															// If OL
+		return;																	// Quit
 	$("#annType").val("Draw");													// Reset control
 	var o=new Object();
 	o.type=type;																// Set type
@@ -382,6 +385,97 @@ MapScholar_Draw.prototype.ColorPicker=function(which, x, y)					// COLOR PICKER
 	 	$("#"+e.target.id).remove();											// Remove bar
  		});
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// OL 
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+MapScholar_Draw.prototype.InitGraphics=function()							// INIT GRAPHICS DRAWING
+{
+	if (mps.mm == "ge")															// If GE
+		return;																	// Quit
+	var map=shivaLib.map;														// Point at map
+	if (!this.inDraw) {															// If not drawing
+		if (this.modifyInter)													// If defined
+			 map.removeInteraction(this.modifyInter); 							// Remove it
+		if (this.drawInter)														// If defined
+			 map.removeInteraction(this.drawInter); 							// Remove it
+		if (this.selectInter)													// If defined
+			 map.removeInteraction(this.selectInter); 							// Remove it
+ 		return;																	// Quit
+		}
+	
+	map.addInteraction( this.selectInter=new ol.interaction.Select());			// Add select
+	this.selectInter.getFeatures().on('change:length', function(e) {			// On new point added
+		var i=mps.drawLayer.getFeatures().getArray().length;					// Get length of features already drawn
+		if (e.target.getArray().length !== 0) 									// If something there
+       		e.target.item(0).once("change",function(e) { 						// On change 
+      			mps.dr.curSketch=e.target; 										// Set sketch feature
+				mps.dr.curSketch.setId("dseg"+i);								// Set id
+    			})
+		});
+
+	map.addInteraction( this.modifyInter=new ol.interaction.Modify({			// Add modify
+	 		features: mps.drawLayer.getFeatures(),								// Point at features
+	  		deleteCondition: function(e) {										// On delete
+				var state=(ol.events.condition.shiftKeyOnly(e) && ol.events.condition.singleClick(e));	// Shift-click
+				if (state)														// Deleting
+					Sound("delete");											// Delete sound
+  	    		return state;													// Retrun state
+	  			}	
+			})
+		);
+
+	map.addInteraction( this.drawInter=new ol.interaction.Draw({				// Add draw tool
+	 		features: mps.drawLayer.getFeatures(),								// Point at features
+			type: "LineString"
+ 			})
+		);
+
+	sty=new ol.style.Style({									
+			fill: new ol.style.Fill({ color: 'rgba(255, 255, 255, 0.2)' }),		// Final fill
+			stroke: new ol.style.Stroke({ color: '#ff9900', width: 1 }),		// Final stroke
+			})
+	mps.drawLayer.setStyle(sty); 
+	
+	$(document).on("keyup",function(e) { 										// HANDLE KEYS
+   		if (e.which == 27) {													// ESC key
+    		if (mps.dr.curSketch)												// If sketching
+	  			mps.dr.drawInter.finishDrawing_(e);								// Close drawing
+  			}
+   		if (e.which == 8) {														// DEL key
+    		if (!mps.dr.curSketch)												// If not sketching
+    			return;															// Quit
+ 			a=mps.dr.curSketch.getGeometry().getCoordinates();  				// Get ccords
+			if (a.length > 1) {													// If more than moveto point
+				a.pop();														// Remove it
+				Sound("delete");												// Delete
+				mps.dr.curSketch.getGeometry().setCoordinates(a,"XY");			// Reset coords
+				}
+   			}
+  	 })
+ 
+ }
+  
+/* 
+ function SaveAsKML()													// SAVE LAYER AS KML
+ {
+    var features=[];														// Hold features
+    var a=mps.drawLayer.getFeatures().getArray();							// Get features drawn
+    for (i=0;i<a.length;++i) {												// For each feature
+        var clone=a[i].clone();												// Clone feature
+        clone.setId("KF-"+i);  												// Set id
+       	clone.getGeometry().transform("EPSG:3857","EPSG:4326");				// Project
+        features.push(clone);												// Add to list
+      }
+     var node=new ol.format.KML().writeFeatures(features);					// Format as KML/XML
+     var str=new XMLSerializer().serializeToString((node));					// Serialize as string
+}
+
+ function LoadKML()														// CONVERT KML TO LAYER
+ {
+ }
+ */ 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // EARTH 
