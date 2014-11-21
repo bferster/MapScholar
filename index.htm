@@ -267,6 +267,17 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 
 			this.drawLayer=new ol.FeatureOverlay();							// Feature overlay
 			this.drawLayer.setMap(map);										// Add to map
+
+         	this.CreateCanvasLayer();										//!**
+			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); 	// Create box layer
+			map.addLayer(this.boxLayer);									// Add to map	
+
+			this.drawLayer=new ol.FeatureOverlay();							// Feature overlay
+			this.drawLayer.setMap(map);										// Add to map
+			map.on('moveend', function() {
+                    drawMapImages();
+                  })
+
 											
 		   	for (i=0;i<this.layers.length;++i) 								// For each layer
 			    	this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
@@ -458,8 +469,8 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 		this.kmlLayers=[];
 		for (i=0;i<n;++i) {													// For each seg
 			m=this.mobs[i];													// Point at mob
-			if (m.type == "map") {											// If a map
-				}
+			if (m.type == "map") 											// Map 
+			    this.MakeMapImage(m);										// Add it 
 			else if (m.type == "layer") {									// If a layer
 				m.mid="LAYER-"+this.kmlLayers.length;						// Make id
 				this.kmlLayers.push(new ol.layer.Vector({  source: new ol.source.KML({	// New layer
@@ -2087,6 +2098,111 @@ MapScholar_Shelf.prototype.Play=function(again, chapter)				// PLAY
 	{
 		return((resolution*width)/(2*Math.tan(60*(Math.PI/360))));			// Code from Shane Lin 
 	}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// NEW ADDITIONS FOR OL
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+	function RangeToResolution(range, width)							// GOOGLE EARTH RANGLE TO OPENLAYERS RESOLUTION
+	{
+		return((Math.tan(60*(Math.PI/360))*range*2)/(width));				// Code from Shane Lin 
+	}
+
+	function ResolutionToRange(resolution, width)						// OPENLAYERS RESOLUTION TO GOOGLE EARTH RANGLE
+	{
+		return((resolution*width)/(2*Math.tan(60*(Math.PI/360))));			// Code from Shane Lin 
+	}
+	
+MapScholar.prototype.MakeMapImage = function(mob) 						// ADD MAP IMAGE TO PROJECT
+{    
+    mob.mapImage=new MapImage(mob);											// Alloc mapimage obj
+
+	function MapImage(mob) {												// MAPIMAGE CONSTRUCTOR
+	    this.img=new Image();												// Alloc image
+        this.imgWidth;	 this.imgHeight;									// Set size, if any
+        this.n=mob.north-0;													// Set bounds
+        this.s=mob.south-0;
+        this.e=mob.east-0;
+        this.w=mob.west-0;
+        var ne = ol.proj.transform([this.e, this.n], 'EPSG:4326', 'EPSG:3857');	// Project
+        var sw = ol.proj.transform([this.w, this.s], 'EPSG:4326', 'EPSG:3857');
+        this.north = ne[1];
+        this.south = sw[1];
+        this.east = ne[0];
+        this.west = sw[0];
+        this.centerXCoord = this.w + (Math.abs(this.e - this.w) / 2);
+        this.centerYCoord = this.s + (Math.abs(this.n - this.s) / 2);
+        this.center = ol.proj.transform([this.centerXCoord, this.centerYCoord], 'EPSG:4326', 'EPSG:3857');
+        this.rotation=mob.rotation*-1;
+        this.img.src=mob.med;    				////////// CHANGE!!!!
+	}
+	
+    MapImage.prototype.drawImage=function(alpha) {							// DRAW IMAGE
+        if (!this.imgWidth) {
+	        this.imgWidth=this.img.width;
+	        this.imgHeight=this.img.height;
+	        this.imgWidthMeters=Math.abs(this.east - this.west);            
+	        this.imgHeightMeters=Math.abs(this.north - this.south);
+ 	        }
+		var xCenterOffset=(this.center[0]-mps.canvasExtent[0])/mps.canvasRes;
+      	var yCenterOffset=(mps.canvasExtent[3]-this.center[1])/mps.canvasRes;
+        var scaleX = (this.imgWidthMeters /  mps.canvasRes) / this.imgWidth;
+        var scaleY = (this.imgHeightMeters /  mps.canvasRes) / this.imgHeight;
+        var drawWidth = this.imgWidth * scaleX;
+        var drawHeight = this.imgHeight * scaleY;
+        var ctx=mps.canvasContext;
+        if (ctx) {
+			ctx.globalAlpha = alpha / 100;
+          	ctx.translate(xCenterOffset,yCenterOffset);
+            ctx.rotate(this.rotation * (Math.PI/180));
+          	ctx.translate(-(drawWidth / 2), -(drawHeight / 2));
+            ctx.drawImage(this.img, 0, 0, drawWidth, drawHeight);
+            ctx.translate((drawWidth / 2), (drawHeight / 2));
+           	ctx.rotate(-(this.rotation * (Math.PI / 180)));
+            ctx.translate(xCenterOffset,yCenterOffset);
+            ctx.globalAlpha=1;
+        }                  
+    };
+} 																			// Closure for map image
+    
+MapScholar.prototype.CreateCanvasLayer=function()						// CREATE CANVAS LAYER 
+{        
+    var canvasLayer=new ol.layer.Image( {									// Make new image layer
+        source: new ol.source.ImageCanvas( {								// Add canvas sourcw
+            canvasFunction: function(extent, res, pixelRatio, size, proj) { // Render function
+		        var canvas=document.createElement('canvas');				// Alloc canvas
+		        mps.canvasContext=canvas.getContext('2d');					// Get extent
+	            mps.canvasExtent=extent;									// Set extent
+		        mps.canvasRes=res;											// Set res
+		        mps.canvasWidth=size[0];									// Get width
+		        mps.canvasHeight=size[1];									// Hgt
+		       	canvas.setAttribute('width',size[0]);						// Set canvas width
+		        canvas.setAttribute('height',size[1]);						// Hgt
+    drawMapImages(); // ????
+
+	            return canvas 												// Return canvas reference
+	            }, 
+	        projection: 'EPSG:3857'											// Projection
+	        })
+	    });
+    map.addLayer(canvasLayer);												// Add layer to map
+}
+    
+    function drawMapImages() {
+        if (mps.canvasContext && mps.mobs) {        
+             mps.canvasContext.clearRect(0, 0, mps.canvasWidth, mps.canvasHeight);
+            for (i = 0; i < mps.mobs.length; i++) {
+                m = mps.mobs[i];
+                if(m.type != "map" || mps.sh.mobVis[i] == 0)
+                    continue;
+                console.log("Drawimg a map: " + i);
+                m.mapImage.drawImage(mps.sh.mobVis[i]);      
+            }
+        }
+    }
+
 
 </script>
 </body>
