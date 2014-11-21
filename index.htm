@@ -373,8 +373,8 @@ MapScholar.prototype.AddMapBoxes=function()								// ADD MAP WIREFRAMES
 			m=this.mobs[i];													// Point at mob
 			if (m.type != "map")											// If not a map
 				continue;													// Continue
-			var p1=ol.proj.transform([m.west-0,m.north-0],'EPSG:4326','EPSG:3857');	// Transform
-			var p2=ol.proj.transform([m.east-0,m.south-0],'EPSG:4326','EPSG:3857'); // Transform
+			var p1=ol.proj.transform([m.west-0,m.north-0],'EPSG:4326',this.curProjection);	// Transform
+			var p2=ol.proj.transform([m.east-0,m.south-0],'EPSG:4326',this.curProjection); // Transform
 			ar=m.rotation*(Math.PI/180);									// Angle to radians
 			sin=Math.sin(ar);												// Get sine
 			cos=Math.cos(ar);												// Get cosine
@@ -493,8 +493,6 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 						},true);
 					}
 				}
-			
-			
 			}
 		return;
 		}
@@ -889,7 +887,7 @@ MapScholar.prototype.Goto=function(pos)									// SET EARTH VIEWPOINT
 	var v=pos.split(",");													// Split up
 	if (this.mm == "ol") {													// If OL
 		var o=map.getView();												// Point at view
-		var c=ol.proj.transform([v[1]-0,""+v[0].replace(/\*/,"")-0],'EPSG:4326','EPSG:3857');	// Get center
+		var c=ol.proj.transform([v[1]-0,""+v[0].replace(/\*/,"")-0],'EPSG:4326',this.curProjection);	// Get center
 		var fc=o.getCenter();												// Get from center
 		var fr=o.getRotation();												// Get from rotation		
 		var fs=o.getResolution();											// Get from resolution
@@ -1888,7 +1886,7 @@ MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 	var pos;
 	if (mps.mm == "ol") {													// If OL
 		var o=map.getView();												// Point at view
-		var c=ol.proj.transform(o.getCenter(),'EPSG:3857','EPSG:4326');		// Get center
+		var c=ol.proj.transform(o.getCenter(),mps.curProjection,'EPSG:4326');		// Get center
 		pos=Math.floor(c[1]*10000)/10000+","+Math.floor(c[0]*10000)/10000+","+ResolutionToRange(o.getResolution(),900);	
 		pos+=",0,"+Math.floor((o.getRotation()*180/Math.PI)*1000)/1000;		// Rotation
 		} 													
@@ -2126,15 +2124,15 @@ MapScholar.prototype.MakeMapImage = function(mob) 						// ADD MAP IMAGE TO PROJ
         this.s=mob.south-0;
         this.e=mob.east-0;
         this.w=mob.west-0;
-        var ne = ol.proj.transform([this.e, this.n], 'EPSG:4326', 'EPSG:3857');	// Project
-        var sw = ol.proj.transform([this.w, this.s], 'EPSG:4326', 'EPSG:3857');
+        var ne = ol.proj.transform([this.e, this.n], 'EPSG:4326', mps.curProjection);	// Project
+        var sw = ol.proj.transform([this.w, this.s], 'EPSG:4326', mps.curProjection);
         this.north = ne[1];
         this.south = sw[1];
         this.east = ne[0];
         this.west = sw[0];
         this.centerXCoord = this.w + (Math.abs(this.e - this.w) / 2);
         this.centerYCoord = this.s + (Math.abs(this.n - this.s) / 2);
-        this.center = ol.proj.transform([this.centerXCoord, this.centerYCoord], 'EPSG:4326', 'EPSG:3857');
+        this.center = ol.proj.transform([this.centerXCoord, this.centerYCoord], 'EPSG:4326', mps.curProjection);
         this.rotation=mob.rotation*-1;
         this.img.src=mob.med;    				////////// CHANGE!!!!
 	}
@@ -2184,7 +2182,7 @@ MapScholar.prototype.CreateCanvasLayer=function()						// CREATE CANVAS LAYER
 
 	            return canvas 												// Return canvas reference
 	            }, 
-	        projection: 'EPSG:3857'											// Projection
+	        projection: this.curProjection									// Projection
 	        })
 	    });
     map.addLayer(canvasLayer);												// Add layer to map
