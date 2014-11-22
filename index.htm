@@ -274,10 +274,6 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 
 			this.drawLayer=new ol.FeatureOverlay();							// Feature overlay
 			this.drawLayer.setMap(map);										// Add to map
-			map.on('moveend', function() {
-                    drawMapImages();
-                  })
-
 											
 		   	for (i=0;i<this.layers.length;++i) 								// For each layer
 			    	this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
@@ -586,6 +582,7 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 				seg=this.kmlLayers[m.mid.substr(6)];						// Point at layer
 			if (seg)														// If a valid seg
 				seg.set('visible',false);									// Hide it
+			drawMapImages()
 			continue;
 			}
 		if (((m.type != "map") && (m.type != "layer") && (m.type != "choro")) || !(m.mid))// If not a map, layer, choro
@@ -737,6 +734,8 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 	if (mps.mm == "ol") {													// If OL
 		var fr,fg,fb,sr,sg,sb,a,w;
 		var fa=seg.getSource().getFeatures();								// Get KML feature array
+		if (!fa || !fa.length)												// If no KML features
+			return;															// Quit
 		for (i=1;i<features.length;++i)	{									// For each feature to style
 			o=features[i];							 	 			 	 	// Point at feature data
 			f=fa[o[0]];														// Point at KML feature
@@ -2087,30 +2086,19 @@ MapScholar_Shelf.prototype.Play=function(again, chapter)				// PLAY
 		$("#moreText").css("display",$("#moreText").css("display") == "inline" ? "none" : "inline" );
 	}
 
-	function RangeToResolution(range, width)							// GOOGLE EARTH RANGLE TO OPENLAYERS RESOLUTION
-	{
-		return((Math.tan(60*(Math.PI/360))*range*2)/(width));				// Code from Shane Lin 
-	}
-
-	function ResolutionToRange(resolution, width)						// OPENLAYERS RESOLUTION TO GOOGLE EARTH RANGLE
-	{
-		return((resolution*width)/(2*Math.tan(60*(Math.PI/360))));			// Code from Shane Lin 
-	}
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // NEW ADDITIONS FOR OL
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 	function RangeToResolution(range, width)							// GOOGLE EARTH RANGLE TO OPENLAYERS RESOLUTION
 	{
-		return((Math.tan(60*(Math.PI/360))*range*2)/(width));				// Code from Shane Lin 
+		return((Math.tan(60*(Math.PI/360))*range*2)/(width-150));			// Code from Shane Lin 
 	}
 
 	function ResolutionToRange(resolution, width)						// OPENLAYERS RESOLUTION TO GOOGLE EARTH RANGLE
 	{
-		return((resolution*width)/(2*Math.tan(60*(Math.PI/360))));			// Code from Shane Lin 
+		return((resolution*(width+150))/(2*Math.tan(60*(Math.PI/360))));	// Code from Shane Lin 
 	}
 	
 MapScholar.prototype.MakeMapImage = function(mob) 						// ADD MAP IMAGE TO PROJECT
@@ -2137,8 +2125,9 @@ MapScholar.prototype.MakeMapImage = function(mob) 						// ADD MAP IMAGE TO PROJ
         this.img.src=mob.med;    				////////// CHANGE!!!!
 	}
 	
-    MapImage.prototype.drawImage=function(alpha) {							// DRAW IMAGE
-        if (!this.imgWidth) {
+    MapImage.prototype.drawImage=function(alpha) 							// DRAW IMAGE
+    { 
+       if (!this.imgWidth) {
 	        this.imgWidth=this.img.width;
 	        this.imgHeight=this.img.height;
 	        this.imgWidthMeters=Math.abs(this.east - this.west);            
@@ -2146,8 +2135,8 @@ MapScholar.prototype.MakeMapImage = function(mob) 						// ADD MAP IMAGE TO PROJ
  	        }
 		var xCenterOffset=(this.center[0]-mps.canvasExtent[0])/mps.canvasRes;
       	var yCenterOffset=(mps.canvasExtent[3]-this.center[1])/mps.canvasRes;
-        var scaleX = (this.imgWidthMeters /  mps.canvasRes) / this.imgWidth;
-        var scaleY = (this.imgHeightMeters /  mps.canvasRes) / this.imgHeight;
+        var scaleX=(this.imgWidthMeters / mps.canvasRes) / this.imgWidth;
+        var scaleY=(this.imgHeightMeters / mps.canvasRes) / this.imgHeight;
         var drawWidth = this.imgWidth * scaleX;
         var drawHeight = this.imgHeight * scaleY;
         var ctx=mps.canvasContext;
@@ -2178,7 +2167,7 @@ MapScholar.prototype.CreateCanvasLayer=function()						// CREATE CANVAS LAYER
 		        mps.canvasHeight=size[1];									// Hgt
 		       	canvas.setAttribute('width',size[0]);						// Set canvas width
 		        canvas.setAttribute('height',size[1]);						// Hgt
-    drawMapImages(); // ????
+			   drawMapImages(); 
 
 	            return canvas 												// Return canvas reference
 	            }, 
@@ -2188,18 +2177,20 @@ MapScholar.prototype.CreateCanvasLayer=function()						// CREATE CANVAS LAYER
     map.addLayer(canvasLayer);												// Add layer to map
 }
     
-    function drawMapImages() {
-        if (mps.canvasContext && mps.mobs) {        
-             mps.canvasContext.clearRect(0, 0, mps.canvasWidth, mps.canvasHeight);
-            for (i = 0; i < mps.mobs.length; i++) {
-                m = mps.mobs[i];
-                if(m.type != "map" || mps.sh.mobVis[i] == 0)
+    function drawMapImages() 
+    {
+		var i,m;
+		if (mps.canvasContext && mps.mobs) {        
+//			mps.canvasContext.clearRect(0,0,mps.canvasWidth,mps.canvasHeight);
+            	for (i=0;i<mps.mobs.length;i++) {
+                m=mps.mobs[i];
+                if (m.type != "map" || mps.sh.mobVis[i] == 0)
                     continue;
-                console.log("Drawimg a map: " + i);
+                console.log("Drawimg a map: "+i +" with alpha of "+mps.sh.mobVis[i]);
                 m.mapImage.drawImage(mps.sh.mobVis[i]);      
             }
         }
-    }
+}
 
 
 </script>
