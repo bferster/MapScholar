@@ -570,6 +570,10 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 	var start=num,end=num-0+1;												// Assume one
 	if (num < 0)															// If doing all
 		start=0,end=this.mobs.length;										// Whole list
+	if (this.mm == "ol") 													// OL
+		clearMapImages();													// !**
+
+
 	for (i=start;i<end;++i) {												// For each seg
 		m=this.mobs[i];														// Point at mob
 		if (!m.mid)															// If no id yet
@@ -578,11 +582,11 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 			seg=null;
 			if (m.type == "map")  											// If a map 
 				seg=null;
-			else if (m.type == "layer")  									// If a layer 
+			else if (m.type == "layer") { 									// If a layer 
 				seg=this.kmlLayers[m.mid.substr(6)];						// Point at layer
-			if (seg)														// If a valid seg
-				seg.set('visible',false);									// Hide it
-			drawMapImages()
+				if (seg)													// If a valid seg
+					seg.set('visible',false);								// Hide it
+				}
 			continue;
 			}
 		if (((m.type != "map") && (m.type != "layer") && (m.type != "choro")) || !(m.mid))// If not a map, layer, choro
@@ -641,6 +645,8 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 			seg.setVisibility(true);										// Show it
 			} 
 		}
+	if (this.mm == "ol") 													// OL
+		drawMapImages();													// !**
 }
 
 MapScholar.prototype.ShowMapLayers=function(val)				// HIDE/SHOW ROADS/BORDER
@@ -2050,7 +2056,7 @@ MapScholar_Shelf.prototype.Play=function(again, chapter)				// PLAY
 					break;													// Quit looking
 					}
 			}
-		Sound("click");											// Click
+		Sound("click");														// Click
 		if (this.playSpeed < 50)											// Slowing down
 			time*=((50-this.playSpeed)/10);									// Slow it down
 		if (this.playSpeed > 50)											// Speeding up
@@ -2167,8 +2173,6 @@ MapScholar.prototype.CreateCanvasLayer=function()						// CREATE CANVAS LAYER
 		        mps.canvasHeight=size[1];									// Hgt
 		       	canvas.setAttribute('width',size[0]);						// Set canvas width
 		        canvas.setAttribute('height',size[1]);						// Hgt
-			   drawMapImages(); 
-
 	            return canvas 												// Return canvas reference
 	            }, 
 	        projection: this.curProjection									// Projection
@@ -2181,8 +2185,7 @@ MapScholar.prototype.CreateCanvasLayer=function()						// CREATE CANVAS LAYER
     {
 		var i,m;
 		if (mps.canvasContext && mps.mobs) {        
-//			mps.canvasContext.clearRect(0,0,mps.canvasWidth,mps.canvasHeight);
-            	for (i=0;i<mps.mobs.length;i++) {
+           	for (i=0;i<mps.mobs.length;i++) {
                 m=mps.mobs[i];
                 if (m.type != "map" || mps.sh.mobVis[i] == 0)
                     continue;
@@ -2192,7 +2195,11 @@ MapScholar.prototype.CreateCanvasLayer=function()						// CREATE CANVAS LAYER
         }
 }
 
-
+    function clearMapImages() 
+    {
+		mps.canvasContext.clearRect(0,0,mps.canvasWidth,mps.canvasHeight);
+	}
+	
 </script>
 </body>
 </html>
