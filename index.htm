@@ -259,7 +259,6 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 		        view: new ol.View({											// Views
 		          		center: ol.proj.transform( [-50,50],'EPSG:4326',this.curProjection),
 		          		zoom: 6 }),
- 				
  				});
   
 			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); 	// Create box layer
@@ -277,7 +276,7 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 											
 		   	for (i=0;i<this.layers.length;++i) 								// For each layer
 			    	this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
-			
+					
 			map.on('click',function(e) {									// ON MAP CLICK
 				map.forEachFeatureAtPixel(e.pixel,function(f) {				// Look at features
 					var id;
