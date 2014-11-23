@@ -276,6 +276,10 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 											
 		   	for (i=0;i<this.layers.length;++i) 								// For each layer
 			    	this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
+
+		map.on('moveend', function() {
+                    drawMapImages();
+  });
 					
 			map.on('click',function(e) {									// ON MAP CLICK
 				map.forEachFeatureAtPixel(e.pixel,function(f) {				// Look at features
@@ -1308,7 +1312,7 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 		mps.showBoxes=(o.boxes.toLowerCase() == "on");						// Set box status
 	if (!multi) {															// If not setting multiples
 		for (j=0;j<n+1;++j)	{												// For each mob
-				mps.ShowMapBoxes(j,"on");									// Reset box
+//				mps.ShowMapBoxes(j,"on");									// Reset box
 			if (j != this.curMob)											// If not this one
 				this.mobVis[j]=0;											// Hide mob
 			}
@@ -2161,30 +2165,36 @@ MapScholar.prototype.MakeMapImage = function(mob) 						// ADD MAP IMAGE TO PROJ
     
 MapScholar.prototype.CreateCanvasLayer=function()						// CREATE CANVAS LAYER 
 {        
-    var canvasLayer=new ol.layer.Image( {									// Make new image layer
+    this.canvasLayer=new ol.layer.Image( {										// Make new image layer
         source: new ol.source.ImageCanvas( {								// Add canvas sourcw
             canvasFunction: function(extent, res, pixelRatio, size, proj) { // Render function
-		        var canvas=document.createElement('canvas');				// Alloc canvas
-		        mps.canvasContext=canvas.getContext('2d');					// Get extent
+			 var canvas=mps.canvasCanvas;
+		trace("render canvas")
+				if (!canvas) {
+		trace("new canvas")
+			        canvas=document.createElement('canvas');				// Alloc canvas
+			       	mps.canvasCanvas=canvas;
+		        	mps.canvasWidth=size[0];								// Get width
+			        mps.canvasHeight=size[1];								// Hgt
+	           		}
+			    canvas.setAttribute('width',size[0]);						// Set canvas width
+			    canvas.setAttribute('height',size[1]);						// Hgt
+	    		mps.canvasContext=canvas.getContext('2d');					// Get extent
 	            mps.canvasExtent=extent;									// Set extent
 		        mps.canvasRes=res;											// Set res
-		        mps.canvasWidth=size[0];									// Get width
-		        mps.canvasHeight=size[1];									// Hgt
-		       	canvas.setAttribute('width',size[0]);						// Set canvas width
-		        canvas.setAttribute('height',size[1]);						// Hgt
-	            return canvas 												// Return canvas reference
+	        	return canvas 												// Return canvas reference
 	            }, 
 	        projection: this.curProjection									// Projection
 	        })
 	    });
-    map.addLayer(canvasLayer);												// Add layer to map
+    map.addLayer(this.canvasLayer);											// Add layer to map
 }
     
     function drawMapImages() 
     {
 		var i,m;
 		if (mps.canvasContext && mps.mobs) {        
-           	for (i=0;i<mps.mobs.length;i++) {
+         	for (i=0;i<mps.mobs.length;i++) {
                 m=mps.mobs[i];
                 if (m.type != "map" || mps.sh.mobVis[i] == 0)
                     continue;
@@ -2196,6 +2206,7 @@ MapScholar.prototype.CreateCanvasLayer=function()						// CREATE CANVAS LAYER
 
     function clearMapImages() 
     {
+		trace("clear canvas")
 		mps.canvasContext.clearRect(0,0,mps.canvasWidth,mps.canvasHeight);
 	}
 	
