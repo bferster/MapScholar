@@ -279,9 +279,11 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 
 		map.on('moveend', function() {
                     drawMapImages();
-  });
+  			});
 					
+
 			map.on('click',function(e) {									// ON MAP CLICK
+//				ReferenceMap()
 				map.forEachFeatureAtPixel(e.pixel,function(f) {				// Look at features
 					var id;
 					if (f && (id=f.getId())) {								// If a feature with an id
@@ -298,6 +300,40 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 				});															// End click
 	 		ShivaPostInit();
 	 		}	
+
+
+function ReferenceMap()
+{
+	var w=150;
+	var asp=.75;
+	var nw=map.getCoordinateFromPixel([450-w,300-(w*asp)]);				// NW corner
+	var se=map.getCoordinateFromPixel([450+w,300+(w*asp)]);				// SE corner
+	var pts=[];
+	
+	pts.push(new ol.Feature(new ol.geom.Point(nw)));
+	pts.push(new ol.Feature(new ol.geom.Point([se[0],nw[1]])));
+	pts.push(new ol.Feature(new ol.geom.Point([nw[0],se[1]])));
+	pts.push(new ol.Feature(new ol.geom.Point(se)));
+	
+	
+	sty=new ol.style.Style({										// Create style
+     	image: new ol.style.Circle({
+     		radius:8,
+			fill: new ol.style.Fill({
+				color: 'rgba(230,120,30,0.7)',	     		
+   				width:3
+   				})
+	   		})
+		})
+	for (i=0;i<4;++i) {
+		pts[i].setId("georef+"+i);									// Add id
+		pts[i].setStyle(sty);										// Set feature
+		mps.boxLayer.getSource().addFeature(pts[i]);				// Add it
+		}
+}
+
+
+
 }	
 
 MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT 
