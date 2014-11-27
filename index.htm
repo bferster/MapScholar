@@ -701,6 +701,7 @@ MapScholar.prototype.SetHiResMapImage=function(num)						// ADD HI-RES MAP
 		return;																// Quit
 	if (this.mm == "ol") {													// OL
 		m.mapImage.img.src=m.url;											// Set url
+		map.render();														// Force re
 		}
 	else{																	// GE
 		var seg=ge.getElementById(m.mid);									// Get object
