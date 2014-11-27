@@ -277,11 +277,10 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 		   	for (i=0;i<this.layers.length;++i) 								// For each layer
 			    	this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
 
-		map.on('moveend', function() {
-               drawMapImages();
-  			});
-					
-
+			map.on('moveend', function() {									// On end of move
+              	drawMapImages();											// Redraw maps in new exent
+  				});
+	
 			map.on('click',function(e) {									// ON MAP CLICK
 				map.forEachFeatureAtPixel(e.pixel,function(f) {				// Look at features
 					var id;
@@ -712,10 +711,6 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 	var start=num,end=num-0+1;												// Assume one
 	if (num < 0)															// If doing all
 		start=0,end=this.mobs.length;										// Whole list
-	if (this.mm == "ol") 													// OL
-		clearMapImages();													// !**
-
-
 	for (i=start;i<end;++i) {												// For each seg
 		m=this.mobs[i];														// Point at mob
 		if (!m.mid)															// If no id yet
@@ -2305,14 +2300,12 @@ MapScholar.prototype.MakeMapImage = function(mob) 						// ADD MAP IMAGE TO PROJ
     
 MapScholar.prototype.CreateCanvasLayer=function()						// CREATE CANVAS LAYER 
 {        
-    this.canvasLayer=new ol.layer.Image( {										// Make new image layer
+    this.canvasLayer=new ol.layer.Image( {									// Make new image layer
         source: new ol.source.ImageCanvas( {								// Add canvas sourcw
             canvasFunction: function(extent, res, pixelRatio, size, proj) { // Render function
-trace("render canvas")
-//				if (!mps.canvasCanvas) {
-//trace("new canvas")
+				trace("render canvas");
+				if (!mps.canvasCanvas) 										// If no canvas yet
 			        mps.canvasCanvas=document.createElement('canvas');		// Alloc canvas
-//		           	}
 		       	mps.canvasWidth=size[0];									// Get width
 			    mps.canvasHeight=size[1];									// Hgt
 		    	mps.canvasCanvas.setAttribute('width',size[0]);				// Set canvas width
@@ -2331,23 +2324,20 @@ trace("render canvas")
     function drawMapImages() 
     {
 		var i,m;
+		trace("draw map images");
 		if (mps.canvasContext && mps.mobs) {        
-         	for (i=0;i<mps.mobs.length;i++) {
+  			mps.canvasContext.clearRect(0,0,mps.canvasWidth,mps.canvasHeight);
+       		for (i=0;i<mps.mobs.length;i++) {
                 m=mps.mobs[i];
                 if (m.type != "map" || mps.sh.mobVis[i] == 0)
                     continue;
-                console.log("Drawimg a map: "+i +" with alpha of "+mps.sh.mobVis[i]);
+                trace("Drawing map: "+i +" alpha  "+mps.sh.mobVis[i]);
 	            m.mapImage.drawImage(mps.sh.mobVis[i]);      
 	            }
 	        }
+	    shivaLib.map.render();												// Force map render
 	}
 
-  
-    function clearMapImages() 
-    {
-		trace("clear Canvas")
-		mps.canvasContext.clearRect(0,0,mps.canvasWidth,mps.canvasHeight);
-	}
 	
 </script>
 </body>
