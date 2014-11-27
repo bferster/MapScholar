@@ -1066,13 +1066,13 @@ MapScholar.prototype.Goto=function(pos)									// SET EARTH VIEWPOINT
 		  	});
 		 var bounce=ol.animation.bounce({									// Fly bounce
 		    duration: duration,												// Duration
-		    resolution: 4*Math.min(o.getResolution(),v[2]),					// End value
+		    resolution: Math.min(4*o.getResolution(),2000),					// End value
 		    start: start													// Starting time
 		  });
-
-		if ((""+v[0]).charAt(0) == "*") 									// If animating point directly
+		
+		if (((""+v[0]).charAt(0) == "*") || (Math.abs(v[2]-o.getResolution()) < 1000)) // If animating point directly or at same height
 	  		map.beforeRender(pan,rotate,zoom);								// Move to
-		else																// Fly in
+	  	else																// Bouncing there
 	  		map.beforeRender(pan,rotate,bounce);							// Pan, rotate and bounce
 		 o.setResolution(v[2]);												// Set resolution								
 		 o.setCenter(c);													// Set center
