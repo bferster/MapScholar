@@ -7,7 +7,7 @@ This web application runs in any internet browser and requires no special softwa
 
 For more information about MapScholar:
 
-Bill Ferster / Max Edelson, Project Directors | The University of Virginia | bferster - @ - virginia.edu | Twitter: @bferster 
+Bill Ferster / Max Edelson, Project Directors | The University of Virginia | bferster - @ - virginia.edu / edelson - @ - virginia.edu 
 
 License
 =====
