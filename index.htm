@@ -697,11 +697,15 @@ MapScholar.prototype.SetHiResMapImage=function(num)						// ADD HI-RES MAP
 	var	m=this.mobs[num];													// Point at mob
 	if ((!m)|| (m.type != "map"))											// Not there
 		return;																// Quit
-	var img=m.url;															// Get large map
-	if (!img)																// If exists
+	if (!m.url)																// If exists
 		return;																// Quit
-	var seg=ge.getElementById(m.mid);										// Get object
-		seg.getIcon().setHref(img);											// Set url
+	if (this.mm == "ol") {													// OL
+		m.mapImage.img.src=m.url;											// Set url
+		}
+	else{																	// GE
+		var seg=ge.getElementById(m.mid);									// Get object
+		seg.getIcon().setHref(m.url);										// Set url
+		}
 }
 
 MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
