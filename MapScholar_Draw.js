@@ -1124,6 +1124,13 @@ MapScholar_Draw.prototype.InitEvents=function()								// INIT EVENTS
 
 MapScholar_Draw.prototype.onBrowserKeyDown=function(e)						// BROWSER KEY DOWN HANDLER
 {
+	
+	if (e.keyCode == 71) ReferenceMap()		////////////////////////////////////////////////////////
+
+
+	
+	
+	
 	if ((e.keyCode == 8) &&														// Look for Del key
         (e.target.tagName != "TEXTAREA") && 									// In text area
         (e.target.tagName != "INPUT")) { 										// or input
@@ -1131,6 +1138,9 @@ MapScholar_Draw.prototype.onBrowserKeyDown=function(e)						// BROWSER KEY DOWN 
      	return false;
     }
 }
+
+
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // KML 
