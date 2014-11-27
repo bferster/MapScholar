@@ -278,7 +278,7 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 			    	this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
 
 			map.on('moveend', function() {									// On end of move
-              	drawMapImages();											// Redraw maps in new exent
+              	mps.DrawMapImages();										// Redraw maps in new extent, if moved
   				});
 	
 			map.on('click',function(e) {									// ON MAP CLICK
@@ -642,7 +642,7 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 		if (m.type == "layer") {											// If a layer
 			m.mid="LAYER-"+Math.floor(Math.random()*99999999);				// Make random #
 			google.earth.fetchKml(ge,m.url,function(seg) {					// Get KML
-    				if (!seg) {													// Failed
+    			if (!seg) {													// Failed
 			    	setTimeout(function(){},0);								// Clear timeout
 		     		console.log("Failed KML load of "+m.url);				// Show error
 		     		return;													// Quit
@@ -783,7 +783,7 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 			} 
 		}
 	if (this.mm == "ol") 													// OL
-		drawMapImages();													// !**
+		this.DrawMapImages();												// Draw map images
 }
 
 MapScholar.prototype.ShowMapLayers=function(val)				// HIDE/SHOW ROADS/BORDER
@@ -2244,7 +2244,7 @@ MapScholar_Shelf.prototype.Play=function(again, chapter)				// PLAY
 		return((resolution*(width+150))/(2*Math.tan(60*(Math.PI/360))));	// Code from Shane Lin 
 	}
 	
-MapScholar.prototype.MakeMapImage = function(mob) 						// ADD MAP IMAGE TO PROJECT
+MapScholar.prototype.MakeMapImage=function(mob) 						// ADD MAP IMAGE TO PROJECT
 {    
     mob.mapImage=new MapImage(mob);											// Alloc mapimage obj
 
@@ -2263,12 +2263,17 @@ MapScholar.prototype.MakeMapImage = function(mob) 						// ADD MAP IMAGE TO PROJ
         this.west = sw[0];
         this.centerXCoord = this.w + (Math.abs(this.e - this.w) / 2);
         this.centerYCoord = this.s + (Math.abs(this.n - this.s) / 2);
-        this.center = ol.proj.transform([this.centerXCoord, this.centerYCoord], 'EPSG:4326', mps.curProjection);
-        this.rotation=mob.rotation*-1;
-        this.img.src=mob.med;    				////////// CHANGE!!!!
-	}
+        this.center=ol.proj.transform([this.centerXCoord, this.centerYCoord], 'EPSG:4326', mps.curProjection);	// Get center
+        this.rotation=mob.rotation*-1;										// Reverse direction
+		if (mob.med)														// If a medium available
+			this.img.src=mob.med;											// Set url
+		else if (mob.url)													// If a large
+			this.img.src=mob.url;											// Set url
+		else if (mob.small)													// If a small
+			this.img.src=mob.small;											// Set url
+ 	}
 	
-    MapImage.prototype.drawImage=function(alpha) 							// DRAW IMAGE
+    MapImage.prototype.drawImage=function(alpha) 						// DRAW IMAGE
     { 
       if (!this.imgWidth) {
 	        this.imgWidth=this.img.width;
@@ -2284,7 +2289,6 @@ MapScholar.prototype.MakeMapImage = function(mob) 						// ADD MAP IMAGE TO PROJ
         var drawHeight = this.imgHeight * scaleY;
         var ctx=mps.canvasContext;
         if (ctx) {
-			trace("position")
 			ctx.globalAlpha = alpha / 100;
           	ctx.translate(xCenterOffset,yCenterOffset);
             ctx.rotate(this.rotation * (Math.PI/180));
@@ -2321,22 +2325,22 @@ MapScholar.prototype.CreateCanvasLayer=function()						// CREATE CANVAS LAYER
     map.addLayer(this.canvasLayer);											// Add layer to map
 }
     
-    function drawMapImages() 
-    {
-		var i,m;
-		trace("draw map images");
-		if (mps.canvasContext && mps.mobs) {        
-  			mps.canvasContext.clearRect(0,0,mps.canvasWidth,mps.canvasHeight);
-       		for (i=0;i<mps.mobs.length;i++) {
-                m=mps.mobs[i];
-                if (m.type != "map" || mps.sh.mobVis[i] == 0)
-                    continue;
-                trace("Drawing map: "+i +" alpha  "+mps.sh.mobVis[i]);
-	            m.mapImage.drawImage(mps.sh.mobVis[i]);      
-	            }
-	        }
-	    shivaLib.map.render();												// Force map render
-	}
+MapScholar.prototype.DrawMapImages=function()							// DRAW OL MAPS
+{
+	var i,m;
+	trace("draw map images");
+	if (this.canvasContext && mps.mobs) {        
+		this.canvasContext.clearRect(0,0,this.canvasWidth,this.canvasHeight);
+   		for (i=0;i<mps.mobs.length;i++) {
+            m=this.mobs[i];
+            if (m.type != "map" || this.sh.mobVis[i] == 0)
+                continue;
+            trace("Drawing map: "+i +" alpha  "+this.sh.mobVis[i]);
+            m.mapImage.drawImage(this.sh.mobVis[i]);      
+            }
+        }
+    shivaLib.map.render();												// Force map render
+}
 
 	
 </script>
