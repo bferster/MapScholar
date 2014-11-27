@@ -1061,7 +1061,7 @@ MapScholar.prototype.Goto=function(pos)									// SET EARTH VIEWPOINT
 		  	});
 		 var bounce=ol.animation.bounce({									// Fly bounce
 		    duration: duration,												// Duration
-		    resolution: 4*o.getResolution(),								// End value
+		    resolution: 4*Math.min(o.getResolution(),v[2]),					// End value
 		    start: start													// Starting time
 		  });
 
