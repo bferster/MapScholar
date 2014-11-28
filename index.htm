@@ -264,18 +264,16 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); 	// Create box layer
 			map.addLayer(this.boxLayer);									// Add to map	
 
-			this.drawLayer=new ol.FeatureOverlay();							// Feature overlay
-			this.drawLayer.setMap(map);										// Add to map
 			
          	this.CreateCanvasLayer();										//!**
 			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); 	// Create box layer
 			map.addLayer(this.boxLayer);									// Add to map	
-
-			this.drawLayer=new ol.FeatureOverlay();							// Feature overlay
+	
+			this.drawLayer=new ol.FeatureOverlay({ source: new ol.source.Vector() } );	// Feature overlay
 			this.drawLayer.setMap(map);										// Add to map
-											
+									
 		   	for (i=0;i<this.layers.length;++i) 								// For each layer
-			    	this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
+			    this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
 
 			map.on('moveend', function() {									// On end of move
               	mps.DrawMapImages();										// Redraw maps in new extent, if moved
@@ -296,147 +294,9 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 	   					}													// End feature w/ id
 			   		})														// End each feature											
 				});															// End click
-		
-			map.on('pointerdown',function(e) {								// ON MOUSE DOWN
-				map.forEachFeatureAtPixel(e.pixel,function(f) {				// Look at features
-					var id;
-					if (f && (id=f.getId())) {								// If a feature with an id
-						if (id.match(/georef/)) {							// A georef point
-							mps.geoRef.dragStart=e.coordinate;				// Get start
-							mps.geoRef.curId=id;							// Get id
-							trace(id)
-	  	   					}
-	  	   				}													// End feature w/ id
-			   		})														// End each feature											
-				});															// End click
-			
-			map.on('pointerup',function(e) {								// ON MOUSE UP
-				if (mps.geoRef && mps.geoRef.curId) {
-					MakePoints();
-					}
-				else if (mps.geoRef)
-					mps.geoRef.curId="";
-				trace("up")
-				});															 
-/*
-			map.on('pointermove',function(e) {								// ON MOUSE MOVE
-				if (mps.curId == "georef0") {
-					var dx=e.coordinate[0]-mps.dragStart[0];
-					var dy=e.coordinate[1]-mps.dragStart[1];
-					var nw=mps.boxLayer.getSource().getFeatureById("georef1").getGeometry().getCoordinates();
-					var se=mps.boxLayer.getSource().getFeatureById("georef3").getGeometry().getCoordinates();
-					
-					trace(dxx,dyy)
-					pp=mps.boxLayer.getSource().getFeatureById("georef1").getGeometry().getCoordinates();
-					
-//					pp[0]+=dx;		
-					//	pp[1]+dy;
-					mps.boxLayer.getSource().getFeatureById("georef1").getGeometry().setCoordinates(pp);
-
-					mps.boxLayer.getSource().getFeatureById("georef0").getGeometry().setCoordinates(e.coordinate);
-					e.stopPropagation()	
-					}
-					
-				});															// 
-
-*/
 	 		ShivaPostInit();
 	 		}	
-
-
-
-
-
-
 }	
-
-function ReferenceMap()
-{
-	var o=mps.geoRef={};												// Holds params												
-	var nw=map.getCoordinateFromPixel([300,200]);						// NW corner
-	var se=map.getCoordinateFromPixel([600,400]);						// SE corner
-	o.c=map.getCoordinateFromPixel([450,300]);							// Center
-	o.w=Math.abs(se[0]-nw[0]);											// Width
-	o.h=Math.abs(se[0]-nw[0]);											// Height
-	o.asp=o.w/o.h;														// Calc asp
-	MakePoints(true);													// Starter map
-	
-	map.addInteraction( modify=new ol.interaction.Modify({				// Add modify
- 		features: mps.boxLayer.getSource().getFeatures(),							// Point at features
-  		deleteCondition: function(e) {									// On delete
-			trace(6)
-			if (e.type == "pointerdrag") {								// A drag
-				
-				map.forEachFeatureAtPixel(e.pixel,function(f) {			// Look at features
-					
-					if (o.curId == "georef0") 							// Move all dots
-						o.c=e.coordinate;								// New center
-					else if (o.curId == "georef1") {					// NE
-						o.w=Math.abs(e.coordinate[0]-o.x1)*2;			// New width
-						o.h=Math.abs(e.coordinate[1]-o.y1)*2;			// New hgt
-//						o.x1=e.coordinate[0];
-//						o.y1=e.coordinate[1];
-						trace(Math.floor(o.w/1000),Math.floor(o.x1/1000),Math.floor(e.coordinate[0]/1000))
-						}
-					
-					});
-				}
-			return false;
-			}
-		})
-	);
-
-}	
-
-	function MakePoints(init)
-	{
-		var o=mps.geoRef;
-		o.pts=[];
-		var w=o.w/2;
-		var h=o.h/2;
-//		mps.boxLayer.getSource().getFeatures().clear();									// Clear exisitng points
-		
-		
-		o.x1=o.c[0]-w;		o.y1=o.c[1]+h;										// NE
-		o.x2=o.c[0]+w;		o.y2=o.c[1]+h;										// NW
-		o.x3=o.c[0]+w;		o.y3=o.c[1]-h;										// SW
-		o.x4=o.c[0]-w;		o.y4=o.c[1]-h;										// SE
-	
-		o.pts.push(new ol.Feature(new ol.geom.Point(o.c)));						// Add points
-		o.pts.push(new ol.Feature(new ol.geom.Point([o.x1,o.y1])));				
-		o.pts.push(new ol.Feature(new ol.geom.Point([o.x2,o.y2])));				
-		o.pts.push(new ol.Feature(new ol.geom.Point([o.x3,o.y3])));				
-		o.pts.push(new ol.Feature(new ol.geom.Point([o.x4,o.y4])));				
-			
-	
-		sty=new ol.style.Style({												// Create style
-	     	image: new ol.style.Circle({
-	     		radius:8,
-				fill: new ol.style.Fill({
-					color: 'rgba(230,120,30,0.7)',	     		
-	   				width:3
-	   				})
-		   		})
-			})
-		
-		if (init) 
-		for (i=0;i<5;++i) {
-			o.pts[i].setId("georef"+i);											// Add id
-			o.pts[i].setStyle(sty);												// Set feature
-			mps.boxLayer.getSource().addFeature(o.pts[i]);									// Add it
-			}
-		else{
-			mps.boxLayer.getSource().getFeatureById("georef0").getGeometry().setCoordinates(o.c);
-			mps.boxLayer.getSource().getFeatureById("georef1").getGeometry().setCoordinates([o.x1,o.y1]);
-			mps.boxLayer.getSource().getFeatureById("georef2").getGeometry().setCoordinates([o.x2,o.y2]);
-			mps.boxLayer.getSource().getFeatureById("georef3").getGeometry().setCoordinates([o.x3,o.y3]);
-			mps.boxLayer.getSource().getFeatureById("georef4").getGeometry().setCoordinates([o.x4,o.y4]);
-
-		}
-	}
-
-
-
 
 MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT 
 {
@@ -2347,6 +2207,91 @@ MapScholar.prototype.DrawMapImages=function()							// DRAW OL MAPS
     shivaLib.map.render();													// Force map render
 }
 
+function ReferenceMap()
+{
+	var o=mps.geoRef={};												// Holds params												
+	var nw=map.getCoordinateFromPixel([300,200]);						// NW corner
+	var se=map.getCoordinateFromPixel([600,400]);						// SE corner
+//	o.c=map.getCoordinateFromPixel([450,300]);							// Center
+	SetControlDots(true);												// Starter dots
+
+
+
+	shivaLib.map.on('pointerup',function(e) {								// ON MOUSE UP
+		if (mps.geoRef) 
+			SetControlDots();
+		});															 
+
+}	
+	
+	function SetControlDots(init)											// SET GEO REFEENCE CONTROL DOTS
+	{
+		var i,p;
+		var o=mps.geoRef;
+		if (mps.sh.curMob == -1)										// If no mob selected
+			return;														// Quit
+		if (o.modify)													// If interqction initted													
+			map.removeInteraction(o.modify);							// Remove it
+
+		map.addInteraction( o.modify=new ol.interaction.Modify({		// Add modify
+ 		features: mps.drawLayer.getFeatures(),							// Point at features
+  		deleteCondition: function(e) {									// On delete
+			if (e.type == "pointerdrag") {								// A drag
+				map.forEachFeatureAtPixel(e.pixel,function(f) {			// Look at features
+					var id=f.getId();									// Get id of feature
+					if (id == "georef0") 								// Move all dots
+						o.c=e.coordinate;								// New center
+					else if (id == "georef1") {							// NE
+						var mob=mps.mobs[mps.sh.curMob];				// Get mob
+						p=ol.proj.transform(e.coordinate,mps.curProjection,"EPSG:4326");	// Project
+ 						mob.west=p[0];			mob.north=p[1];			// Set NW
+						}
+					
+					});
+				}
+			return false;
+			}
+		})
+	);
+
+	
+	
+	
+	
+		var mob=mps.mobs[mps.sh.curMob];										// Get mob	
+		if (mob.type != "map")													// If not a map
+			return;																// Quit
+		if (init) {																// If initting
+			o.pts=[{},{},{},{},{}];												// Holds dots
+			var sty=new ol.style.Style({										// Create  dot style
+		     	image: new ol.style.Circle({									// Circle
+		     		radius:8,													// Size
+					fill: new ol.style.Fill({									// Fill						
+						color: "rgba(230,120,30,0.7)"	     					// Orange
+		   				})
+			   		})
+				})
+			}
+		o.pts[0].x=mob.west+(mob.east-mob.west)/2;								// CX
+		o.pts[0].y=mob.south+(mob.north-mob.south)/2;							// CY
+		o.pts[1].x=mob.west-0;	o.pts[1].y=mob.north-0;							// NW
+		o.pts[2].x=mob.east-0;	o.pts[2].y=mob.north-0;							// NE
+		o.pts[3].x=mob.east-0;	o.pts[3].y=mob.south-0;							// SE
+		o.pts[4].x=mob.west-0;	o.pts[4].y=mob.south-0;							// SW
+		for (i=0;i<5;++i) {														// For each dot
+ 		   	p=ol.proj.transform([o.pts[i].x,o.pts[i].y],"EPSG:4326",mps.curProjection);	// Project
+  			if (init) {															// If initting dots
+				o.pts[i].f=new ol.Feature(new ol.geom.Point(p));				// Add feature
+				o.pts[i].f.setId("georef"+i);									// Add id
+				o.pts[i].f.setStyle(sty);										// Set feature
+				mps.drawLayer.addFeature(o.pts[i].f);						// Add feature to layer
+				}
+			else																// Just moving them
+				o.pts[i].f.getGeometry().setCoordinates(p);						// Set geometry
+
+			}
+
+	}
 	
 </script>
 </body>
