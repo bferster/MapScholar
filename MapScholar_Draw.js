@@ -392,7 +392,7 @@ MapScholar_Draw.prototype.ColorPicker=function(which, x, y)					// COLOR PICKER
 
 MapScholar_Draw.prototype.InitGraphics=function()							// INIT GRAPHICS DRAWING
 {
-	if (mps.mm == "ge")															// If GE
+//	if (mps.mm == "ge")															// If GE
 		return;																	// Quit
 	var map=shivaLib.map;														// Point at map
 	if (!this.inDraw) {															// If not drawing
@@ -1125,7 +1125,7 @@ MapScholar_Draw.prototype.InitEvents=function()								// INIT EVENTS
 MapScholar_Draw.prototype.onBrowserKeyDown=function(e)						// BROWSER KEY DOWN HANDLER
 {
 	
-	if (e.keyCode == 71) ReferenceMap()		////////////////////////////////////////////////////////
+	if (e.keyCode == 71) mps.GeoReferenceMap()		////////////////////////////////////////////////////////
 
 
 	

@@ -113,6 +113,12 @@
 	function LoadShow(data)												// ON INIT OR QMF CALL
 	{
 		var m=shivaLib.map;													// Point to map												
+		if (mps.geoRef) {													// If feo referncing left open
+			if (mps.geoRef.modify)											// If interaction initted													
+				map.removeInteraction(mps.geoRef.modify);					// Remove it
+			mps.drawLayer.getFeatures().clear();							// Clear existing points
+			mps.geoRef={};													// Clear flag
+			}
 		mps.InitProject("",data);											// Init project
 		if (mps.mm == "ge") {												// GE
 			var features=m.getFeatures();									// Point to features
@@ -263,7 +269,6 @@ function MapScholar(mapMode)											// CONSTRUCTOR
   
 			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); 	// Create box layer
 			map.addLayer(this.boxLayer);									// Add to map	
-
 			
          	this.CreateCanvasLayer();										//!**
 			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); 	// Create box layer
@@ -275,9 +280,14 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 		   	for (i=0;i<this.layers.length;++i) 								// For each layer
 			    this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
 
-			map.on('moveend', function() {									// On end of move
+			map.on('moveend', function(e) {									// On end of move
               	mps.DrawMapImages();										// Redraw maps in new extent, if moved
-  				});
+				var o=map.getView();										// Point at view
+				var c=ol.proj.transform(o.getCenter(),mps.curProjection,'EPSG:4326');		// Get center
+				var pos=Math.floor(c[1]*10000)/10000+"|"+Math.floor(c[0]*10000)/10000+"|"+ResolutionToRange(o.getResolution(),900);	
+				pos+="|0|"+Math.floor((o.getRotation()*180/Math.PI)*1000)/-1000;		// Rotation
+				SendShivaMessage("ShivaEarth=move",pos);					// Send that view has changed
+ 				});
 	
 			map.on('click',function(e) {									// ON MAP CLICK
 				map.forEachFeatureAtPixel(e.pixel,function(f) {				// Look at features
@@ -2207,26 +2217,47 @@ MapScholar.prototype.DrawMapImages=function()							// DRAW OL MAPS
     shivaLib.map.render();													// Force map render
 }
 
-function ReferenceMap()
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// GEO REFERENCE
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 {
-	var o=mps.geoRef={};													// Holds params												
-	var nw=map.getCoordinateFromPixel([300,200]);							// NW corner
-	var se=map.getCoordinateFromPixel([600,400]);							// SE corner
-//	o.c=map.getCoordinateFromPixel([450,300]);								// Center
-	var mob=mps.mobs[mps.sh.curMob];										// Get mob
+	var o=this.geoRef={};													// Holds params												
+	if (num == undefined)													// If mob num not spec'd
+		num=mps.sh.curMob;													// Use current one
+	else																	// Use designated one
+		this.sh.HighlightMob(num,false,true);								// Highlight mob
+	var mob=this.mobs[num];													// Get mob
+	if (!mob.north) {														// If no coords yet
+		var nw=map.getCoordinateFromPixel([250,150]);						// NW corner
+		var se=map.getCoordinateFromPixel([650,450]);						// SE corner
+		nw=ol.proj.transform(nw,mps.curProjection,"EPSG:4326"); 			// Project coord
+		se=ol.proj.transform(se,mps.curProjection,"EPSG:4326"); 			// Project 
+		mob.north=nw[1];													// Set N
+		mob.south=se[1];													// Set S
+		mob.east=se[0];														// Set E
+		mob.west=nw[0];														// Set W
+		mps.MakeMapImage(mob);												// Reset map image
+		mps.DrawMapImages();												// Draw map images
+		}
 	o.asp=(mob.north-mob.south)/(mob.east-mob.west);						// Calc image asp
 	SetControlDots(true);													// Starter dots
 
 	shivaLib.map.on('pointerup',function(e) {							// ON MOUSE UP
-		if (mps.geoRef) {
-			mps.MakeMapImage(mob);
-			mps.DrawMapImages();
-			SetControlDots(true);
+		if (mps.geoRef) {													// If geo referencing
+			mps.MakeMapImage(mob);											// Reset map image
+			mps.DrawMapImages();											// Draw map images
+			SetControlDots(true);											// Reset control dots
+			var str=mob.north+"|"+mob.south+"|"+mob.west+"|"+mob.east+"|"+mob.rotation;
+			SendShivaMessage("MapScholar=rectify",str);						// Send rectify position to mapedit
 			}
 		});															 
 
 	shivaLib.map.on('pointerdrag',function(e) {							// ON MOUSE DRAG
-		if (mps.geoRef) {
+		if (mps.geoRef) {													// If geo referencing
 			var id;
 			var shift=ol.events.condition.shiftKeyOnly(e);					// Shift key status
 			var p=ol.proj.transform(e.coordinate,mps.curProjection,"EPSG:4326"); // Project cur coord
