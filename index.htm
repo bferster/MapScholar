@@ -2246,18 +2246,50 @@ MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 	o.asp=(mob.north-mob.south)/(mob.east-mob.west);						// Calc image asp
 	SetControlDots(true);													// Starter dots
 
-	shivaLib.map.on('pointerup',function(e) {							// ON MOUSE UP
-		if (mps.geoRef) {													// If geo referencing
-			mps.MakeMapImage(mob);											// Reset map image
-			mps.DrawMapImages();											// Draw map images
-			SetControlDots(true);											// Reset control dots
-			var str=mob.north+"|"+mob.south+"|"+mob.west+"|"+mob.east+"|"+mob.rotation;
-			SendShivaMessage("MapScholar=rectify",str);						// Send rectify position to mapedit
-			}
-		});															 
+	var str="<br> &nbsp; &nbsp; Rotation &nbsp;&nbsp; <span id='geoRot1' style='width:360px;display:inline-block'></span>&nbsp;&nbsp;";
+	str+="Fine rotation &nbsp;&nbsp; <span id='geoRot2' style='width:200px;display:inline-block'></span>";
+	str+=" &nbsp; &nbsp; Value &nbsp; <input type='text' class='is' id='geoRot3' style='font-size:10px;width:60px;display:inline-block;border-radius:10px;text-align:center'>";
+	$("#controlBarDiv").html(str)										// Add to DOM
 
+	var ops={ min:0, max:360, value:Math.floor(mob.rotation), slide:function(event,ui) {	// Gross slider options
+		mob.rotation=ui.value;											// Set degrees
+		$("#geoRot2").slider("value",0);								// Reset fine
+		$("#geoRot3").val(mob.rotation);								// Init text input
+		ReDrawImage();													// Redraw image
+		}};
+	$("#geoRot1").slider(ops);											// Init gross slider
+
+	var ops={ min:0, max:1, step:0.001, value:mob.rotation-Math.floor(mob.rotation), slide:function(event,ui) {	// Gross slider options
+		mob.rotation=$("#geoRot1").slider("value")+ui.value;			// Set degrees
+		$("#geoRot3").val(mob.rotation);								// Init text input
+		ReDrawImage();													// Redraw image
+		}};
+
+	$("#geoRot2").slider(ops);											// Init fine slider
+	$("#geoRot3").val(mob.rotation);									// Init text input
+	$("#geoRot3").on("change", function(e) {							// On typed value
+		mob.rotation=Math.min($("#geoRot3").val(),360);					// Set degrees		
+		$("#geoRot1").slider("value",Math.floor(mob.rotation));			// Set gross
+		$("#geoRot2").slider("value",mob.rotation-Math.floor(mob.rotation)); // Set fine
+		ReDrawImage();													// Redraw image
+		});
+
+	shivaLib.map.on('pointerup',function(e) {							// ON MOUSE UP
+		if (mps.geoRef) 												// If geo referencing
+			ReDrawImage();												// Redraw image
+			});															 
+
+	function ReDrawImage()
+	{
+		mps.MakeMapImage(mob);											// Reset map image
+		mps.DrawMapImages();											// Draw map images
+		SetControlDots(true);											// Reset control dots
+		var str=mob.north+"|"+mob.south+"|"+mob.west+"|"+mob.east+"|"+mob.rotation;
+		SendShivaMessage("MapScholar=rectify",str);						// Send rectify position to mapedit
+	}
+	
 	shivaLib.map.on('pointerdrag',function(e) {							// ON MOUSE DRAG
-		if (mps.geoRef) {													// If geo referencing
+		if (mps.geoRef) {												// If geo referencing
 			var id;
 			var shift=ol.events.condition.shiftKeyOnly(e);					// Shift key status
 			var p=ol.proj.transform(e.coordinate,mps.curProjection,"EPSG:4326"); // Project cur coord
@@ -2330,14 +2362,25 @@ MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 			   		})
 				})
 			}
+		
 		o.pts[0].x=mob.west+(mob.east-mob.west)/2;							// CX
 		o.pts[0].y=mob.south+(mob.north-mob.south)/2;						// CY
 		o.pts[1].x=mob.west-0;	o.pts[1].y=mob.north-0;						// NW
 		o.pts[2].x=mob.east-0;	o.pts[2].y=mob.north-0;						// NE
 		o.pts[3].x=mob.east-0;	o.pts[3].y=mob.south-0;						// SE
 		o.pts[4].x=mob.west-0;	o.pts[4].y=mob.south-0;						// SW
+				
+		var ar=mob.rotation*Math.PI/180.0;									// Angle to radians
+		var sin=Math.sin(ar);												// Get sine
+		var cos=Math.cos(ar);												// Get cosine
+		var cx=o.pts[0].x;													// Center x
+		var cy=o.pts[0].y;													// Center x
+
 		for (i=0;i<5;++i) {													// For each dot
- 		   	p=ol.proj.transform([o.pts[i].x,o.pts[i].y],"EPSG:4326",mps.curProjection);	// Project
+ 		   	p=[o.pts[i].x,o.pts[i].y];										// Copy
+			p[0]=cx+(p[0]-cx)*cos-(cy-p[1])*sin;							// Rotate x
+			p[1]=cy+(p[0]-cx)*sin+(cy-p[1])*cos;							// Rotate y
+		   	p=ol.proj.transform(p,"EPSG:4326",mps.curProjection);			// Project
   			if (init) {														// If initting dots
 				o.pts[i].f=new ol.Feature(new ol.geom.Point(p));			// Add feature
 				o.pts[i].f.setId("georef"+i);								// Add id
