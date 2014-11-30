@@ -49,7 +49,7 @@
 	var map=null;
 	var shivaLib=null;
 	var geocoder=geocoder=new google.maps.Geocoder();
-	var mapMode="ol";
+	var mapMode="ge";
 
 	function ShivaPostInit()
  	{
@@ -2196,7 +2196,6 @@ MapScholar.prototype.CreateCanvasLayer=function()						// CREATE CANVAS LAYER
     this.canvasLayer=new ol.layer.Image( {									// Make new image layer
         source: new ol.source.ImageCanvas( {								// Add canvas sourcw
             canvasFunction: function(extent, res, pixelRatio, size, proj) { // Render function
-				trace("render canvas");
 				if (!mps.canvasCanvas) 										// If no canvas yet
 			        mps.canvasCanvas=document.createElement('canvas');		// Alloc canvas
 		       	mps.canvasWidth=size[0];									// Get width
@@ -2217,14 +2216,12 @@ MapScholar.prototype.CreateCanvasLayer=function()						// CREATE CANVAS LAYER
 MapScholar.prototype.DrawMapImages=function()							// DRAW OL MAPS
 {
 	var i,m;
-	trace("draw map images");
 	if (this.canvasContext && mps.mobs) {        
 		this.canvasContext.clearRect(0,0,this.canvasWidth,this.canvasHeight);
    		for (i=0;i<mps.mobs.length;i++) {
             m=this.mobs[i];
             if (m.type != "map" || this.sh.mobVis[i] == 0)
                 continue;
-            trace("Drawing map: "+i +" alpha  "+this.sh.mobVis[i]);
             m.mapImage.drawImage(this.sh.mobVis[i]);      
             }
         }
