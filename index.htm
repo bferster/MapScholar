@@ -49,7 +49,7 @@
 	var map=null;
 	var shivaLib=null;
 	var geocoder=geocoder=new google.maps.Geocoder();
-	var mapMode="ge";
+	var mapMode="ol";
 
 	function ShivaPostInit()
  	{
@@ -117,7 +117,7 @@
 			if (mps.geoRef.modify)											// If interaction initted													
 				map.removeInteraction(mps.geoRef.modify);					// Remove it
 			mps.drawLayer.getFeatures().clear();							// Clear existing points
-			mps.geoRef={};													// Clear flag
+			mps.geoRef=null;												// Clear flag
 			}
 		mps.InitProject("",data);											// Init project
 		if (mps.mm == "ge") {												// GE
@@ -154,12 +154,26 @@
 		else if (e.data.indexOf("MapEdit=rectify") == 0)	{				// If rectify 
 			mps.dr.ClearSegs();												// Clear existing segs
 			if (e.data.match(/allDone/)) {									// If finished
+				if (mps.geoRef) {											// If feo referncing left open
+					if (mps.geoRef.modify)									// If interaction initted													
+						map.removeInteraction(mps.geoRef.modify);			// Remove it
+					mps.drawLayer.getFeatures().clear();					// Clear existing points
+					mps.geoRef=null;										// Clear flag
+					}
+				Sound("ding");												// Ding
 				mps.dr.DrawControlBar(false);								// Go to shelf mode
 				return;														// Quit
 				}
-			mps.dr.DrawControlBar(true);									// Go to draw mode
-			$("#annType").val("Image");										// Set val
-			mps.dr.AddNewSeg(e.data);										// Add image
+			Sound("ding");													// Ding
+			if (mps.mm == "ol") {											// IF OL
+				var v=e.data.split("|");									// Get parts
+				mps.GeoReferenceMap(v[9]-0);								// Georeference map's mob
+				}
+			else{															// If GE
+				mps.dr.DrawControlBar(true);								// Go to draw mode
+				$("#annType").val("Image");									// Set val
+				mps.dr.AddNewSeg(e.data);									// Add image
+				}
 			}
 
 	}
@@ -284,7 +298,7 @@ function MapScholar(mapMode)											// CONSTRUCTOR
               	mps.DrawMapImages();										// Redraw maps in new extent, if moved
 				var o=map.getView();										// Point at view
 				var c=ol.proj.transform(o.getCenter(),mps.curProjection,'EPSG:4326');		// Get center
-				var pos=Math.floor(c[1]*10000)/10000+"|"+Math.floor(c[0]*10000)/10000+"|"+ResolutionToRange(o.getResolution(),900);	
+				var pos=Math.floor(c[1]*10000)/10000+"|"+Math.floor(c[0]*10000)/10000+"|"+Math.floor(ResolutionToRange(o.getResolution(),900));	
 				pos+="|0|"+Math.floor((o.getRotation()*180/Math.PI)*1000)/-1000;		// Rotation
 				SendShivaMessage("ShivaEarth=move",pos);					// Send that view has changed
  				});
@@ -2111,12 +2125,12 @@ MapScholar_Shelf.prototype.Play=function(again, chapter)				// PLAY
 
 	function RangeToResolution(range, width)							// GOOGLE EARTH RANGLE TO OPENLAYERS RESOLUTION
 	{
-		return((Math.tan(60*(Math.PI/360))*range*2)/(width-150));			// Code from Shane Lin 
+		return((Math.tan(60*(Math.PI/360))*range*2)/(width));				// Code from Shane Lin 
 	}
 
 	function ResolutionToRange(resolution, width)						// OPENLAYERS RESOLUTION TO GOOGLE EARTH RANGLE
 	{
-		return((resolution*(width+150))/(2*Math.tan(60*(Math.PI/360))));	// Code from Shane Lin 
+		return((resolution*(width))/(2*Math.tan(60*(Math.PI/360))));		// Code from Shane Lin 
 	}
 	
 MapScholar.prototype.MakeMapImage=function(mob) 						// ADD MAP IMAGE TO PROJECT
