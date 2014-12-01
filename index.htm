@@ -2389,8 +2389,8 @@ MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 
 		for (i=0;i<5;++i) {													// For each dot
  		   	p=[o.pts[i].x,o.pts[i].y];										// Copy
-			p[0]=cx+(p[0]-cx)*cos-(cy-p[1])*sin;							// Rotate x
-			p[1]=cy+(p[0]-cx)*sin+(cy-p[1])*cos;							// Rotate y
+//			p[0]=cx+(p[0]-cx)*cos-(cy-p[1])*sin;							// Rotate x
+//			p[1]=cy+(p[0]-cx)*sin+(cy-p[1])*cos;							// Rotate y
 		   	p=ol.proj.transform(p,"EPSG:4326",mps.curProjection);			// Project
   			if (init) {														// If initting dots
 				o.pts[i].f=new ol.Feature(new ol.geom.Point(p));			// Add feature
