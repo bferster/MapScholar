@@ -585,7 +585,7 @@ MapScholar.prototype.SetHiResMapImage=function(num)						// ADD HI-RES MAP
 		return;																// Quit
 	if (this.mm == "ol") {													// OL
 		m.mapImage.img.src=m.url;											// Set url
-		map.render();														// Force re
+		map.render();														// Force render
 		}
 	else{																	// GE
 		var seg=ge.getElementById(m.mid);									// Get object
@@ -671,8 +671,10 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 			seg.setVisibility(true);										// Show it
 			} 
 		}
-	if (this.mm == "ol") 													// OL
+	if (this.mm == "ol") { 													// OL
 		this.DrawMapImages();												// Draw map images
+		shivaLib.map.render();												// Force render
+		}
 }
 
 MapScholar.prototype.ShowMapLayers=function(val)				// HIDE/SHOW ROADS/BORDER
@@ -2185,7 +2187,7 @@ MapScholar.prototype.MakeMapImage=function(mob) 						// ADD MAP IMAGE TO PROJEC
             ctx.drawImage(this.img, 0, 0, drawWidth, drawHeight);
             ctx.translate((drawWidth / 2), (drawHeight / 2));
            	ctx.rotate(-(this.rotation * (Math.PI / 180)));
-            ctx.translate(xCenterOffset,yCenterOffset);
+            ctx.translate(-xCenterOffset,-yCenterOffset);
             ctx.globalAlpha=1;
         }                  
     };
@@ -2205,6 +2207,7 @@ MapScholar.prototype.CreateCanvasLayer=function()						// CREATE CANVAS LAYER
 	    		mps.canvasContext=mps.canvasCanvas.getContext('2d');		// Get context
            		mps.canvasExtent=extent;									// Set extent
 		        mps.canvasRes=res;											// Set res
+				mps.DrawMapImages();										// Make images
 	        	return mps.canvasCanvas 									// Return canvas reference
 	            }, 
 	        projection: this.curProjection									// Projection
@@ -2225,8 +2228,7 @@ MapScholar.prototype.DrawMapImages=function()							// DRAW OL MAPS
             m.mapImage.drawImage(this.sh.mobVis[i]);      
             }
         }
-    shivaLib.map.render();													// Force map render
-}
+ }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2346,7 +2348,7 @@ MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 	
 	function SetControlDots(init)										// SET GEO REFEENCE CONTROL DOTS
 	{
-		var i,p;
+		var i,p=[];
 		if (mps.sh.curMob == -1)											// If no mob selected
 			return;															// Quit
 		var o=mps.geoRef;													// Point at georef data
@@ -2388,9 +2390,8 @@ MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 		var cy=o.pts[0].y;													// Center x
 
 		for (i=0;i<5;++i) {													// For each dot
- 		   	p=[o.pts[i].x,o.pts[i].y];										// Copy
-//			p[0]=cx+(p[0]-cx)*cos-(cy-p[1])*sin;							// Rotate x
-//			p[1]=cy+(p[0]-cx)*sin+(cy-p[1])*cos;							// Rotate y
+ 			p[0]=cx+(o.pts[i].x-cx)*cos-(cy-o.pts[i].y)*sin;				// Rotate x
+			p[1]=cy+(o.pts[i].x-cx)*sin+(cy-o.pts[i].y)*cos;				// Rotate y
 		   	p=ol.proj.transform(p,"EPSG:4326",mps.curProjection);			// Project
   			if (init) {														// If initting dots
 				o.pts[i].f=new ol.Feature(new ol.geom.Point(p));			// Add feature
