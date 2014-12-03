@@ -12,7 +12,7 @@
  	<script type="text/javascript" src="//www.viseyes.org/shiva/shivalib-min.js"></script>
  	<script type="text/javascript" src="MapScholar_Draw.js"></script>
    	<link rel="stylesheet" href="http://openlayers.org/en/v3.0.0/css/ol.css" type="text/css">
-   	<script src="http://openlayers.org/en/v3.0.0/build/ol.js" type="text/javascript"></script>
+   	<script src="http://openlayers.org/en/v3.0.0/build/ol-debug.js" type="text/javascript"></script>
    	<style type="text/css">
 		body { font-family:Verdana,Geneva,sans-serif; font-size:xx-small}
 		p.pb { text-align:right; color:#fff; }
@@ -36,7 +36,7 @@
 <body>
 		<div id="containerDiv" style="position:absolute;width:900px;height:600px;left:20px;top:20px;"></div>
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> 
-			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>11/11/14</p>
+			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>11/18/14</p>
 			</div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
@@ -49,6 +49,7 @@
 	var map=null;
 	var shivaLib=null;
 	var geocoder=geocoder=new google.maps.Geocoder();
+	var mapMode="ol";
 
 	function ShivaPostInit()
  	{
@@ -58,6 +59,8 @@
 			var s=regex.exec(url);											// Get mob id, if one
 			if (s) 															// If there was one
 				mps.sh.curMob=s[1];											// Set mob
+			url=url.replace(/&ol=./i,"");									// Remove tag	
+			url=url.replace(/\\?ol=./i,"");									// Remove tag	
 			}
 		if (!url)															// Nothing on query line
 			url="https://docs.google.com/spreadsheet/pub?key=0AohdE1_3ZElJdDhIbTRVRkhHSWNBWUUtYS1rZmJoSEE";
@@ -86,8 +89,10 @@
 		}
 		
      $(document).ready(function() {										// ON JQUERY LOADED
-
-		mps=new MapScholar();												// Main object
+		var url=window.location.search.substring(1);						// Get query string
+		if (url && url.match(/ol=/))										// If tagged
+			mapMode="ol";													// Force mode
+		mps=new MapScholar(mapMode);										// Main object
 		if (window.addEventListener) 										// WC3	
 			window.addEventListener("message",shivaEventHandler,false);		// Add listener	
 		else																// IE
@@ -108,6 +113,12 @@
 	function LoadShow(data)												// ON INIT OR QMF CALL
 	{
 		var m=shivaLib.map;													// Point to map												
+		if (mps.geoRef) {													// If feo referncing left open
+			if (mps.geoRef.modify)											// If interaction initted													
+				map.removeInteraction(mps.geoRef.modify);					// Remove it
+			mps.drawLayer.getFeatures().clear();							// Clear existing points
+			mps.geoRef=null;												// Clear flag
+			}
 		mps.InitProject("",data);											// Init project
 		if (mps.mm == "ge") {												// GE
 			var features=m.getFeatures();									// Point to features
@@ -143,12 +154,26 @@
 		else if (e.data.indexOf("MapEdit=rectify") == 0)	{				// If rectify 
 			mps.dr.ClearSegs();												// Clear existing segs
 			if (e.data.match(/allDone/)) {									// If finished
+				if (mps.geoRef) {											// If feo referncing left open
+					if (mps.geoRef.modify)									// If interaction initted													
+						map.removeInteraction(mps.geoRef.modify);			// Remove it
+					mps.drawLayer.getFeatures().clear();					// Clear existing points
+					mps.geoRef=null;										// Clear flag
+					}
+				Sound("ding");												// Ding
 				mps.dr.DrawControlBar(false);								// Go to shelf mode
 				return;														// Quit
 				}
-			mps.dr.DrawControlBar(true);									// Go to draw mode
-			$("#annType").val("Image");										// Set val
-			mps.dr.AddNewSeg(e.data);										// Add image
+			Sound("ding");													// Ding
+			if (mps.mm == "ol") {											// IF OL
+				var v=e.data.split("|");									// Get parts
+				mps.GeoReferenceMap(v[9]-0);								// Georeference map's mob
+				}
+			else{															// If GE
+				mps.dr.DrawControlBar(true);								// Go to draw mode
+				$("#annType").val("Image");									// Set val
+				mps.dr.AddNewSeg(e.data);									// Add image
+				}
 			}
 
 	}
@@ -171,17 +196,15 @@
 
 var lastClick=0;
 
-function MapScholar()													// CONSTRUCTOR
+function MapScholar(mapMode)											// CONSTRUCTOR
 {
 	mps=this;																// Point to this
-	this.mm="ol";															// Map mode
-//	this.mm="ge";															// Map mode
+	this.mm=mapMode;														// Def map mode is GE
 	this.controlKey=this.shiftKey=false;									// Shift/control key flags
 	this.showBoxes=false;													// Show boxes
 	this.showRoads=false;													// Hide Roads/borders
 	this.showScale=(this.mm == "ol");										// Hide or show scale
 	this.popupOpen=-1;														// Popup not open
-	this.baseLayer="Satellite";												// Default layer
 	shivaLib=new SHIVA_Show("containerDiv");								// Alloc SHIVA_Show
 	Sound("click","init");													// Init sound
 	Sound("ding","init");													// Init sound
@@ -200,10 +223,13 @@ function MapScholar()													// CONSTRUCTOR
 		}
 
 	else if (this.mm == "ol") {												// If using OL
+		this.curProjection="EPSG:3857";										// Current projection
+		this.baseLayer="Satellite";											// Default layer
 		this.layers=[														// Hold layers
 			new ol.layer.Tile({												// Sat 
 					visible: false,											// Invisible
 					source: new ol.source.MapQuest({layer: 'sat'}),			// MapQuest sat
+					projection: this.curProjection,							// Default projection
 					title: "Satellite"										// Set name
 					}),
 			new ol.layer.Tile({												// Terrain
@@ -212,16 +238,19 @@ function MapScholar()													// CONSTRUCTOR
      						url: 'http://demo.opengeo.org/geoserver/wms',	// Url
      						params: { 'LAYERS': 'ne:NE1_HR_LC_SR_W_DR' }	// Params
     						}),
+					projection: this.curProjection,							// Default projection
 					title: "Terrain"										// Set name
 					}),
 			new ol.layer.Tile({												// Watercolor
 					visible: false,											// Invisible
 					source: new ol.source.Stamen({layer: 'watercolor'}),	// Stamen watercolor
+					projection: this.curProjection,							// Default projection
 					title: "Watercolor"										// Set name
 					}),
 			new ol.layer.Tile({												// Toner
 					visible: false,											// Invisible
 					source: new ol.source.Stamen({layer: 'toner-lite'}),	// Stamen toner
+					projection: this.curProjection,							// Default projection
 					title: "B&W"											// Set name
 					}),
 			new ol.layer.Tile({												// Earth
@@ -231,13 +260,14 @@ function MapScholar()													// CONSTRUCTOR
             			'mapbox.natural-earth-hypso-bathy.jsonp',
         				crossOrigin: 'anonymous'
    						}),
-   					title: "Earth"											// Set name
+ 					projection: this.curProjection,							// Default projection
+  					title: "Earth"											// Set name
 					}),
 			
 			new ol.layer.Tile({												// Roadmap
 					visible:false,											// Hide it
 					source: new ol.source.MapQuest({layer: 'osm'}),			// MapQuest roads
- 					projection: "EPSG:3857",
+					projection: this.curProjection,							// Default projection
 					title: "Roadmap"										// Set name
  					}),
 			];
@@ -247,166 +277,49 @@ function MapScholar()													// CONSTRUCTOR
 		        controls: ol.control.defaults({								// Controls
  						}).extend([ new ol.control.ScaleLine() ]),			// Add scale
 		        view: new ol.View({											// Views
-		          		center: ol.proj.transform( [-50,50],'EPSG:4326','EPSG:3857'),
+		          		center: ol.proj.transform( [-50,50],'EPSG:4326',this.curProjection),
 		          		zoom: 6 }),
- 				
  				});
   
 			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); 	// Create box layer
 			map.addLayer(this.boxLayer);									// Add to map	
-
-	p=ol.proj.transform( [-78,40],'EPSG:4326','EPSG:3857')
-	var f=new ol.Feature({ geometry: new ol.geom.Point(p) });
-
-function styleit(feature, resolution) {
- 				xx=new ol.style.Style({
-   				image: new ol.style.Icon({
-     			src: 'http://www.viseyes.org/shiva/map.jpg',
-     			scale: 100,
-     			rotateWithView: true
-     			})
-   			 })
- trace(xx)
-  return xx;
-}
-
-	f.setId("mapImg"+0);											// Add id
-	f.setStyle(styleit);
-	this.boxLayer.getSource().addFeature(f);						// Add it
-
-
-     	for (i=0;i<this.layers.length-1;++i) 							// For each layer
-		    	this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
 			
+         	this.CreateCanvasLayer();										//!**
+			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); 	// Create box layer
+			map.addLayer(this.boxLayer);									// Add to map	
+	
+			this.drawLayer=new ol.FeatureOverlay({ source: new ol.source.Vector() } );	// Feature overlay
+			this.drawLayer.setMap(map);										// Add to map
+									
+		   	for (i=0;i<this.layers.length;++i) 								// For each layer
+			    this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
+
+			map.on('moveend', function(e) {									// On end of move
+              	mps.DrawMapImages();										// Redraw maps in new extent, if moved
+				var o=map.getView();										// Point at view
+				var c=ol.proj.transform(o.getCenter(),mps.curProjection,'EPSG:4326');		// Get center
+				var pos=Math.floor(c[1]*10000)/10000+"|"+Math.floor(c[0]*10000)/10000+"|"+Math.floor(ResolutionToRange(o.getResolution(),900));	
+				pos+="|0|"+Math.floor((o.getRotation()*180/Math.PI)*1000)/-1000;		// Rotation
+				SendShivaMessage("ShivaEarth=move",pos);					// Send that view has changed
+ 				});
+	
 			map.on('click',function(e) {									// ON MAP CLICK
-				map.forEachFeatureAtPixel(e.pixel,							// Look at features
-					function(f) {											// Found one
-						if (f && f.getId().match(/mapBox/)) {				// A map box
+				map.forEachFeatureAtPixel(e.pixel,function(f) {				// Look at features
+					var id;
+					if (f && (id=f.getId())) {								// If a feature with an id
+						if (id.match(/mapBox/)){							// A map box
 							Sound("click");									// Click
 							mps.sh.HighlightMob(f.getId().substr(6),e.originalEvent.shiftKey,true);	// Highlight mob
-		   					}
-		   				})
-				});
+	   						}
+	   				else if (id.match(/dseg/)) {							// A just-drawn feature
+	   						mps.dr.curSketch=f;								// Save feature
+	   						trace("id="+f.getId().substr(4))
+	   						}
+	   					}													// End feature w/ id
+			   		})														// End each feature											
+				});															// End click
 	 		ShivaPostInit();
 	 		}	
-
-/*/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-	
-/*
-
-	p=ol.proj.transform( [-78,40],'EPSG:4326','EPSG:3857')
-	var f=new ol.Feature({ geometry: new ol.geom.Point(p) });
-	var imgStyle=new ol.style.Style({
-		image: new ol.style.Icon(({
-	    	rotateWithView: true,
-	    	anchor: [.5,.5],
-	   	 	anchorXUnits: 'fraction', anchorYUnits: 'fraction',
-	    	opacity: 0.75,
-	    	src: 'http://www.viseyes.org/shiva/map.jpg'
-   			}))
-   		});
-	f.setId("mapImg"+0);											// Add id
-	f.setStyle(imgStyle);
-	this.boxLayer.getSource().addFeature(f);						// Add it
-
-
-var extent = ol.proj.transformExtent(
-    [-78., 38.3331, 80.6607, 39.0559], 'EPSG:4326', 'EPSG:3857');
-
-  x=new ol.layer.Image({
-      source: new ol.source.ImageStatic({
-      url: 'http://www.viseyes.org/shiva/map.jpg',
-        imageExtent: extent,
-        imageSize: [1176,724],
-       	projection:'EPSG:4326'
-     })
-    })
-	
-	x.setOpacity(.65)
-	map.addLayer(x);									// Add to map
-
-	
-
-function cnf(extent, resolution, pixelRatio, size, projection)
-{
-	trace(extent)
-	var canvas = document.createElement('canvas');
-	var context = canvas.getContext('2d');
- 	var canvasWidth = size[0], canvasHeight = size[1];
-	canvas.setAttribute('width', canvasWidth);
-	canvas.setAttribute('height', canvasHeight);
-
-var sqsize = 100;
-var ox = (canvasWidth - sqsize) / 2;
-var oy = (canvasHeight - sqsize) / 2;
-context.fillStyle = 'grey';
-context.strokeStyle = 'white';
-context.fillRect(ox, oy, sqsize, sqsize);
-context.strokeRect(ox, oy, sqsize, sqsize);
-	return canvas;
-}
-
-this.imgLayer=new ol.layer.Image({ source: new ol.source.ImageCanvas({ canvasFunction: cnf, projection: 'EPSG:4326'}) }); // Create image layer
-map.addLayer(this.imgLayer);									// Add to map
-
-	p=ol.proj.transform( [-78,40],'EPSG:4326','EPSG:3857')
-	var f=new ol.Feature({ geometry: new ol.geom.Point(p) });
-
-	var imgStyle=new ol.style.Style({
-		image: new ol.style.Icon(({
-	    	rotateWithView: true,
-	    	anchor: [.5,.5],
-	   	 	anchorXUnits: 'fraction', anchorYUnits: 'fraction',
-	    	opacity: 0.75,
-	    	src: 'http://www.viseyes.org/shiva/map.jpg'
-   			}))
-   		});
-
-
-			f.setId("mapImg"+0);											// Add id
-			f.setStyle(imgStyle);
-			this.boxLayer.getSource().addFeature(f);						// Add it
-
-
-
-
-var featureOverlay=new ol.FeatureOverlay({									// Feature overlay
-	style: new ol.style.Style({												// Feature styling
-			fill: new ol.style.Fill({ color: 'rgba(255, 255, 255, 0.2)' }),	// Final fill
-  		  	stroke: new ol.style.Stroke({ color: '#ff9900', width: 1   }),	// Final stroke
-    		image: new ol.style.Circle({ radius:8, fill: new ol.style.Fill({ color: '#ffcc33' }) // Final image
-    		})
-  		})
-  	});
-featureOverlay.setMap(map);
-
-var modify = new ol.interaction.Modify({
-  features: featureOverlay.getFeatures(),
-  // the SHIFT key must be pressed to delete vertices, so
-  // that new vertices can be drawn at the same position
-  // of existing vertices
-  deleteCondition: function(event) {
-    return ol.events.condition.shiftKeyOnly(event) &&
-        ol.events.condition.singleClick(event);
-  }
-});
-map.addInteraction(modify);
-
-var draw; // global so we can remove it later
-function addInteraction() {
-  draw = new ol.interaction.Draw({
-    features: featureOverlay.getFeatures(),
-    type: "Polygon"
-  });
-  map.addInteraction(draw);
-}
- 
-addInteraction();
-
-///////////////////////////////////////////////////////////////////////////////////////////*/
-
 }	
 
 MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT 
@@ -481,8 +394,8 @@ MapScholar.prototype.AddMapBoxes=function()								// ADD MAP WIREFRAMES
 			m=this.mobs[i];													// Point at mob
 			if (m.type != "map")											// If not a map
 				continue;													// Continue
-			var p1=ol.proj.transform([m.west-0,m.north-0],'EPSG:4326','EPSG:3857');	// Transform
-			var p2=ol.proj.transform([m.east-0,m.south-0],'EPSG:4326','EPSG:3857'); // Transform
+			var p1=ol.proj.transform([m.west-0,m.north-0],'EPSG:4326',this.curProjection);	// Transform
+			var p2=ol.proj.transform([m.east-0,m.south-0],'EPSG:4326',this.curProjection); // Transform
 			ar=m.rotation*(Math.PI/180);									// Angle to radians
 			sin=Math.sin(ar);												// Get sine
 			cos=Math.cos(ar);												// Get cosine
@@ -578,14 +491,29 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 		this.kmlLayers=[];
 		for (i=0;i<n;++i) {													// For each seg
 			m=this.mobs[i];													// Point at mob
-			if (m.type == "layer") {										// If a layer
+			if (m.type == "map") 											// Map 
+			    this.MakeMapImage(m);										// Add it 
+			else if (m.type == "layer") {									// If a layer
+				m.mid="LAYER-"+this.kmlLayers.length;						// Make id
 				this.kmlLayers.push(new ol.layer.Vector({  source: new ol.source.KML({	// New layer
-						title: "KML"+i,										// Set name
-			   			projection: ol.proj.get('EPSG:3857'),				// Set KML projection
-			    		url:"proxy.php?url="+m.url							// Proxied URL
+						title: "LAYER-"+i,									// Set name
+			   			projection: ol.proj.get(mps.curProjection),			// Set KML projection
+			    		url:"proxy.php?url="+m.url,							// Proxied URL
+			  			visible:false										// Hide it
 			  			})
 					}));
 				shivaLib.map.addLayer(this.kmlLayers[this.kmlLayers.length-1]);	// Add to map	
+				}
+			else if (m.type == "choro") {									// If a choropleth
+				m.mid="CHORO-"+Math.floor(Math.random()*99999999);			// Make random #
+				if (m.url.match(/http/)) {									// If a valis url
+					shivaLib.GetSpreadsheet(m.url,false,"",function(data,url){	// Get from docs
+					for (var j=0;j<mps.mobs.length;++j) 					// For each seg
+						if (mps.mobs[j].url == url)							// If a match
+							break;											// Quit looking
+						mps.mobs[j].url=data;								// Save data to url
+						},true);
+					}
 				}
 			}
 		return;
@@ -599,7 +527,7 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 		if (m.type == "layer") {											// If a layer
 			m.mid="LAYER-"+Math.floor(Math.random()*99999999);				// Make random #
 			google.earth.fetchKml(ge,m.url,function(seg) {					// Get KML
-    				if (!seg) {													// Failed
+    			if (!seg) {													// Failed
 			    	setTimeout(function(){},0);								// Clear timeout
 		     		console.log("Failed KML load of "+m.url);				// Show error
 		     		return;													// Quit
@@ -654,11 +582,16 @@ MapScholar.prototype.SetHiResMapImage=function(num)						// ADD HI-RES MAP
 	var	m=this.mobs[num];													// Point at mob
 	if ((!m)|| (m.type != "map"))											// Not there
 		return;																// Quit
-	var img=m.url;															// Get large map
-	if (!img)																// If exists
+	if (!m.url)																// If exists
 		return;																// Quit
-	var seg=ge.getElementById(m.mid);										// Get object
-		seg.getIcon().setHref(img);											// Set url
+	if (this.mm == "ol") {													// OL
+		m.mapImage.img.src=m.url;											// Set url
+		map.render();														// Force render
+		}
+	else{																	// GE
+		var seg=ge.getElementById(m.mid);									// Get object
+		seg.getIcon().setHref(m.url);										// Set url
+		}
 }
 
 MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
@@ -670,6 +603,19 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 		start=0,end=this.mobs.length;										// Whole list
 	for (i=start;i<end;++i) {												// For each seg
 		m=this.mobs[i];														// Point at mob
+		if (!m.mid)															// If no id yet
+			continue;														// Skip
+		if (this.mm == "ol") {												// OL
+			seg=null;
+			if (m.type == "map")  											// If a map 
+				seg=null;
+			else if (m.type == "layer") { 									// If a layer 
+				seg=this.kmlLayers[m.mid.substr(6)];						// Point at layer
+				if (seg)													// If a valid seg
+					seg.set('visible',false);								// Hide it
+				}
+			continue;
+			}
 		if (((m.type != "map") && (m.type != "layer") && (m.type != "choro")) || !(m.mid))// If not a map, layer, choro
 			continue;														// Continue
 		if (m.type == "layer")												// If a layer
@@ -683,6 +629,28 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 		m=this.mobs[i];														// Point at mob
 		if (((m.type != "map") && (m.type != "layer") && (m.type != "choro")) || !(m.mid))// If not a map, layer, choro
 			continue;														// Continue
+		if (this.mm == "ol") {												// OL
+			if (mps.sh.mobVis[i]) {											// If visible
+				if (m.type == "map")  										// If a map 
+					seg=null;
+				else if (m.type == "layer")									// If a layer
+					seg=this.kmlLayers[m.mid.substr(6)];					// Point at layer
+				else if (m.type == "choro") {								// If a choro
+					var b=(""+m.base).split(",");							// Get bases array
+					if (b && b.length)										// If one
+						b=b[b.length-1];									// Get last one
+					b=mps.FindMobByID(b);									// Get index from id
+					if (b != -1)											// If a valid base set
+						seg=this.kmlLayers[this.mobs[b].mid.substr(6)];		// Point at base kml of features
+					this.SetChoroplethFeatures(seg,m.url,m.med,false);		// Set features
+					}
+				if (seg) {													// If valid seg
+					seg.set("opacity",mps.sh.mobVis[i]/100);				// Set alpha
+					seg.set('visible',true);								// Show it
+					}
+				}
+				continue;
+			}
 		if (!m.west)														// If not west set, must be a poster
 			this.SetPoster(i);												// Reset coords
 		if (m.type == "layer")												// If a layer
@@ -703,6 +671,10 @@ MapScholar.prototype.ShowMapImages=function(num)						// HIDE/SHOW MAPS
 			seg.setOpacity(mps.sh.mobVis[i]/100);							// Set alpha
 			seg.setVisibility(true);										// Show it
 			} 
+		}
+	if (this.mm == "ol") { 													// OL
+		this.DrawMapImages();												// Draw map images
+		shivaLib.map.render();												// Force render
 		}
 }
 
@@ -728,15 +700,18 @@ MapScholar.prototype.ShowMapScale=function(mode)						// HIDE/SHOW MAP SCALE
 		$(".ol-scale-line").css("visibility",mode ? "visible" : "hidden");	// Hide show scale
 }
 
+
 MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) // SET CHOROPLETH FEATURES
 {
 	var i,j,s,d,a,c,o;
  	var range=[];
  	if (!seg || !features)													// If invalid seg or nor features
  		return;																// Quit
-	var f=seg.getFeatures().getChildNodes();								// Point at seg 
-	if (f.item(0).getType() == "KmlFolder")									// If a folder
-		f=f.item(0).getFeatures().getChildNodes();							// Recurse into it
+	if (mps.mm == "ge") {													// If GE
+		var f=seg.getFeatures().getChildNodes();							// Point at seg 
+		if (f.item(0).getType() == "KmlFolder")								// If a folder
+			f=f.item(0).getFeatures().getChildNodes();						// Recurse into it
+		}
 	if (typeof(features) == "string") {										// If set literally
 		if (features.match(/http/))											// If data still not loaded
 			return;															// Quit
@@ -790,6 +765,45 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 				}
 			}
 		}
+	
+	if (mps.mm == "ol") {													// If OL
+		var fr,fg,fb,sr,sg,sb,a,w;
+		var fa=seg.getSource().getFeatures();								// Get KML feature array
+		if (!fa || !fa.length)												// If no KML features
+			return;															// Quit
+		for (i=1;i<features.length;++i)	{									// For each feature to style
+			o=features[i];							 	 			 	 	// Point at feature data
+			f=fa[o[0]];														// Point at KML feature
+			
+			w=1;
+			a=1;
+			sr=255;	sg=255;	sb=255;
+			fr=255;	fg=0;	fb=0;
+
+			sty=f.getStyle();											// Get Style
+			if (o && o[1])													// If alpha set
+				a=o[1]/100;													// Convert 0-100 to 0-1
+			if (o && o[2]) {												// If fill set
+				fr=parseInt("0x"+o[2].substr(0,2),16);						// R
+				fg=parseInt("0x"+o[2].substr(2,2),16);						// G
+				fb=parseInt("0x"+o[2].substr(4,2),16);						// B
+				}
+			if (o && o[3]) {												// If line col set
+				sr=parseInt("0x"+o[3].substr(0,2),16);						// R
+				sg=parseInt("0x"+o[3].substr(2,2),16);						// G
+				sb=parseInt("0x"+o[3].substr(4,2),16);						// B
+				}
+			if (o && o[4] != undefined) 									// If line wid set
+				w=o[4]-0;													// Set wid
+			sty=new ol.style.Style({										// Create style
+		     	stroke: new ol.style.Stroke({ color: "rgba("+sr+","+sg+","+sb+","+a+")",	width: w }),
+		  		fill: new ol.style.Fill({ color: "rgba("+fr+","+fg+","+fb+","+a+")" })
+		   		});
+			f.setStyle(sty);												// Set feature
+			}
+		return;
+		}
+	
 	if (hide) {
 		var n=f.getLength();												// Get number of features
 		for (i=0;i<n;++i)													// For each feature
@@ -907,12 +921,12 @@ MapScholar.prototype.Goto=function(pos)									// SET EARTH VIEWPOINT
 	var v=pos.split(",");													// Split up
 	if (this.mm == "ol") {													// If OL
 		var o=map.getView();												// Point at view
-		var c=ol.proj.transform([v[1]-0,""+v[0].replace(/\*/,"")-0],'EPSG:4326','EPSG:3857');	// Get center
+		var c=ol.proj.transform([v[1]-0,""+v[0].replace(/\*/,"")-0],'EPSG:4326',this.curProjection);	// Get center
 		var fc=o.getCenter();												// Get from center
 		var fr=o.getRotation();												// Get from rotation		
 		var fs=o.getResolution();											// Get from resolution
 		var r=v[4]*Math.PI/180;												// Get to rotation	
-v[2]=500;
+		v[2]=RangeToResolution(v[2],900);									// Get to resolution
 		if (v[4] != undefined)												// If defined
 			o.setRotation(v[4]*Math.PI/180);								// Set rotation
 		if ((Math.abs(fc[0]-c[0]) < 2) && (Math.abs(fc[1]-c[1]) < 2)		// Center match
@@ -920,7 +934,6 @@ v[2]=500;
 				&& (Math.abs(fr-r) < 1) && (Math.abs(fr-r) < 1)				// Rotation  match
 				)															// Already there
 			return;															// Quit
-r=500;
 		var duration=2000;													// Duration
 		var start =+new Date();												// Start time
 		var pan=ol.animation.pan({											// Pan
@@ -940,15 +953,15 @@ r=500;
 		  	});
 		 var bounce=ol.animation.bounce({									// Fly bounce
 		    duration: duration,												// Duration
-		    resolution: 4*o.getResolution(),								// End value
+		    resolution: Math.min(4*o.getResolution(),2000),					// End value
 		    start: start													// Starting time
 		  });
-
-		if ((""+v[0]).charAt(0) == "*") 									// If animating point directly
+		
+		if (((""+v[0]).charAt(0) == "*") || (Math.abs(v[2]-o.getResolution()) < 1000)) // If animating point directly or at same height
 	  		map.beforeRender(pan,rotate,zoom);								// Move to
-		else																// Fly in
+	  	else																// Bouncing there
 	  		map.beforeRender(pan,rotate,bounce);							// Pan, rotate and bounce
-		 o.setResolution(r);												// Set resolution								
+		 o.setResolution(v[2]);												// Set resolution								
 		 o.setCenter(c);													// Set center
 		return;
 		}
@@ -1325,7 +1338,7 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 		mps.showBoxes=(o.boxes.toLowerCase() == "on");						// Set box status
 	if (!multi) {															// If not setting multiples
 		for (j=0;j<n+1;++j)	{												// For each mob
-				mps.ShowMapBoxes(j,"on");									// Reset box
+//				mps.ShowMapBoxes(j,"on");									// Reset box
 			if (j != this.curMob)											// If not this one
 				this.mobVis[j]=0;											// Hide mob
 			}
@@ -1460,11 +1473,18 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 	   			if ((mps.sh.curMob == -1) || (mps.mobs[mps.sh.curMob].type != "layer"))	// If not a layer
 						return;												// Quit
 	  			var str="";
-	   			var seg=mps.mobs[mps.sh.curMob].seg;						// Get seg from saved seg
-				var f=seg.getFeatures().getChildNodes();					// Point at seg 
-				if (f.item(0).getType() == "KmlFolder")						// If a folder
-					f=f.item(0).getFeatures().getChildNodes();				// Recurse into it
-				f=f.getLength();											// Get number of features
+  				if (mps.mm == "ge") {										// GE
+	   				var seg=mps.mobs[mps.sh.curMob].seg;					// Get seg from saved seg
+					var f=seg.getFeatures().getChildNodes();				// Point at seg 
+					if (f.item(0).getType() == "KmlFolder")					// If a folder
+						f=f.item(0).getFeatures().getChildNodes();			// Recurse into it
+					f=f.getLength();										// Get number of features
+					}
+				else if (mps.mm == "ol") {									// OL
+					seg=mps.mobs[mps.sh.curMob].mid.substr(6);				// Get id
+					seg=mps.kmlLayers[seg];									// Get seg
+					f=seg.getSource().getFeatures().length;					// Get number of features
+					}
 				for (var i=0;i<f;++i)										// For each feature
 					str+=i+",50,cccccc,000000,1;";							// Make it bland
 				mps.SetChoroplethFeatures(seg,str,null,false);				// Set feature
@@ -1900,8 +1920,8 @@ MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 	var pos;
 	if (mps.mm == "ol") {													// If OL
 		var o=map.getView();												// Point at view
-		var c=ol.proj.transform(o.getCenter(),'EPSG:3857','EPSG:4326');		// Get center
-		pos=Math.floor(c[1]*10000)/10000+","+Math.floor(c[0]*10000)/10000+","+o.getResolution();	
+		var c=ol.proj.transform(o.getCenter(),mps.curProjection,'EPSG:4326');		// Get center
+		pos=Math.floor(c[1]*10000)/10000+","+Math.floor(c[0]*10000)/10000+","+ResolutionToRange(o.getResolution(),900);	
 		pos+=",0,"+Math.floor((o.getRotation()*180/Math.PI)*1000)/1000;		// Rotation
 		} 													
 	else if (mps.mm == "ge") {												// If GE
@@ -2065,7 +2085,7 @@ MapScholar_Shelf.prototype.Play=function(again, chapter)				// PLAY
 					break;													// Quit looking
 					}
 			}
-		Sound("click");											// Click
+		Sound("click");														// Click
 		if (this.playSpeed < 50)											// Slowing down
 			time*=((50-this.playSpeed)/10);									// Slow it down
 		if (this.playSpeed > 50)											// Speeding up
@@ -2102,6 +2122,289 @@ MapScholar_Shelf.prototype.Play=function(again, chapter)				// PLAY
 	}
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// NEW ADDITIONS FOR OL
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+	function RangeToResolution(range, width)							// GOOGLE EARTH RANGLE TO OPENLAYERS RESOLUTION
+	{
+		return((Math.tan(60*(Math.PI/360))*range*2)/(width));				// Code from Shane Lin 
+	}
+
+	function ResolutionToRange(resolution, width)						// OPENLAYERS RESOLUTION TO GOOGLE EARTH RANGLE
+	{
+		return((resolution*(width))/(2*Math.tan(60*(Math.PI/360))));		// Code from Shane Lin 
+	}
+	
+MapScholar.prototype.MakeMapImage=function(mob) 						// ADD MAP IMAGE TO PROJECT
+{    
+    mob.mapImage=new MapImage(mob);											// Alloc mapimage obj
+
+	function MapImage(mob) {												// MAPIMAGE CONSTRUCTOR
+	    this.img=new Image();												// Alloc image
+        this.imgWidth;	 this.imgHeight;									// Set size, if any
+        this.n=mob.north-0;													// Set bounds
+        this.s=mob.south-0;
+        this.e=mob.east-0;
+        this.w=mob.west-0;
+        var ne = ol.proj.transform([this.e, this.n], 'EPSG:4326', mps.curProjection);	// Project
+        var sw = ol.proj.transform([this.w, this.s], 'EPSG:4326', mps.curProjection);
+        this.north = ne[1];
+        this.south = sw[1];
+        this.east = ne[0];
+        this.west = sw[0];
+        this.centerXCoord = this.w + (Math.abs(this.e - this.w) / 2);
+        this.centerYCoord = this.s + (Math.abs(this.n - this.s) / 2);
+        this.center=ol.proj.transform([this.centerXCoord, this.centerYCoord], 'EPSG:4326', mps.curProjection);	// Get center
+        this.rotation=mob.rotation*-1;										// Reverse direction
+		if (mob.med)														// If a medium available
+			this.img.src=mob.med;											// Set url
+		else if (mob.url)													// If a large
+			this.img.src=mob.url;											// Set url
+		else if (mob.small)													// If a small
+			this.img.src=mob.small;											// Set url
+ 	}
+	
+    MapImage.prototype.drawImage=function(alpha) 						// DRAW IMAGE
+    { 
+      if (!this.imgWidth) {
+	        this.imgWidth=this.img.width;
+	        this.imgHeight=this.img.height;
+	        this.imgWidthMeters=Math.abs(this.east - this.west);            
+	        this.imgHeightMeters=Math.abs(this.north - this.south);
+ 	        }
+		var xCenterOffset=(this.center[0]-mps.canvasExtent[0])/mps.canvasRes;
+      	var yCenterOffset=(mps.canvasExtent[3]-this.center[1])/mps.canvasRes;
+        var scaleX=(this.imgWidthMeters / mps.canvasRes) / this.imgWidth;
+        var scaleY=(this.imgHeightMeters / mps.canvasRes) / this.imgHeight;
+        var drawWidth = this.imgWidth * scaleX;
+        var drawHeight = this.imgHeight * scaleY;
+        var ctx=mps.canvasContext;
+        if (ctx) {
+			ctx.globalAlpha = alpha / 100;
+          	ctx.translate(xCenterOffset,yCenterOffset);
+            ctx.rotate(this.rotation * (Math.PI/180));
+          	ctx.translate(-(drawWidth / 2), -(drawHeight / 2));
+            ctx.drawImage(this.img, 0, 0, drawWidth, drawHeight);
+            ctx.translate((drawWidth / 2), (drawHeight / 2));
+           	ctx.rotate(-(this.rotation * (Math.PI / 180)));
+            ctx.translate(-xCenterOffset,-yCenterOffset);
+            ctx.globalAlpha=1;
+        }                  
+    };
+} 																			// Closure for map image
+    
+MapScholar.prototype.CreateCanvasLayer=function()						// CREATE CANVAS LAYER 
+{        
+    this.canvasLayer=new ol.layer.Image( {									// Make new image layer
+        source: new ol.source.ImageCanvas( {								// Add canvas sourcw
+            canvasFunction: function(extent, res, pixelRatio, size, proj) { // Render function
+				if (!mps.canvasCanvas) 										// If no canvas yet
+			        mps.canvasCanvas=document.createElement('canvas');		// Alloc canvas
+		       	mps.canvasWidth=size[0];									// Get width
+			    mps.canvasHeight=size[1];									// Hgt
+		    	mps.canvasCanvas.setAttribute('width',size[0]);				// Set canvas width
+			    mps.canvasCanvas.setAttribute('height',size[1]);			// Hgt
+	    		mps.canvasContext=mps.canvasCanvas.getContext('2d');		// Get context
+           		mps.canvasExtent=extent;									// Set extent
+		        mps.canvasRes=res;											// Set res
+				mps.DrawMapImages();										// Make images
+	        	return mps.canvasCanvas 									// Return canvas reference
+	            }, 
+	        projection: this.curProjection									// Projection
+	        })
+	    });
+    map.addLayer(this.canvasLayer);											// Add layer to map
+}
+    
+MapScholar.prototype.DrawMapImages=function()							// DRAW OL MAPS
+{
+	var i,m;
+	if (this.canvasContext && mps.mobs) {        
+		this.canvasContext.clearRect(0,0,this.canvasWidth,this.canvasHeight);
+   		for (i=0;i<mps.mobs.length;i++) {
+            m=this.mobs[i];
+            if (m.type != "map" || this.sh.mobVis[i] == 0)
+                continue;
+            m.mapImage.drawImage(this.sh.mobVis[i]);      
+            }
+        }
+ }
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// GEO REFERENCE
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
+{
+	var o=this.geoRef={};													// Holds params												
+	if (num == undefined)													// If mob num not spec'd
+		num=mps.sh.curMob;													// Use current one
+	else																	// Use designated one
+		this.sh.HighlightMob(num,false,true);								// Highlight mob
+	var mob=this.mobs[num];													// Get mob
+	if (!mob.north) {														// If no coords yet
+		var nw=map.getCoordinateFromPixel([250,150]);						// NW corner
+		var se=map.getCoordinateFromPixel([650,450]);						// SE corner
+		nw=ol.proj.transform(nw,mps.curProjection,"EPSG:4326"); 			// Project coord
+		se=ol.proj.transform(se,mps.curProjection,"EPSG:4326"); 			// Project 
+		mob.north=nw[1];													// Set N
+		mob.south=se[1];													// Set S
+		mob.east=se[0];														// Set E
+		mob.west=nw[0];														// Set W
+		mps.MakeMapImage(mob);												// Reset map image
+		mps.DrawMapImages();												// Draw map images
+		}
+	o.asp=(mob.north-mob.south)/(mob.east-mob.west);						// Calc image asp
+	SetControlDots(true);													// Starter dots
+
+	var str="<br> &nbsp; &nbsp; Rotation &nbsp;&nbsp; <span id='geoRot1' style='width:360px;display:inline-block'></span>&nbsp;&nbsp;";
+	str+="Fine rotation &nbsp;&nbsp; <span id='geoRot2' style='width:200px;display:inline-block'></span>";
+	str+=" &nbsp; &nbsp; Value &nbsp; <input type='text' class='is' id='geoRot3' style='font-size:10px;width:60px;display:inline-block;border-radius:10px;text-align:center'>";
+	$("#controlBarDiv").html(str)										// Add to DOM
+
+	var ops={ min:0, max:360, value:Math.floor(mob.rotation), slide:function(event,ui) {	// Gross slider options
+		mob.rotation=ui.value;											// Set degrees
+		$("#geoRot2").slider("value",0);								// Reset fine
+		$("#geoRot3").val(mob.rotation);								// Init text input
+		ReDrawImage();													// Redraw image
+		}};
+	$("#geoRot1").slider(ops);											// Init gross slider
+
+	var ops={ min:0, max:1, step:0.001, value:mob.rotation-Math.floor(mob.rotation), slide:function(event,ui) {	// Gross slider options
+		mob.rotation=$("#geoRot1").slider("value")+ui.value;			// Set degrees
+		$("#geoRot3").val(mob.rotation);								// Init text input
+		ReDrawImage();													// Redraw image
+		}};
+
+	$("#geoRot2").slider(ops);											// Init fine slider
+	$("#geoRot3").val(mob.rotation);									// Init text input
+	$("#geoRot3").on("change", function(e) {							// On typed value
+		mob.rotation=Math.min($("#geoRot3").val(),360);					// Set degrees		
+		$("#geoRot1").slider("value",Math.floor(mob.rotation));			// Set gross
+		$("#geoRot2").slider("value",mob.rotation-Math.floor(mob.rotation)); // Set fine
+		ReDrawImage();													// Redraw image
+		});
+
+	shivaLib.map.on('pointerup',function(e) {							// ON MOUSE UP
+		if (mps.geoRef) 												// If geo referencing
+			ReDrawImage();												// Redraw image
+			});															 
+
+	function ReDrawImage()
+	{
+		mps.MakeMapImage(mob);											// Reset map image
+		mps.DrawMapImages();											// Draw map images
+		SetControlDots(true);											// Reset control dots
+		var str=mob.north+"|"+mob.south+"|"+mob.west+"|"+mob.east+"|"+mob.rotation;
+		SendShivaMessage("MapScholar=rectify",str);						// Send rectify position to mapedit
+	}
+	
+	shivaLib.map.on('pointerdrag',function(e) {							// ON MOUSE DRAG
+		if (mps.geoRef) {												// If geo referencing
+			var id;
+			var shift=ol.events.condition.shiftKeyOnly(e);					// Shift key status
+			var p=ol.proj.transform(e.coordinate,mps.curProjection,"EPSG:4326"); // Project cur coord
+			map.forEachFeatureAtPixel(e.pixel,function(f) {					// Look at features
+				id=f.getId();												// Get id of feature
+				if (id == "georef0") {										// Move all dots
+					var w=(mob.east-mob.west)/2;							// Get width
+					var h=(mob.north-mob.south)/2;							// Get width
+					mob.west=p[0]-w;										// Set W
+					mob.east=p[0]+w;										// Set E
+					mob.north=p[1]+h;										// Set N
+					mob.south=p[1]-h;										// Set S
+					}
+				else if (id == "georef1") {									// NW
+					mob.west=p[0];											// Set W
+					mob.north=((mob.east-mob.west)*o.asp)+(mob.south-0);	// Set N
+					if (shift)												// If shift key											
+						mob.north=p[1];										// Distort aspect
+					}
+				else if (id == "georef2") {									// NE
+					mob.east=p[0];											// Set E
+					mob.north=((mob.east-mob.west)*o.asp)+(mob.south-0);	// Set N
+					if (shift)												// If shift key											
+						mob.north=p[1];										// Distort aspect
+					}
+				else if (id == "georef3") {									// SE
+					mob.east=p[0];											// Set E
+					mob.south=mob.north-((mob.east-mob.west)*o.asp);		// Set S
+					if (shift)												// If shift key											
+						mob.south=p[1];										// Distort aspect
+					}
+				else if (id == "georef4") {									// SW
+					mob.west=p[0];											// Set W
+					mob.south=mob.north-((mob.east-mob.west)*o.asp);		// Set S
+					if (shift)												// If shift key											
+						mob.south=p[1];										// Distort aspect
+					}
+				});															// Each feature
+			}
+		});															 
+	
+	}
+	
+	function SetControlDots(init)										// SET GEO REFEENCE CONTROL DOTS
+	{
+		var i,p=[];
+		if (mps.sh.curMob == -1)											// If no mob selected
+			return;															// Quit
+		var o=mps.geoRef;													// Point at georef data
+		
+		if (o.modify)														// If interaction initted													
+			map.removeInteraction(o.modify);								// Remove it
+		map.addInteraction( o.modify=new ol.interaction.Modify({			// Add modify interaction
+ 						features: mps.drawLayer.getFeatures()				// Point at features
+						})
+			);
+
+		var mob=mps.mobs[mps.sh.curMob];									// Get mob	
+		if (mob.type != "map")												// If not a map
+			return;															// Quit
+		if (init) {															// If initting
+			o.pts=[{},{},{},{},{}];											// Holds dots
+			mps.drawLayer.getFeatures().clear();							// Clear existing points
+			var sty=new ol.style.Style({									// Create  dot style
+		     	image: new ol.style.Circle({								// Circle
+		     		radius:8,												// Size
+					fill: new ol.style.Fill({								// Fill						
+						color: "rgba(230,120,30,0.7)"	     				// Orange
+		   				})
+			   		})
+				})
+			}
+		
+		o.pts[0].x=mob.west+(mob.east-mob.west)/2;							// CX
+		o.pts[0].y=mob.south+(mob.north-mob.south)/2;						// CY
+		o.pts[1].x=mob.west-0;	o.pts[1].y=mob.north-0;						// NW
+		o.pts[2].x=mob.east-0;	o.pts[2].y=mob.north-0;						// NE
+		o.pts[3].x=mob.east-0;	o.pts[3].y=mob.south-0;						// SE
+		o.pts[4].x=mob.west-0;	o.pts[4].y=mob.south-0;						// SW
+				
+		var ar=mob.rotation*Math.PI/180.0;									// Angle to radians
+		var sin=Math.sin(ar);												// Get sine
+		var cos=Math.cos(ar);												// Get cosine
+		var cx=o.pts[0].x;													// Center x
+		var cy=o.pts[0].y;													// Center x
+
+		for (i=0;i<5;++i) {													// For each dot
+ 			p[0]=cx+(o.pts[i].x-cx)*cos-(cy-o.pts[i].y)*sin;				// Rotate x
+			p[1]=cy+(o.pts[i].x-cx)*sin+(cy-o.pts[i].y)*cos;				// Rotate y
+		   	p=ol.proj.transform(p,"EPSG:4326",mps.curProjection);			// Project
+  			if (init) {														// If initting dots
+				o.pts[i].f=new ol.Feature(new ol.geom.Point(p));			// Add feature
+				o.pts[i].f.setId("georef"+i);								// Add id
+				o.pts[i].f.setStyle(sty);									// Set feature
+				mps.drawLayer.addFeature(o.pts[i].f);						// Add feature to layer
+				}
+			else															// Just moving them
+				o.pts[i].f.getGeometry().setCoordinates(p);					// Set geometry
+			}
+	}
+	
 </script>
 </body>
 </html>

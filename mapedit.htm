@@ -53,7 +53,7 @@
 						}
 		.is {			border-radius:10px;padding-left:8px;padding-right:8px;padding-top:1px;
 						border:1px solid #999;font-size:12px;height:16px;width:200px;
-						]
+						}
 
  	</style>
 </head>
@@ -599,7 +599,7 @@
   	 	str+="<td> Long: </td><td><input id='gotolon' class='is' style='width:100px'></td>";
   	 	str+="<td> Range: </td><td><input id='gotohgt' class='is' style='width:100px'></tr>";
     	str+="<tr><td>Tilt: </td><td><input id='gototlt' class='is' style='width:100px'>";
-  	 	str+="<td> Head: </td><td><input id='gotohdg' class='is' style='width:100px'></td>";
+  	 	str+="<td> Rotate: </td><td><input id='gotohdg' class='is' style='width:100px'></td>";
   	 	str+="<td> Speed: </td><td><input id='gotospd' class='is' style='width:100px'></tr>";
  		str+="</table>";		
 		str+="<br><b>How to set a goto position:</b><br><br>Position the earth on the left where you want to go to. Click on the <i>OK</i> button to save, or the <i>Remove goto button</i> to remove the goto entirely. You can also use the MapScholar shelf items or the <i>Find</i> option to navigate. You can change the default speed of the move by entering a value in the speed box. The speed is from 0 (forever) to 5 (instantly) and is optional. The default is 1, which takes approximately 2 seconds. " 
@@ -756,7 +756,8 @@
 				str+=($("#south").val() ? $("#south").val() : "") +"|";			// Send S
 				str+=($("#east").val()  ? $("#east").val()  : "") +"|";			// Send E
 				str+=($("#west").val()  ? $("#west").val()  : "") +"|";			// Send W
-				str+=($("#rotation").val() != undefined ? $("#rotation").val() : ""); // Send R
+				str+=($("#rotation").val() != undefined ? $("#rotation").val() : "") +"|"; // Send R
+				str+=id;														// Add id
 				SendShivaMessage("MapEdit=rectify",str);						// Send to show player	   		
 				});				
 
