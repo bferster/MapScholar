@@ -278,14 +278,16 @@ function MapScholar(mapMode)											// CONSTRUCTOR
  						}).extend([ new ol.control.ScaleLine() ]),			// Add scale
 		        view: new ol.View({											// Views
 		          		center: ol.proj.transform( [-50,50],'EPSG:4326',this.curProjection),
-		          		zoom: 6 }),
+		          		zoom: 6,
+						minZoom: 2,
+						maxZoom: 16}),
  				});
   
-			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); 	// Create box layer
+			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326', minResolution: 200}) }); 	// Create box layer
 			map.addLayer(this.boxLayer);									// Add to map	
 			
          	this.CreateCanvasLayer();										//!**
-			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); 	// Create box layer
+			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326', minResolution: 200}) }); 	// Create box layer
 			map.addLayer(this.boxLayer);									// Add to map	
 	
 			this.drawLayer=new ol.FeatureOverlay({ source: new ol.source.Vector() } );	// Feature overlay
