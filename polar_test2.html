@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="http://openlayers.org/en/v3.0.0/css/ol.css" type="text/css">
+    <style>
+        .map {
+            height: 900px;
+            width: 100%;
+        }
+    </style>
+    <script src="http://openlayers.org/en/v3.0.0/build/ol.js" type="text/javascript"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/proj4js/2.2.1/proj4.js" type="text/javascript"></script>
+    <title>OpenLayers 3 example</title>
+</head>
+<body>
+<h2>My Map</h2>
+<div id="map" class="map"></div>
+<script type="text/javascript">
+
+    proj4.defs('EPSG:3574', '+proj=laea +lat_0=90 +lon_0=-40 +ellps=WGS84 +datum=WGS84 +units=m +no_defs');
+
+    var polarProjection = ol.proj.get('EPSG:3574');
+    polarProjection.setExtent([-9036842.762,-9036842.762, 9036842.762, 9036842.762]);
+    polarProjection.setWorldExtent([-180.0, 0.0, 180.0, 90.0]);
+
+    var map = new ol.Map({
+        keyboardEventTarget: document,
+        layers: [
+            new ol.layer.Vector({
+                source: new ol.source.GeoJSON({
+                    projection: polarProjection,
+                    url: 'data/countries-110m.geojson'
+                })
+            })
+        ],
+        renderer: 'canvas',
+        target: 'map',
+        view: new ol.View({
+            center: [0, 0],
+            projection: polarProjection,
+            resolutions: [65536, 32768, 16384, 8192, 4096, 2048],
+            zoom: 0
+        })
+    });
+
+
+</script>
+</body>
+</html>
