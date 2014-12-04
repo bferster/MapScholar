@@ -59,8 +59,8 @@
 			var s=regex.exec(url);											// Get mob id, if one
 			if (s) 															// If there was one
 				mps.sh.curMob=s[1];											// Set mob
-			url=url.replace(/&ol=./i,"");									// Remove tag	
-			url=url.replace(/\\?ol=./i,"");									// Remove tag	
+			url=url.replace(/&ge=./i,"");									// Remove tag	
+			url=url.replace(/\\?ge=./i,"");									// Remove tag	
 			}
 		if (!url)															// Nothing on query line
 			url="https://docs.google.com/spreadsheet/pub?key=0AohdE1_3ZElJdDhIbTRVRkhHSWNBWUUtYS1rZmJoSEE";
@@ -90,8 +90,8 @@
 		
      $(document).ready(function() {										// ON JQUERY LOADED
 		var url=window.location.search.substring(1);						// Get query string
-		if (url && url.match(/ol=/))										// If tagged
-			mapMode="ol";													// Force mode
+		if (url && url.match(/ge=/))										// If tagged
+			mapMode="ge";													// Force mode
 		mps=new MapScholar(mapMode);										// Main object
 		if (window.addEventListener) 										// WC3	
 			window.addEventListener("message",shivaEventHandler,false);		// Add listener	
