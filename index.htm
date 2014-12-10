@@ -59,8 +59,8 @@
 			var s=regex.exec(url);											// Get mob id, if one
 			if (s) 															// If there was one
 				mps.sh.curMob=s[1];											// Set mob
-			url=url.replace(/&ol=./i,"");									// Remove tag	
-			url=url.replace(/\\?ol=./i,"");									// Remove tag	
+			url=url.replace(/&ge=./i,"");									// Remove tag	
+			url=url.replace(/\\?ge=./i,"");									// Remove tag	
 			}
 		if (!url)															// Nothing on query line
 			url="https://docs.google.com/spreadsheet/pub?key=0AohdE1_3ZElJdDhIbTRVRkhHSWNBWUUtYS1rZmJoSEE";
@@ -90,8 +90,8 @@
 		
      $(document).ready(function() {										// ON JQUERY LOADED
 		var url=window.location.search.substring(1);						// Get query string
-		if (url && url.match(/ol=/))										// If tagged
-			mapMode="ol";													// Force mode
+		if (url && url.match(/ge=/))										// If tagged
+			mapMode="ge";													// Force mode
 		mps=new MapScholar(mapMode);										// Main object
 		if (window.addEventListener) 										// WC3	
 			window.addEventListener("message",shivaEventHandler,false);		// Add listener	
@@ -117,6 +117,8 @@
 			if (mps.geoRef.modify)											// If interaction initted													
 				map.removeInteraction(mps.geoRef.modify);					// Remove it
 			mps.drawLayer.getFeatures().clear();							// Clear existing points
+			m.unByKey(mps.geoRef.pDrag)										// Remove drag handler
+			m.unByKey(mps.geoRef.pUp)										// Remove mouse up handler
 			mps.geoRef=null;												// Clear flag
 			}
 		mps.InitProject("",data);											// Init project
@@ -158,6 +160,8 @@
 					if (mps.geoRef.modify)									// If interaction initted													
 						map.removeInteraction(mps.geoRef.modify);			// Remove it
 					mps.drawLayer.getFeatures().clear();					// Clear existing points
+					map.unByKey(mps.geoRef.pDrag)							// Remove drag handler
+					map.unByKey(mps.geoRef.pUp)								// Remove mouse up handler
 					mps.geoRef=null;										// Clear flag
 					}
 				Sound("ding");												// Ding
@@ -1093,7 +1097,7 @@ MapScholar.prototype.ShowLink=function(num, mode)						// HIDE/SHOW LINK
 				default:	l=0;	t=0;	w=894;		h=594;		break;	// Full
 				}
 			}
-		shivaLib.ShowIframe((l+20-0),(t+20-0),w-0,h-0,m.url,"iframe-"+num);	// Show iframe
+		shivaLib.ShowIframe((l+20-0),(t+20-0),w-0,h-0,m.url,"iframe-"+num,"transparent");	// Show iframe
 		}
 	else
 		shivaLib.ShowIframe(0,0,0,0,"","iframe-"+num);						// Hide iframe
@@ -1298,6 +1302,10 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 		if (o.settings.match(/boxes/)) {									// boxes tag
 			mps.showBoxes=(o.settings.match(/boxes *on/i)) ? "on" : "off"	// Set flag
 			mps.ShowMapBoxes(-1,mps.showBoxes);								// Show boxes?
+			}
+		if (m=o.settings.match(/base.?(\S+)\s*/)) {							// Base tag
+			mps.baseLayer=m[1];												// Set it
+			mps.ShowMapLayers(mps.baseLayer);								// Show layer
 			}
 	}
 
@@ -1506,7 +1514,7 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 		    })); 
 		    })
 		    },
-	 		select: function(event, ui) { mps.Goto(ui.item.latitude+","+ui.item.longitude); }
+	 		select: function(event, ui) { mps.Goto(ui.item.latitude+","+ui.item.longitude+",100000,0,0"); }
     });
 }
 
@@ -2128,12 +2136,12 @@ MapScholar_Shelf.prototype.Play=function(again, chapter)				// PLAY
 
 	function RangeToResolution(range, width)							// GOOGLE EARTH RANGLE TO OPENLAYERS RESOLUTION
 	{
-		return((Math.tan(60*(Math.PI/360))*range*2)/(width));				// Code from Shane Lin 
+		return((Math.tan(66*(Math.PI/360))*range*2)/(width));				// Code from Shane Lin 
 	}
 
 	function ResolutionToRange(resolution, width)						// OPENLAYERS RESOLUTION TO GOOGLE EARTH RANGLE
 	{
-		return((resolution*(width))/(2*Math.tan(60*(Math.PI/360))));		// Code from Shane Lin 
+		return((resolution*(width))/(2*Math.tan(66*(Math.PI/360))));		// Code from Shane Lin 
 	}
 	
 MapScholar.prototype.MakeMapImage=function(mob) 						// ADD MAP IMAGE TO PROJECT
@@ -2220,16 +2228,17 @@ MapScholar.prototype.CreateCanvasLayer=function()						// CREATE CANVAS LAYER
 MapScholar.prototype.DrawMapImages=function()							// DRAW OL MAPS
 {
 	var i,m;
-	if (this.canvasContext && mps.mobs) {        
-		this.canvasContext.clearRect(0,0,this.canvasWidth,this.canvasHeight);
-   		for (i=0;i<mps.mobs.length;i++) {
-            m=this.mobs[i];
-            if (m.type != "map" || this.sh.mobVis[i] == 0)
-                continue;
-            m.mapImage.drawImage(this.sh.mobVis[i]);      
+	if (this.canvasContext && mps.mobs) {  									// If a canvas up      
+		this.canvasContext.clearRect(0,0,this.canvasWidth,this.canvasHeight);	// Clear canvas
+   		for (i=0;i<mps.mobs.length;i++) {									// For each mob
+            m=this.mobs[i];													// Get ptr
+            if (m.type != "map" || this.sh.mobVis[i] == 0)					// If not a visible map
+                continue;													// Skip it
+            if (m.mapImage)													// If an image alloc'd
+           		m.mapImage.drawImage(this.sh.mobVis[i]);   					// Draw it   
             }
         }
- }
+}
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2288,12 +2297,7 @@ MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 		ReDrawImage();													// Redraw image
 		});
 
-	shivaLib.map.on('pointerup',function(e) {							// ON MOUSE UP
-		if (mps.geoRef) 												// If geo referencing
-			ReDrawImage();												// Redraw image
-			});															 
-
-	function ReDrawImage()
+	function ReDrawImage()											// REDRAW MAP
 	{
 		mps.MakeMapImage(mob);											// Reset map image
 		mps.DrawMapImages();											// Draw map images
@@ -2301,9 +2305,14 @@ MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 		var str=mob.north+"|"+mob.south+"|"+mob.west+"|"+mob.east+"|"+mob.rotation;
 		SendShivaMessage("MapScholar=rectify",str);						// Send rectify position to mapedit
 	}
-	
-	shivaLib.map.on('pointerdrag',function(e) {							// ON MOUSE DRAG
-		if (mps.geoRef) {												// If geo referencing
+
+	o.pUp=shivaLib.map.on('pointerup',function(e) {						// ON MOUSE UP
+		if (mps.geoRef) 												// If geo referencing
+			ReDrawImage();												// Redraw image
+			});															 
+
+	o.pDrag=shivaLib.map.on('pointerdrag',function(e) {						// ON MOUSE DRAG
+		if (mps.geoRef) {													// If geo referencing
 			var id;
 			var shift=ol.events.condition.shiftKeyOnly(e);					// Shift key status
 			var p=ol.proj.transform(e.coordinate,mps.curProjection,"EPSG:4326"); // Project cur coord
