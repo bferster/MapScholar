@@ -282,7 +282,7 @@ function MapScholar(mapMode)											// CONSTRUCTOR
  						}).extend([ new ol.control.ScaleLine() ]),			// Add scale
 		        view: new ol.View({											// Views
 		          		center: ol.proj.transform( [-50,50],'EPSG:4326',this.curProjection),
-		          		zoom: 6 }),
+		          		minZoom: 2, maxZoom: 16, zoom: 6 }),
  				});
   
 			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); 	// Create box layer
@@ -328,7 +328,7 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 
 MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT 
 {
-	var i,o;
+	var i,o,m;
 	this.mobs=new Array();													// Holds map objects data
 	if (data) {																// If loading from data
 		for (i=0;i<data.length;++i) { 										// For each row
@@ -359,6 +359,10 @@ MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT
 			if (o.status.match(/scale/i)) {									// If set on on
 				mps.showScale=true;											// Set var
 				mps.ShowMapScale(mps.showScale);							// Show scale
+				}
+			if (m=o.status.match(/base.?(\S+)\s*/)) {						// Base tag
+				mps.baseLayer=m[1];											// Set it
+				mps.ShowMapLayers(mps.baseLayer);							// Show layer
 				}
 			}
 		mps.sh.HighlightMob(o.type == "startup" ? 1 : 0,false,true);		// Show first content mob
@@ -928,10 +932,10 @@ MapScholar.prototype.Goto=function(pos)									// SET EARTH VIEWPOINT
 		var fc=o.getCenter();												// Get from center
 		var fr=o.getRotation();												// Get from rotation		
 		var fs=o.getResolution();											// Get from resolution
-		var r=v[4]*Math.PI/180;												// Get to rotation	
+		var r=-v[4]*Math.PI/180;											// Get to rotation	
 		v[2]=RangeToResolution(v[2],900);									// Get to resolution
 		if (v[4] != undefined)												// If defined
-			o.setRotation(v[4]*Math.PI/180);								// Set rotation
+			o.setRotation(-v[4]*Math.PI/180);								// Set rotation
 		if ((Math.abs(fc[0]-c[0]) < 2) && (Math.abs(fc[1]-c[1]) < 2)		// Center match
 				&& (Math.abs(fs-v[2]) < 2) && (Math.abs(fs-v[2]) < 2)		// Resolution  match
 				&& (Math.abs(fr-r) < 1) && (Math.abs(fr-r) < 1)				// Rotation  match
@@ -2135,12 +2139,12 @@ MapScholar_Shelf.prototype.Play=function(again, chapter)				// PLAY
 
 	function RangeToResolution(range, width)							// GOOGLE EARTH RANGLE TO OPENLAYERS RESOLUTION
 	{
-		return((Math.tan(66*(Math.PI/360))*range*2)/(width));				// Code from Shane Lin 
+		return((Math.tan(75*(Math.PI/360))*range*2)/(width));				// Code from Shane Lin 
 	}
 
 	function ResolutionToRange(resolution, width)						// OPENLAYERS RESOLUTION TO GOOGLE EARTH RANGLE
 	{
-		return((resolution*(width))/(2*Math.tan(66*(Math.PI/360))));		// Code from Shane Lin 
+		return((resolution*(width))/(2*Math.tan(75*(Math.PI/360))));		// Code from Shane Lin 
 	}
 	
 MapScholar.prototype.MakeMapImage=function(mob) 						// ADD MAP IMAGE TO PROJECT
