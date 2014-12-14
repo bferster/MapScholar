@@ -36,13 +36,13 @@
 <body>
 		<div id="containerDiv" style="position:absolute;width:900px;height:600px;left:20px;top:20px;"></div>
 		<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> 
-			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>11/18/14</p>
+			<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>12/10/14</p>
 			</div>
 		<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
 		<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
 			<div id="infoPanelText" style="position:absolute;height:582px;left:0px;top:0px;padding:8px;background-color:#fafafa;overflow-x:hidden;overflow-y:auto;border-top:1px solid #ccc;border-right:2px solid #ccc;"> </div> 
 		</div>
-
+		<div id="info" class="map" style='position:absolute;height:1px;width:1px;z-index:100;'></div></div>
  <script>
 
 	var mps=null;
@@ -322,9 +322,37 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 	   					}													// End feature w/ id
 			   		})														// End each feature											
 				});															// End click
+			
+			$('#info').tooltip({ animation: false,  trigger: 'manual' });	// Set info box
+
+
+			$(map.getViewport()).on('mousemove', function(evt) {
+//  				displayFeatureInfo(map.getEventPixel(evt.originalEvent));
+				});
+
 	 		ShivaPostInit();
 	 		}	
 }	
+
+
+			var displayFeatureInfo = function(pixel) {
+			  var info=$('#info');
+			  info.css({
+			    left: pixel[0] + 'px',
+			    top: (pixel[1] - 15) + 'px'
+			  });
+			  var feature = map.forEachFeatureAtPixel(pixel, function(feature, layer) {
+			    return feature;
+			  });
+			  if (feature) {
+			    info.tooltip('hide')
+			        .attr('data-original-title', feature.get('name'))
+			        .tooltip('fixTitle')
+			        .tooltip('show');
+			  } else {
+			    info.tooltip('hide');
+			  }
+			};
 
 MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT 
 {
@@ -2415,6 +2443,7 @@ MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 			else															// Just moving them
 				o.pts[i].f.getGeometry().setCoordinates(p);					// Set geometry
 			}
+		o.pts[0].f.set("name","Move whole map");							// Add name
 	}
 	
 </script>
