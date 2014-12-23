@@ -122,7 +122,7 @@
 		if (url && url.match(/ge=/)) 											// If tagged to use Google Earth
 			$("#playerIF").prop("src","index.htm?ge=1");						// Reset to GE map
 		else if (url && url.match(/ol=/)) 										// If tagged to use Openlayers
-			$("#playerIF").prop("src","index.htm?ol=1");						// Reset to OL map
+			$("#playerIF").prop("src","oltest.htm");							// Reset to OL map
 		
 		var w=$(window).width();												// Get window width
 		if (w < playerWid+500)													// If too small
