@@ -37,27 +37,21 @@ MapScholar_Draw.prototype.InitGraphics=function(type)						// INIT GRAPHICS DRAW
 			 map.removeInteraction(this.modifyInter); 							// Remove it
 		if (this.drawInter)														// If defined
 			 map.removeInteraction(this.drawInter); 							// Remove it
-		if (this.selectInter)													// If defined
-			 map.removeInteraction(this.selectInter); 							// Remove it
 		}
-
-/*	if (type == "Select") {														// If not editing
-		map.addInteraction(this.selectInter=new ol.interaction.Select());		// Add select
-			this.selectInter.getFeatures().on('change:length', function(e) {	// On new point added
-				var i=mps.drawLayer.getFeatures().getArray().length;			// Get length of features already drawn
-				if (e.target.getArray().length !== 0) 							// If something there
-		       		e.target.item(0).once("change",function(e) { 				// On change 
-		      			mps.dr.curSketch=e.target; 								// Set sketch feature
-						mps.dr.curSketch.setId("dseg"+i);						// Set id
-		    			})
-				});
-		}
-*/
 	if (type == "Draw")	{														// If modifying
 		map.addInteraction( this.modifyInter=new ol.interaction.Modify({		// Add modify
 		 		features: mps.drawLayer.getFeatures(),							// Point at features
 		  		deleteCondition: function(e) {									// On delete
-					trace(e)
+					var id;
+					if (ol.events.condition.altKeyOnly(e) && ol.events.condition.singleClick(e)) {	// If alt-click
+						map.forEachFeatureAtPixel(e.pixel,function(f) {			// Look at features
+							id=f.getId();										// Get id
+							if (id && id.match(/SEG-/)) {						// If a drawn seg
+								Sound("delete");								// Delete sound
+								mps.drawLayer.removeFeature(f);					// Remove it
+								}
+							});
+						}
 					var state=(ol.events.condition.shiftKeyOnly(e) && ol.events.condition.singleClick(e));	// Shift-click
 					if (state)													// Deleting
 						Sound("delete");										// Delete sound
@@ -79,57 +73,59 @@ MapScholar_Draw.prototype.InitGraphics=function(type)						// INIT GRAPHICS DRAW
 	 			mps.dr.inOpenDraw=null;											// Kill flag
 				mps.dr.InitGraphics("Draw");									// Reset drawing system
 	 			$("#annType").val("Draw");										// Set select
+				var f=mps.drawLayer.getFeatures().getArray();					// Get feature array
+	 			e.feature.setId("SEG-"+f.length);								// Set id
+	 			e.feature.setStyle(sty);										// Add style to last one added
 	 			});
  	 	}
 
-
 	var o=this.segs[0];
-	var r,g,b,a=o.vis/100;
-	if (o.col) {																// Get RGB
-		r=parseInt(o.col.substr(1,2),16);
-		g=parseInt(o.col.substr(3,2),16);
-		b=parseInt(o.col.substr(5,2),16);
-		}
-	sty=new ol.style.Style({									
-			fill: new ol.style.Fill({ color: 'rgba('+r+','+g+','+b+','+a+')' }),// Final fill
-			stroke: new ol.style.Stroke({ color: o.ecol, width:o.ewid-0 }),		// Final stroke
-			})
+	var sty=new ol.style.Style( {									
+			fill: 	new ol.style.Fill(	 { color: Hex2RGBAString(o.col,o.vis) } ),
+			stroke: new ol.style.Stroke( { color: Hex2RGBAString(o.ecol,o.vis), width:o.ewid-0 } )
+		});
 	mps.drawLayer.setStyle(sty); 
-	
-/*	$(document).on("keyup",function(e) { 										// HANDLE KEYS
-   		if (e.which == 8) {														// DEL key
-    		if (!mps.dr.curSketch)												// If not sketching
-    			return;															// Quit
- 			a=mps.dr.curSketch.getGeometry().getCoordinates();  				// Get ccords
-			if (a.length > 1) {													// If more than moveto point
-				a.pop();														// Remove it
-				Sound("delete");												// Delete
-				mps.dr.curSketch.getGeometry().setCoordinates(a,"XY");			// Reset coords
-				}
-   			}
-  	 })
- */
+
+	function Hex2RGBAString(col, alpha)
+	{	
+		var r=0,g=0,b=0,
+		alpha=alpha/100;
+		if (col) {																
+			r=parseInt(col.substr(1,2),16);
+			g=parseInt(col.substr(3,2),16);
+			b=parseInt(col.substr(5,2),16);
+			}
+		return("rgba("+r+","+g+","+b+","+alpha+")");
+	}
  }
   
-/* 
- function SaveAsKML()													// SAVE LAYER AS KML
- {
-    var features=[];														// Hold features
-    var a=mps.drawLayer.getFeatures().getArray();							// Get features drawn
-    for (i=0;i<a.length;++i) {												// For each feature
-        var clone=a[i].clone();												// Clone feature
-        clone.setId("KF-"+i);  												// Set id
-       	clone.getGeometry().transform("EPSG:3857","EPSG:4326");				// Project
-        features.push(clone);												// Add to list
-      }
-     var node=new ol.format.KML().writeFeatures(features);					// Format as KML/XML
-     var str=new XMLSerializer().serializeToString((node));					// Serialize as string
+MapScholar_Draw.prototype.CreateOpenKML=function()							// SAVE LAYER AS KML
+{
+	var features=[];															// Hold features
+    var a=mps.drawLayer.getFeatures().getArray();								// Get features drawn
+    for (i=0;i<a.length;++i) {													// For each feature
+        var clone=a[i].clone();													// Clone feature
+        clone.setId("KF-"+i);  													// Set id
+       	clone.getGeometry().transform("EPSG:3857","EPSG:4326");					// Project
+        features.push(clone);													// Add to list
+    	}
+    var node=new ol.format.KML().writeFeatures(features);						// Format as KML/XML
+    var kml=new XMLSerializer().serializeToString((node));						// Serialize as string
+	return kml;																	// Return KML
 }
 
- function LoadKML()														// CONVERT KML TO LAYER
- {
- }
- */ 
+MapScholar_Draw.prototype.LoadOpenKML=function()							// LOAD KML TO LAYER 
+{
+/*	this.kmlLayers.push(new ol.layer.Vector({  source: new ol.source.KML({	// New layer
+			title: "LAYER-"+i,								// Set name
+   			projection: ol.proj.get(mps.curProjection),		// Set KML projection
+    		url:"proxy.php?url="+m.url,						// Proxied URL
+  			visible:false									// Hide it
+				  			})
+						}));
+*/
+}
+ 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // SCREENS 
@@ -217,6 +213,19 @@ MapScholar_Draw.prototype.DrawShelf=function()							// DRAW DRAWING SHELF
 		else
 			str+="<img src='img/unlockdot.png' style='position:absolute;left:200px;top:580px' title='Lock segment' id='annLock'>";		
 		}
+	if (mps.mm == "ol") {
+   		str="<div align='center'><img width='160' height='174' src='img/MapScholarLogo.png'/></div>";
+    	str+="<div id='contentShelf' style='width:200px;height:401px;background-color:#fff;border:1px solid #999;margin:6px;padding:8px' class='rounded-corners'>";
+		str+="<br/><div style='text-align:center'><b>Drawing</b></div><br/><table>";
+		str+="<tr><td>To add a new shape or line, choose a type of segment to draw from the Draw selector pulldown menu. Click on map to add new points. Click on the grey bar below to stop drawing."
+		str+="<br/><br/><div style='text-align:center'><b>To edit</b></div>";
+		str+="<br/>To edit an existing line or shape, click on a vertex to move, or add a new one by clicking between vertices and dragging.";
+		str+="<br/><br/>To remove a vertex from a line or shape, click on it with the SHIFT key down.";
+		str+="<br/><br/>To the whole line or shape, click one of its vertices with the ALT/OPTION key down.";
+		str+="<br/><br/><div style='text-align:center'><b>To save or load KML file</b></div>";
+		str+="<br/>Click on the Save/Load button and enter your email. To save, give the KML file a title and click the Save button.<br/><br/>To load, choose the KML line and click the Load button. To append to the segments already drawn or loaded, hold the CONTROL (Command on Mac)key and click the Load button.";
+		str+="</td></tr>"
+		}
 	$("#shelfDiv").html(str+"</table></div>");
 }
 
@@ -242,7 +251,7 @@ MapScholar_Draw.prototype.DrawControlBar=function(mode)						// DRAW MAP CONTROL
 			}
 		var str="<p>"
 		str+="&nbsp;&nbsp;<img width='18' height='18' src='img/globe.gif' style='vertical-align:bottom' title='Back to map' onclick='mps.dr.DrawControlBar(false)'>";		
-		str+="&nbsp;&nbsp;&nbsp;<select id='annType' style='font-size:x-small' onchange='mps.dr.AddNewSeg()'>";
+		str+="&nbsp;&nbsp;&nbsp;<select class='is' id='annType' style='font-size:10px;padding-left:4px' onchange='mps.dr.AddNewSeg()'>";
 		str+="<option>Draw</option>";		str+="<option>Line</option>";		str+="<option>Shape</option>";
 		if (mps.mm != "ol") {													// If GE
 			str+="<option>Box</option>";		str+="<option>Arrow</option>";		str+="<option>Circle</option>";	
@@ -251,23 +260,21 @@ MapScholar_Draw.prototype.DrawControlBar=function(mode)						// DRAW MAP CONTROL
 		str+="</select>&nbsp;&nbsp;"; 
 		if ((type != "Draw") || (mps.mm == "ol")) {								// If drawing/editng
 			if ((mps.mm == "ge") || (type != "Line"))							// Always in GE, only in Shape in OL
-				str+="Color&nbsp; <input type='text' size='1' style='font-size:x-small' id='annCol'/>&nbsp;&nbsp;&nbsp;";
-			str+="Edge&nbsp; <input type='text' size='1' style='font-size:x-small;text-align:center;border:1px solid #999' id='annEwid'/>";
-			str+="<input type='text' size='1' style='font-size:x-small' id='annEcol'/>&nbsp;&nbsp;&nbsp;";
+				str+="Color&nbsp; <input class='is'type='text' size='1' style='font-size:10px;' id='annCol'/>&nbsp;&nbsp;&nbsp;";
+			str+="Edge&nbsp; <input class='is' type='text' size='1' style='font-size:10px;text-align:center;border-top-right-radius:0px;border-bottom-right-radius:0px;' id='annEwid'/>";
+			str+="<input class='is' type='text' size='1' style='font-size:10px;border-top-left-radius:0px;border-bottom-left-radius:0px' id='annEcol'/>&nbsp;&nbsp;&nbsp;";
 			str+="Visibility&nbsp;&nbsp;<span id='annVis' style='width:100px;display:inline-block'></span>&nbsp;&nbsp;";
-			str+="<input type='text' style='font-size:x-small;width:30px;height:14px;vertical-align:bottom;border:none;background:none'; id='annVis2'/>";
+			str+="<input type='text' style='font-size:10px;width:30px;height:14px;vertical-align:bottom;border:none;background:none'; id='annVis2'/>";
 			}
 		if (this.undos.length)
 			str+="<img src='img/undodot.png' style='position:absolute;left:880px' title='Undo' id='annUndo'>";		
-		str+="<input type='button' value='Save/Load' size='1' style='position:absolute;left:980px;font-size:x-small' id='annSave'/>";
+		str+="<input class='is' type='button' value='Save/Load' size='1' style='position:absolute;left:980px;font-size:x-small' id='annSave'/>";
 		$("#controlBarDiv").html(str+"</p>")									// Add to DOM
 		$("#annCol").css("background-color",col);								// Set back to col
-		$("#annCol").css("border","1px solid "+col);							// Set border
 		if (!col)		$("#annCol").val("  no").css("color","#666");			// Add no
 		else			$("#annCol").val(col).css("color",col);					// Hide text
 		$("#annEwid").val(ewid);												// Set wid
 		$("#annEcol").css("background-color",ecol);								// Set back to col
-		$("#annEcol").css("border","1px solid "+ecol);							// Set border	
 		if (!ecol)		$("#annEcol").val("  no").css("color","#666");			// Add no
 		else			$("#annEcol").val(ecol).css("color",ecol);				// Hide text
 		$("#annVis").val(vis);													// Show cur vis in range
@@ -396,6 +403,11 @@ MapScholar_Draw.prototype.DrawControlBar=function(mode)						// DRAW MAP CONTROL
 		});
 
 	$("#annSave").click(function(e){ 										// SAVE/LOAD
+		var kml;
+		if (mps.mm == "ge")														// If GE
+			kml=_this.CreateKML();												// Make KML from GE
+		else
+			kml=_this.CreateOpenKML();											// Make KML from OL
 		$.proxy(shivaLib.EasyFile(kml,_this.ParseKML,"KML"),shivaLib); 			// Run eStore
 		});
 
@@ -506,7 +518,7 @@ MapScholar_Draw.prototype.ColorPicker=function(which, x, y)					// COLOR PICKER
 	    var col=cols[Math.floor((e.pageX-this.offsetLeft)/15)];					// Set color
 		if (col) col="#"+col;													// Add #	
 		$("#ann"+which).css("background-color",col);							// Set interior
-		$("#ann"+which).css("border","1px solid "+col);							// Border
+//		$("#ann"+which).css("border","1px solid "+col);							// Border
 		if (!col)		$("#ann"+which).val("  no").css("color","#666");		// Add no
 		else			$("#ann"+which).val(col).css("color",col);				// Hide text
 		if (mps.dr.curSeg != -1) {												// If editing
