@@ -40,15 +40,16 @@ MapScholar_Draw.prototype.InitGraphics=function(type)						// INIT GRAPHICS DRAW
 		}
 	if (type == "Draw")	{														// If modifying
 		map.addInteraction( this.modifyInter=new ol.interaction.Modify({		// Add modify
-		 		features: mps.drawLayer.getFeatures(),							// Point at features
-		  		deleteCondition: function(e) {									// On delete
+				source: mps.drawingLayer.getSource(),							// Set source
+//		 		features: mps.drawingLayer.getFeatures(),						// Point at features
+			  	deleteCondition: function(e) {									// On delete
 					var id;
-					if (ol.events.condition.altKeyOnly(e) && ol.events.condition.singleClick(e)) {	// If alt-click
+				if (ol.events.condition.altKeyOnly(e) && ol.events.condition.singleClick(e)) {	// If alt-click
 						map.forEachFeatureAtPixel(e.pixel,function(f) {			// Look at features
 							id=f.getId();										// Get id
 							if (id && id.match(/SEG-/)) {						// If a drawn seg
 								Sound("delete");								// Delete sound
-								mps.drawLayer.removeFeature(f);					// Remove it
+								mps.drawingLayer.removeFeature(f);				// Remove it
 								}
 							});
 						}
@@ -63,19 +64,19 @@ MapScholar_Draw.prototype.InitGraphics=function(type)						// INIT GRAPHICS DRAW
 
 	if ((type  == "LineString") || (type  == "Polygon"))	{					// If drawing
 		map.addInteraction( this.drawInter=new ol.interaction.Draw({			// Add draw tool
-		 		features: mps.drawLayer.getFeatures(),							// Point at features
+				source: mps.drawingLayer.getSource(),							// Set source
+//		 		features: mps.drawingLayer.getFeatures(),						// Point at features
 				type: type })													// Set type of drawing
 				);
 		this.drawInter.on('drawstart', function(e) {							// ON START
 	  			mps.dr.inOpenDraw=e;											// Set flag
 	  			});
 		this.drawInter.on('drawend', function(e) {								// END
+	 			e.feature.setId("SEG-"+1);										// Set id
+	 			e.feature.setStyle(sty);										// Add style to last one added
 	 			mps.dr.inOpenDraw=null;											// Kill flag
 				mps.dr.InitGraphics("Draw");									// Reset drawing system
 	 			$("#annType").val("Draw");										// Set select
-				var f=mps.drawLayer.getFeatures().getArray();					// Get feature array
-	 			e.feature.setId("SEG-"+f.length);								// Set id
-	 			e.feature.setStyle(sty);										// Add style to last one added
 	 			});
  	 	}
 
