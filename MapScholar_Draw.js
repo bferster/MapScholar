@@ -25,11 +25,17 @@ function MapScholar_Draw()												// CONSTRUCTOR
 
 MapScholar_Draw.prototype.InitGraphics=function(type)						// INIT GRAPHICS DRAWING
 {
+	var _this=this;
 	var map=shivaLib.map;														// Point at map
 	if (this.inOpenDraw) {														// If sketching
  		mps.dr.drawInter.finishDrawing_();										// Close drawing
 		return;
 		}
+	if (!mps.drawingLayer) {
+		mps.drawingLayer=new ol.layer.Vector({ source: new ol.source.Vector() }); 	// Create box layer
+		map.addLayer(mps.drawingLayer);											// Add to map	
+		}
+	var drawLayer=mps.drawingLayer;												// Point at layer												
 	if (type == "Line")			type="LineString";								// Lines
 	else if (type == "Shape")	type="Polygon";									// Shapes
 	else {																		// Quit drawing
@@ -37,19 +43,23 @@ MapScholar_Draw.prototype.InitGraphics=function(type)						// INIT GRAPHICS DRAW
 			 map.removeInteraction(this.modifyInter); 							// Remove it
 		if (this.drawInter)														// If defined
 			 map.removeInteraction(this.drawInter); 							// Remove it
+		if (this.selectInter)													// If defined
+			 map.removeInteraction(this.selectInter); 							// Remove it
 		}
 	if (type == "Draw")	{														// If modifying
+
+		this.selectInter=new ol.interaction.Select();							// Creat selector
+
 		map.addInteraction( this.modifyInter=new ol.interaction.Modify({		// Add modify
-				source: mps.drawingLayer.getSource(),							// Set source
-//		 		features: mps.drawingLayer.getFeatures(),						// Point at features
+		 		features: _this.selectInter.getFeatures(),						// Point at features
 			  	deleteCondition: function(e) {									// On delete
 					var id;
-				if (ol.events.condition.altKeyOnly(e) && ol.events.condition.singleClick(e)) {	// If alt-click
+					if (ol.events.condition.altKeyOnly(e) && ol.events.condition.singleClick(e)) {	// If alt-click
 						map.forEachFeatureAtPixel(e.pixel,function(f) {			// Look at features
 							id=f.getId();										// Get id
 							if (id && id.match(/SEG-/)) {						// If a drawn seg
 								Sound("delete");								// Delete sound
-								mps.drawingLayer.removeFeature(f);				// Remove it
+								drawLayer.removeFeature(f);						// Remove it
 								}
 							});
 						}
@@ -64,15 +74,14 @@ MapScholar_Draw.prototype.InitGraphics=function(type)						// INIT GRAPHICS DRAW
 
 	if ((type  == "LineString") || (type  == "Polygon"))	{					// If drawing
 		map.addInteraction( this.drawInter=new ol.interaction.Draw({			// Add draw tool
-				source: mps.drawingLayer.getSource(),							// Set source
-//		 		features: mps.drawingLayer.getFeatures(),						// Point at features
+				source: drawLayer.getSource(),									// Set source
 				type: type })													// Set type of drawing
 				);
 		this.drawInter.on('drawstart', function(e) {							// ON START
 	  			mps.dr.inOpenDraw=e;											// Set flag
 	  			});
 		this.drawInter.on('drawend', function(e) {								// END
-	 			e.feature.setId("SEG-"+1);										// Set id
+	 			e.feature.setId("SEG-");										// Set id
 	 			e.feature.setStyle(sty);										// Add style to last one added
 	 			mps.dr.inOpenDraw=null;											// Kill flag
 				mps.dr.InitGraphics("Draw");									// Reset drawing system
@@ -85,7 +94,7 @@ MapScholar_Draw.prototype.InitGraphics=function(type)						// INIT GRAPHICS DRAW
 			fill: 	new ol.style.Fill(	 { color: Hex2RGBAString(o.col,o.vis) } ),
 			stroke: new ol.style.Stroke( { color: Hex2RGBAString(o.ecol,o.vis), width:o.ewid-0 } )
 		});
-	mps.drawLayer.setStyle(sty); 
+	drawLayer.setStyle(sty); 
 
 	function Hex2RGBAString(col, alpha)
 	{	
@@ -102,32 +111,34 @@ MapScholar_Draw.prototype.InitGraphics=function(type)						// INIT GRAPHICS DRAW
   
 MapScholar_Draw.prototype.CreateOpenKML=function()							// SAVE LAYER AS KML
 {
+	var i,f;
 	var features=[];															// Hold features
-    var a=mps.drawLayer.getFeatures().getArray();								// Get features drawn
+	this.InitGraphics("Draw");													// Init graphics mode
+ 	var a=mps.drawingLayer.getSource().getFeatures();							// Get features drawn
     for (i=0;i<a.length;++i) {													// For each feature
-        var clone=a[i].clone();													// Clone feature
-        clone.setId("KF-"+i);  													// Set id
-       	clone.getGeometry().transform("EPSG:3857","EPSG:4326");					// Project
-        features.push(clone);													// Add to list
+        f=a[i].clone();															// Clone feature
+        f.setId("KF-"+i);  														// Set id
+      	f.getGeometry().transform("EPSG:3857","EPSG:4326");						// Project
+        features.push(f);														// Add to list
     	}
     var node=new ol.format.KML().writeFeatures(features);						// Format as KML/XML
     var kml=new XMLSerializer().serializeToString((node));						// Serialize as string
 	return kml;																	// Return KML
 }
 
-MapScholar_Draw.prototype.LoadOpenKML=function()							// LOAD KML TO LAYER 
+MapScholar_Draw.prototype.LoadOpenKML=function(kmlData)						// LOAD KML TO LAYER 
 {
-/*	this.kmlLayers.push(new ol.layer.Vector({  source: new ol.source.KML({	// New layer
-			title: "LAYER-"+i,								// Set name
-   			projection: ol.proj.get(mps.curProjection),		// Set KML projection
-    		url:"proxy.php?url="+m.url,						// Proxied URL
-  			visible:false									// Hide it
-				  			})
-						}));
-*/
-}
+	var i,f;
+	this.InitGraphics("Draw");													// Init graphics mode
+    var fs=new ol.format.KML().readFeatures(kmlData);							// Read in features
+    for (i=0;i<fs.length;++i){													// For each feature
+        f=fs[i].clone();														// Clone feature
+      	f.getGeometry().transform("EPSG:4326","EPSG:3857");						// Project
+       	f.setId("SEG-"+i);  													// Set id
+		mps.drawingLayer.getSource().addFeature(f);								// Add to layer
+		}
+ }
  
-
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // SCREENS 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -405,11 +416,14 @@ MapScholar_Draw.prototype.DrawControlBar=function(mode)						// DRAW MAP CONTROL
 
 	$("#annSave").click(function(e){ 										// SAVE/LOAD
 		var kml;
-		if (mps.mm == "ge")														// If GE
+		if (mps.mm == "ge")	{													// If GE
 			kml=_this.CreateKML();												// Make KML from GE
-		else
+			$.proxy(shivaLib.EasyFile(kml,_this.ParseKML,"KML"),shivaLib); 		// Run eStore
+			}
+		else{
 			kml=_this.CreateOpenKML();											// Make KML from OL
-		$.proxy(shivaLib.EasyFile(kml,_this.ParseKML,"KML"),shivaLib); 			// Run eStore
+			$.proxy(shivaLib.EasyFile(kml,_this.LoadOpenKML,"KML"),shivaLib); 	// Run eStore
+			}
 		});
 
 	$("#annUndo").click(function(e){ 										// UNDO

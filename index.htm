@@ -296,9 +296,6 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 	
 			this.drawLayer=new ol.FeatureOverlay({ source: new ol.source.Vector() } );	// Feature overlay
 			this.drawLayer.setMap(map);										// Add to map
-
-			this.drawingLayer=new ol.layer.Vector({ source: new ol.source.Vector() }); 	// Create drawing layer
-			map.addLayer(this.drawingLayer);								// Add to map	
 									
 		   	for (i=0;i<this.layers.length;++i) 								// For each layer
 			    this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
