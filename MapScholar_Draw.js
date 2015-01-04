@@ -128,16 +128,35 @@ MapScholar_Draw.prototype.CreateOpenKML=function()							// SAVE LAYER AS KML
 
 MapScholar_Draw.prototype.LoadOpenKML=function(kmlData)						// LOAD KML TO LAYER 
 {
-	var i,f;
-	this.InitGraphics("Draw");													// Init graphics mode
-    var fs=new ol.format.KML().readFeatures(kmlData);							// Read in features
-    for (i=0;i<fs.length;++i){													// For each feature
-        f=fs[i].clone();														// Clone feature
-      	f.getGeometry().transform("EPSG:4326","EPSG:3857");						// Project
-       	f.setId("SEG-"+i);  													// Set id
-		mps.drawingLayer.getSource().addFeature(f);								// Add to layer
+    var i,f;
+	mps.dr.InitGraphics("Draw");												// Init graphics mode
+	if (kmlData.shivaId) {														// If from eStore
+		var s=new ol.source.KML( {												// Set KML source
+   			projection: ol.proj.get(mps.curProjection),							// Set projection
+	  	 	url:"proxy.php?url=http://primaryaccess.org/REST/getkml.php?id="+kmlData.shivaId	// Proxied URL
+    		});
+
+		var key=s.on('change', function() {										// When loaded
+	  		if (s.getState() == 'ready') {
+		   		s.unByKey(key);													// Kill listener
+	    		for (i=0;i<s.getFeatures().length;++i){							// For each feature
+	        		f=s.getFeatures()[i].clone();								// Clone feature
+	       			f.setId("SEG-"+i);  										// Set id
+					mps.drawingLayer.getSource().addFeature(f);					// Add to layer
+					}
+	 			 }
+			});
 		}
- }
+	else{
+	    var fs=new ol.format.KML().readFeatures(kmlData);						// Read in features
+	    for (i=0;i<fs.length;++i){												// For each feature
+	        f=fs[i].clone();													// Clone feature
+	      	f.getGeometry().transform("EPSG:4326","EPSG:3857");					// Project
+	       	f.setId("SEG-"+i);  												// Set id
+			mps.drawingLayer.getSource().addFeature(f);							// Add to layer
+			}
+		}
+  }
  
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // SCREENS 
@@ -1471,4 +1490,7 @@ MapScholar_Draw.prototype.Undo=function()									// PERFORM UNDO
 		_this.segs.push($.extend(true,{},s[i]));								// Deep copy 
 	_this.AddSegsToEarth();														// Add them back
 	return true;																// Return did undo
-}
+}
+
+
+
