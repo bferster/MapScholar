@@ -23,7 +23,7 @@ function MapScholar_Draw()												// CONSTRUCTOR
 // OL 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-MapScholar_Draw.prototype.InitGraphics=function(type)						// INIT GRAPHICS DRAWING
+MapScholar_Draw.prototype.InitOpenGraphics=function(type)					// INIT GRAPHICS DRAWING
 {
 	var _this=this;
 	var map=shivaLib.map;														// Point at map
@@ -31,25 +31,28 @@ MapScholar_Draw.prototype.InitGraphics=function(type)						// INIT GRAPHICS DRAW
  		mps.dr.drawInter.finishDrawing_();										// Close drawing
 		return;
 		}
+	if (this.modifyInter)														// If defined
+		 map.removeInteraction(this.modifyInter); 								// Remove it
+	if (this.drawInter)															// If defined
+		 map.removeInteraction(this.drawInter); 								// Remove it
+	if (this.selectInter)														// If defined
+		 map.removeInteraction(this.selectInter); 								// Remove it
+
+	if (type == "Line")			type="LineString";								// Lines
+	else if (type == "Shape")	type="Polygon";									// Shapes
+	else if (type == "done") {													// Done
+		if (mps.drawingLayer)													// If drawlayer alloc'd
+			map.removeLayer(mps.drawingLayer);									// Remove layer
+		mps.drawingLayer=null;													// Nullify pointer		
+		return;																	// Quit
+		}
 	if (!mps.drawingLayer) {
-		mps.drawingLayer=new ol.layer.Vector({ source: new ol.source.Vector() }); 	// Create box layer
+		mps.drawingLayer=new ol.layer.Vector({source: new ol.source.Vector()}); // Create box layer
 		map.addLayer(mps.drawingLayer);											// Add to map	
 		}
 	var drawLayer=mps.drawingLayer;												// Point at layer												
-	if (type == "Line")			type="LineString";								// Lines
-	else if (type == "Shape")	type="Polygon";									// Shapes
-	else {																		// Quit drawing
-		if (this.modifyInter)													// If defined
-			 map.removeInteraction(this.modifyInter); 							// Remove it
-		if (this.drawInter)														// If defined
-			 map.removeInteraction(this.drawInter); 							// Remove it
-		if (this.selectInter)													// If defined
-			 map.removeInteraction(this.selectInter); 							// Remove it
-		}
 	if (type == "Draw")	{														// If modifying
-
 		this.selectInter=new ol.interaction.Select();							// Creat selector
-
 		map.addInteraction( this.modifyInter=new ol.interaction.Modify({		// Add modify
 		 		features: _this.selectInter.getFeatures(),						// Point at features
 			  	deleteCondition: function(e) {									// On delete
@@ -66,13 +69,13 @@ MapScholar_Draw.prototype.InitGraphics=function(type)						// INIT GRAPHICS DRAW
 					var state=(ol.events.condition.shiftKeyOnly(e) && ol.events.condition.singleClick(e));	// Shift-click
 					if (state)													// Deleting
 						Sound("delete");										// Delete sound
-	  	    		return state;												// Retrun state
+	  	    		return state;												// Return state
 		  			}	
 				})
 			);
 		}
 
-	if ((type  == "LineString") || (type  == "Polygon"))	{					// If drawing
+	else if ((type  == "LineString") || (type  == "Polygon"))	{				// If drawing
 		map.addInteraction( this.drawInter=new ol.interaction.Draw({			// Add draw tool
 				source: drawLayer.getSource(),									// Set source
 				type: type })													// Set type of drawing
@@ -82,19 +85,17 @@ MapScholar_Draw.prototype.InitGraphics=function(type)						// INIT GRAPHICS DRAW
 	  			});
 		this.drawInter.on('drawend', function(e) {								// END
 	 			e.feature.setId("SEG-");										// Set id
+				var o=mps.dr.segs[0];											// Point at seg that holds color info
+				var sty=new ol.style.Style( {									// Alloc style								
+					fill: 	new ol.style.Fill(	 { color: Hex2RGBAString(o.col,o.vis) } ),					// Fill
+					stroke: new ol.style.Stroke( { color: Hex2RGBAString(o.ecol,o.vis), width:o.ewid-0 } )	// Edge
+					});
 	 			e.feature.setStyle(sty);										// Add style to last one added
 	 			mps.dr.inOpenDraw=null;											// Kill flag
-				mps.dr.InitGraphics("Draw");									// Reset drawing system
+				mps.dr.InitOpenGraphics("Draw");								// Reset drawing system
 	 			$("#annType").val("Draw");										// Set select
 	 			});
  	 	}
-
-	var o=this.segs[0];
-	var sty=new ol.style.Style( {									
-			fill: 	new ol.style.Fill(	 { color: Hex2RGBAString(o.col,o.vis) } ),
-			stroke: new ol.style.Stroke( { color: Hex2RGBAString(o.ecol,o.vis), width:o.ewid-0 } )
-		});
-	drawLayer.setStyle(sty); 
 
 	function Hex2RGBAString(col, alpha)
 	{	
@@ -113,7 +114,7 @@ MapScholar_Draw.prototype.CreateOpenKML=function()							// SAVE LAYER AS KML
 {
 	var i,f;
 	var features=[];															// Hold features
-	this.InitGraphics("Draw");													// Init graphics mode
+	this.InitOpenGraphics("Draw");												// Init graphics mode
  	var a=mps.drawingLayer.getSource().getFeatures();							// Get features drawn
     for (i=0;i<a.length;++i) {													// For each feature
         f=a[i].clone();															// Clone feature
@@ -129,7 +130,7 @@ MapScholar_Draw.prototype.CreateOpenKML=function()							// SAVE LAYER AS KML
 MapScholar_Draw.prototype.LoadOpenKML=function(kmlData)						// LOAD KML TO LAYER 
 {
     var i,f;
-	mps.dr.InitGraphics("Draw");												// Init graphics mode
+	mps.dr.InitOpenGraphics("Draw");											// Init graphics mode
 	if (kmlData.shivaId) {														// If from eStore
 		var s=new ol.source.KML( {												// Set KML source
    			projection: ol.proj.get(mps.curProjection),							// Set projection
@@ -297,7 +298,7 @@ MapScholar_Draw.prototype.DrawControlBar=function(mode)						// DRAW MAP CONTROL
 			str+="Visibility&nbsp;&nbsp;<span id='annVis' style='width:100px;display:inline-block'></span>&nbsp;&nbsp;";
 			str+="<input type='text' style='font-size:10px;width:30px;height:14px;vertical-align:bottom;border:none;background:none'; id='annVis2'/>";
 			}
-		if (this.undos.length)
+		if ((this.undos.length) && (mps.mm == "ge"))
 			str+="<img src='img/undodot.png' style='position:absolute;left:880px' title='Undo' id='annUndo'>";		
 		str+="<input class='is' type='button' value='Save/Load' size='1' style='position:absolute;left:980px;font-size:x-small' id='annSave'/>";
 		$("#controlBarDiv").html(str+"</p>")									// Add to DOM
@@ -327,6 +328,8 @@ MapScholar_Draw.prototype.DrawControlBar=function(mode)						// DRAW MAP CONTROL
 			this.curSeg=-1;														// Not editing
 			this.DrawMap();														// Draw map
 			}
+		else																	// OL
+			this.InitOpenGraphics("done");										// Remove OL graphica system
 		mps.sh.Draw();															// Draw main shelf
 		}
 	
@@ -460,7 +463,7 @@ MapScholar_Draw.prototype.AddNewSeg=function(defs)							// ADD NEW SEGMENT
 	var type=$("#annType").val();												// Get type
 	if (mps.mm == "ol")	{														// If OL
 		this.segs[0].type=type;													// Set type
-		this.InitGraphics(type);												// Init graphics mode
+		this.InitOpenGraphics(type);											// Init graphics mode
 		this.DrawControlBar(true);												// Draw control bar
 		$("#annType").val(type);												// Set select
 		return;																	// Quit
