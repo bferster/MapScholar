@@ -35,8 +35,6 @@ MapScholar_Draw.prototype.InitOpenGraphics=function(type)					// INIT GRAPHICS D
 		 map.removeInteraction(this.modifyInter); 								// Remove it
 	if (this.drawInter)															// If defined
 		 map.removeInteraction(this.drawInter); 								// Remove it
-	if (this.selectInter)														// If defined
-		 map.removeInteraction(this.selectInter); 								// Remove it
 
 	if (type == "Line")			type="LineString";								// Lines
 	else if (type == "Shape")	type="Polygon";									// Shapes
@@ -50,11 +48,9 @@ MapScholar_Draw.prototype.InitOpenGraphics=function(type)					// INIT GRAPHICS D
 		mps.drawingLayer=new ol.layer.Vector({source: new ol.source.Vector()}); // Create box layer
 		map.addLayer(mps.drawingLayer);											// Add to map	
 		}
-	var drawLayer=mps.drawingLayer;												// Point at layer												
 	if (type == "Draw")	{														// If modifying
-		this.selectInter=new ol.interaction.Select();							// Creat selector
 		map.addInteraction( this.modifyInter=new ol.interaction.Modify({		// Add modify
-		 		features: _this.selectInter.getFeatures(),						// Point at features
+		 		features: mps.featureSelect.getFeatures(),						// Point at features
 			  	deleteCondition: function(e) {									// On delete
 					var id;
 					if (ol.events.condition.altKeyOnly(e) && ol.events.condition.singleClick(e)) {	// If alt-click
@@ -62,7 +58,7 @@ MapScholar_Draw.prototype.InitOpenGraphics=function(type)					// INIT GRAPHICS D
 							id=f.getId();										// Get id
 							if (id && id.match(/SEG-/)) {						// If a drawn seg
 								Sound("delete");								// Delete sound
-								drawLayer.removeFeature(f);						// Remove it
+								mps.drawingLayer.getSource().removeFeature(f);	// Remove it
 								}
 							});
 						}
@@ -77,7 +73,7 @@ MapScholar_Draw.prototype.InitOpenGraphics=function(type)					// INIT GRAPHICS D
 
 	else if ((type  == "LineString") || (type  == "Polygon"))	{				// If drawing
 		map.addInteraction( this.drawInter=new ol.interaction.Draw({			// Add draw tool
-				source: drawLayer.getSource(),									// Set source
+				source: mps.drawingLayer.getSource(),							// Set source
 				type: type })													// Set type of drawing
 				);
 		this.drawInter.on('drawstart', function(e) {							// ON START

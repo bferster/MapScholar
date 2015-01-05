@@ -277,8 +277,11 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 					title: "Roadmap"										// Set name
  					}),
 			];
-	   
+	
+			this.featureSelect=new ol.interaction.Select();					// Create select interaction
+
 		    map=shivaLib.map=new ol.Map( { target: 'containerDiv',			// Alloc OL
+  				interactions: ol.interaction.defaults().extend([this.featureSelect]),	// Add feature select interaction
 		        layers:this.layers,											// Layers array									
 		        controls: ol.control.defaults({								// Controls
  						}).extend([ new ol.control.ScaleLine() ]),			// Add scale
@@ -290,7 +293,7 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); 	// Create box layer
 			map.addLayer(this.boxLayer);									// Add to map	
 			
-         	this.CreateCanvasLayer();										//!**
+         	this.CreateCanvasLayer();										// Canvas layer for map images
 			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); 	// Create box layer
 			map.addLayer(this.boxLayer);									// Add to map	
 	
