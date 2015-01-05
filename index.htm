@@ -290,9 +290,9 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 		          		minZoom: 2, maxZoom: 16, zoom: 6 }),
  				});
   
+	       	this.CreateCanvasLayer();										// Canvas layer for map images
 			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); 	// Create box layer
 			map.addLayer(this.boxLayer);									// Add to map	
-	       	this.CreateCanvasLayer();										// Canvas layer for map images
 										
 		   	for (i=0;i<this.layers.length;++i) 								// For each layer
 			    this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
