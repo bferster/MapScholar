@@ -137,7 +137,8 @@
 		if (e.data.indexOf("MapEdit=data") == 0)							// If load
 			LoadShow($.parseJSON(e.data.substr(13)));						// String -> JSON
 		else if (e.data.indexOf("MapEdit=mob") == 0)	{					// If mob 
-			mps.dr.ClearSegs();												// Clear existing segs
+			if (mps.mm == "ge")												// If GE
+				mps.dr.ClearSegs();											// Clear existing segs
 			if (mps.dr.inDraw)												// If in draw mode
 				mps.dr.DrawControlBar(false);								// Go to shelf mode
 			mps.sh.SetBookStartEnd();										// Set book start/end
@@ -156,7 +157,8 @@
 				}
 			}
 		else if (e.data.indexOf("MapEdit=rectify") == 0)	{				// If rectify 
-			mps.dr.ClearSegs();												// Clear existing segs
+			if (mps.mm == "ge")												// If GE
+				mps.dr.ClearSegs();											// Clear existing segs
 			if (e.data.match(/allDone/)) {									// If finished
 				if (mps.geoRef) {											// If feo referncing left open
 					if (mps.geoRef.modify)									// If interaction initted													
@@ -1406,8 +1408,14 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 	this.FillShelf();														// Redraw shelf
 	mps.ShowMapBoxes(-1,"on");												// Show visible boxes
 	this.ShowPrompt(o.prompt,2000);											// Show timed prompt
+	if (o.settings && o.settings.match(/slide/i)) {							// If forcing a slide display
+		var oldMode=this.presentMode;										// Save current mode
+		this.presentMode="Slides";											// Forcing slides
+		}
 	if (this.presentMode == "Slides")										// If in present mode
 		this.DrawInfoPanel("show");											// Show it
+	if (o.settings && o.settings.match(/slide/i)) 							// If forcing a slide display
+		this.presentMode=oldMode;											// Restor old one
 }
 
 MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
