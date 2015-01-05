@@ -292,14 +292,8 @@ function MapScholar(mapMode)											// CONSTRUCTOR
   
 			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); 	// Create box layer
 			map.addLayer(this.boxLayer);									// Add to map	
-			
-         	this.CreateCanvasLayer();										// Canvas layer for map images
-			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); 	// Create box layer
-			map.addLayer(this.boxLayer);									// Add to map	
-	
-			this.drawLayer=new ol.FeatureOverlay({ source: new ol.source.Vector() } );	// Feature overlay
-			this.drawLayer.setMap(map);										// Add to map
-									
+	       	this.CreateCanvasLayer();										// Canvas layer for map images
+										
 		   	for (i=0;i<this.layers.length;++i) 								// For each layer
 			    this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
 
@@ -2286,6 +2280,10 @@ MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 		num=mps.sh.curMob;													// Use current one
 	else																	// Use designated one
 		this.sh.HighlightMob(num,false,true);								// Highlight mob
+
+	this.drawLayer=new ol.FeatureOverlay({ source: new ol.source.Vector() } );	// Feature overlay for georefee
+	this.drawLayer.setMap(map);												// Add to map
+
 	var mob=this.mobs[num];													// Get mob
 	if (!mob.north) {														// If no coords yet
 		var nw=map.getCoordinateFromPixel([250,150]);						// NW corner
