@@ -235,11 +235,11 @@ MapScholar_Draw.prototype.DrawShelf=function()							// DRAW DRAWING SHELF
 		str+="</td></tr>"
 		}
 	if (this.curSeg != -1) {
-		str+="<img src='img/trashdot.gif' style='position:absolute;left:10px;top:580px' title='Remove segment' id='annDelete'>";		
+		str+="<img src='img/trashdot.gif' style='position:absolute;left:10px;top:"+(mapHgt-20)+"px' title='Remove segment' id='annDelete'>";		
 		if (this.segs[this.curSeg].lock)
-			str+="<img src='img/lockdot.png' style='position:absolute;left:200px;top:580px' title='Unlock segment' id='annLock'>";		
+			str+="<img src='img/lockdot.png' style='position:absolute;left:200px;top:"+(mapHgt-20)+"px' title='Unlock segment' id='annLock'>";		
 		else
-			str+="<img src='img/unlockdot.png' style='position:absolute;left:200px;top:580px' title='Lock segment' id='annLock'>";		
+			str+="<img src='img/unlockdot.png' style='position:absolute;left:200px;top:"+(mapHgt-20)+"px' title='Lock segment' id='annLock'>";		
 		}
 	if (mps.mm == "ol") {
    		str="<div align='center'><img width='160' height='174' src='img/MapScholarLogo.png'/></div>";
@@ -295,8 +295,8 @@ MapScholar_Draw.prototype.DrawControlBar=function(mode)						// DRAW MAP CONTROL
 			str+="<input type='text' style='font-size:10px;width:30px;height:14px;vertical-align:bottom;border:none;background:none'; id='annVis2'/>";
 			}
 		if ((this.undos.length) && (mps.mm == "ge"))
-			str+="<img src='img/undodot.png' style='position:absolute;left:880px' title='Undo' id='annUndo'>";		
-		str+="<input class='is' type='button' value='Save/Load' size='1' style='position:absolute;left:980px;font-size:x-small' id='annSave'/>";
+			str+="<img src='img/undodot.png' style='position:absolute;left:"+(mapWid-20)+"px' title='Undo' id='annUndo'>";		
+		str+="<input class='is' type='button' value='Save/Load' size='1' style='position:absolute;left:"+(mapWid+80)+"px;font-size:x-small' id='annSave'/>";
 		$("#controlBarDiv").html(str+"</p>")									// Add to DOM
 		$("#annCol").css("background-color",col);								// Set back to col
 		if (!col)		$("#annCol").val("  no").css("color","#666");			// Add no
