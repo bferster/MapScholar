@@ -519,22 +519,22 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 			    this.MakeMapImage(m);										// Add it 
 			else if (m.type == "layer") {									// If a layer
 				m.mid="LAYER-"+this.kmlLayers.length;						// Make id
-				if (!m.url.match(/\.kml/i)) {								// Tiled image
+				if (m.url.match(/\.kml|\.kmz|getkml\.php/i)) {				// KML file
+				this.kmlLayers.push(new ol.layer.Vector({  source: new ol.source.KML({	// New layer
+							title: "LAYER-"+i,								// Set name
+				   			projection: ol.proj.get(mps.curProjection),		// Set KML projection
+				    		url:"proxy.php?url="+m.url,						// Proxied URL
+				  			visible:false									// Hide it
+				  			})
+						}));
+					}
+				else{														// Tiles image
 					this.kmlLayers.push(new ol.layer.Tile({  source: new ol.source.XYZ({	// New layer
 							title: "LAYER-"+i,								// Set name
 		  					projection: ol.proj.get(mps.curProjection),		// Set KML projection
 							url: m.url,										// URL
 		    				visible:false									// Hide it
 		  					})
-						}));
-					}
-				else{
-					this.kmlLayers.push(new ol.layer.Vector({  source: new ol.source.KML({	// New layer
-							title: "LAYER-"+i,								// Set name
-				   			projection: ol.proj.get(mps.curProjection),		// Set KML projection
-				    		url:"proxy.php?url="+m.url,						// Proxied URL
-				  			visible:false									// Hide it
-				  			})
 						}));
 					}
 				shivaLib.map.addLayer(this.kmlLayers[this.kmlLayers.length-1]);	// Add to map	
@@ -553,7 +553,6 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 			}
 		return;
 		}
-	
 	
 	var latLonBox,icon,seg;
 	var ge=shivaLib.map;													// Point to earth												
