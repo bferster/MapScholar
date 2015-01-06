@@ -35,13 +35,13 @@
 	
 </head>
 <body>
-	<div id="containerDiv" style="position:absolute;width:900px;height:600px;left:20px;top:20px;"></div>
-	<div id="shelfDiv" style="position:absolute;width:230px;height:636px;left:920px;top:20px;background-color:#eee;"> 
+	<div id="containerDiv" style="position:absolute;left:20px;top:20px;"></div>
+	<div id="shelfDiv" style="position:absolute;width:230px;top:20px;background-color:#eee;"> 
 		<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>1/5/15</p>
 		</div>
-	<div id="controlBarDiv" style="position:absolute;width:900px;height:36px;top:620px;left:20px;background-color:#eee"> </div>
-	<div id="infoPanelDiv" style="display:none;position:absolute;height:599px;left:620px;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
-		<div id="infoPanelText" style="position:absolute;height:582px;left:0px;top:0px;padding:8px;background-color:#fafafa;overflow-x:hidden;overflow-y:auto;border-top:1px solid #ccc;border-right:2px solid #ccc;"> </div> 
+	<div id="controlBarDiv" style="position:absolute;height:36px;left:20px;background-color:#eee"> </div>
+	<div id="infoPanelDiv" style="display:none;position:absolute;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
+		<div id="infoPanelText" style="position:absolute;left:0px;top:0px;padding:8px;background-color:#fafafa;overflow-x:hidden;overflow-y:auto;border-top:1px solid #ccc;border-right:2px solid #ccc;"> </div> 
 	</div>
 	<div id="nameTooltip" style="position:absolute;padding:4px;background-color:#fafafa;border:1px solid #999;border-radius:3px;"></div> 
 
@@ -52,18 +52,34 @@
 	var shivaLib=null;
 	var geocoder=geocoder=new google.maps.Geocoder();
 	var mapMode="ge";
-	var mapWid=900,mapHgt=600;
+	var	mapWid,mapHgt;
+	ResizeMapScholar("dontDraw");
+	
+	function ResizeMapScholar(drawMode) 
+	{
+		mapWid=window.innerWidth-400;
+		mapHgt=window.innerHeight-100;
+		$("#containerDiv").width(mapWid);
+		$("#containerDiv").height(mapHgt);
+		$("#shelfDiv").height(mapHgt+36);
+		$("#shelfDiv").css("left",(mapWid+20)+"px");
+		$("#controlBarDiv").width(mapWid);
+		$("#controlBarDiv").css("top",(mapHgt+20)+"px");
+		$("#infoPanelDiv").height(mapHgt-1);
+		$("#infoPanelText").height(mapHgt-18);
+		if (drawMode != "dontDraw")
+			mps.sh.Draw();
+		}
 
 	function ShivaPostInit()
  	{
 		var url=window.location.search.substring(1);						// Get query string
 		if (url) {															// Somthing on query line
-			var regex=/[?&]mob=([^&]+)/i;									// Extractor
+			var regex=/[?|&]mob=([^&]+)/i;									// Extractor
 			var s=regex.exec(url);											// Get mob id, if one
 			if (s) 															// If there was one
 				mps.sh.curMob=s[1];											// Set mob
-			url=url.replace(/[&|?]ge=./i,"");								// Remove tag	
-			url=url.replace(/[&|?]ol=./i,"");								// Remove tag	
+			url=url.replace(/&*(ol=|ge=)./i,"");							// Remove tag	
 			}
 		if (!url)															// Nothing on query line
 			url="https://docs.google.com/spreadsheet/pub?key=0AohdE1_3ZElJdDhIbTRVRkhHSWNBWUUtYS1rZmJoSEE";
@@ -102,6 +118,7 @@
 			window.addEventListener("message",shivaEventHandler,false);		// Add listener	
 		else																// IE
 			window.attachEvent("message",shivaEventHandler);				// Add listener	
+		$(window).resize(ResizeMapScholar);									// Dynamic resizing
 		});
 
 	function Sound(sound, mode)											// PLAY SOUND
@@ -225,7 +242,7 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 	
 	if (this.mm == "ge") {													// If using GE
 		shivaLib.ShivaEventHandler("init");									// Init shiva event listener
-		shivaLib.options={ 	shivaGroup:"Earth", height:"600", width:"900", 
+		shivaLib.options={ 	shivaGroup:"Earth", height:mapHgt, width:mapWid, 
 	 						mapcenter:"33,-85", range:"15000000", tilt:"0", heading:"0",
 	 						panControl:"true", draggable:"true", scrollwheel:"true", overviewMapControl:"false",
 	 						terrainexag:"1", borders:"false", roads:"false"
@@ -306,7 +323,7 @@ function MapScholar(mapMode)											// CONSTRUCTOR
               	mps.DrawMapImages();										// Redraw maps in new extent, if moved
 				var o=map.getView();										// Point at view
 				var c=ol.proj.transform(o.getCenter(),mps.curProjection,'EPSG:4326');		// Get center
-				var pos=Math.floor(c[1]*10000)/10000+"|"+Math.floor(c[0]*10000)/10000+"|"+Math.floor(ResolutionToRange(o.getResolution(),900));	
+				var pos=Math.floor(c[1]*10000)/10000+"|"+Math.floor(c[0]*10000)/10000+"|"+Math.floor(ResolutionToRange(o.getResolution(),mapWid));	
 				pos+="|0|"+Math.floor((o.getRotation()*180/Math.PI)*1000)/-1000;		// Rotation
 				SendShivaMessage("ShivaEarth=move",pos);					// Send that view has changed
  				});
@@ -961,7 +978,7 @@ MapScholar.prototype.Goto=function(pos)									// SET EARTH VIEWPOINT
 		var fr=o.getRotation();												// Get from rotation		
 		var fs=o.getResolution();											// Get from resolution
 		var r=-v[4]*Math.PI/180;											// Get to rotation	
-		v[2]=RangeToResolution(v[2],900);									// Get to resolution
+		v[2]=RangeToResolution(v[2],mapWid);								// Get to resolution
 		if (v[4] != undefined)												// If defined
 			o.setRotation(-v[4]*Math.PI/180);								// Set rotation
 		if ((Math.abs(fc[0]-c[0]) < 2) && (Math.abs(fc[1]-c[1]) < 2)		// Center match
@@ -1089,6 +1106,8 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 			case 9:		l=426;	t=280;	w=450;		h=300;		break;		// Half bot right
 			default:	l=0;	t=0;	w=894;		h=594;		break;		// Full
 			}
+		var rx=mapWid/900;		var ry=mapHgt/600;							// Get scalers for above
+		w*=rx;		h*=ry;		l*=rx;		t*=ry;							// Scale to fit size	
 		}
 	if ((mode) && (mps.sh.presentMode != "Slides")) {						// If showing in normal GE mode
 		str="<div style='font-family:sans-serif;font-size:small'>";			// Div
@@ -1128,6 +1147,8 @@ MapScholar.prototype.ShowLink=function(num, mode)						// HIDE/SHOW LINK
 				default:	l=0;	t=0;	w=894;		h=594;		break;	// Full
 				}
 			}
+		var rx=mapWid/900;		var ry=mapHgt/600;							// Get scalers for above
+		w*=rx;		h*=ry;		l*=rx;		t*=ry;							// Scale to fit size	
 		shivaLib.ShowIframe((l+20-0),(t+20-0),w-0,h-0,m.url,"iframe-"+num,"transparent");	// Show iframe
 		}
 	else
@@ -1138,15 +1159,17 @@ MapScholar.prototype.ShowSound=function(num, mode)						// HIDE/SHOW AUDIO
 {
 	var m=this.mobs[num];													// Point at mob
 	var url="http://www.viseyes.org/shiva/go.htm?shivaGroup=Video&dataSourceUrl=";
-	url+=m.url+"&volume=50&height=30&width=290";
+	url+=m.url+"&volume=50";
 	url+="&start="+(m.start?m.start:0)+"&end="+(m.end?m.end:"");			// Start, end
 	url+="&autoplay="+(m.status == "play")+"&volume="+(m.rotation?m.rotation:50);		// Autoplay, volume
+	trace(url)
 	if (navigator.userAgent.match(/firefox/i))								// If firefox
 		url=url.replace(/\.mp3/g,".ogg");									// Needs oggs
 	if (mode) {																// If showing
 		if (!m.west)														// If no position defined
-			m.north=320,m.south=579,m.east=302,m.west=32;					// Set at bottom
-		shivaLib.ShowIframe(m.north,m.south-0,m.east-0,m.west-0,url,"iframe-"+num,"black");	// Show iframe
+			m.north=600,m.west=450;											// Set at bottom
+		m.west*=mapWid/900;			m.north*=mapHgt/600;					// Scale to fit size	
+		shivaLib.ShowIframe(m.west-150,m.north-150,300,140,url,"iframe-"+num,"black");	// Show iframe
 		if (mps.sh.inPlay)													// If playing until end
 			mps.sh.soundPause=true;											// Pause changing until done
 		shivaLib.msgAction=[{ id:"ShivaVideo=done", Do:function() { mps.sh.soundPause=false; }}];
@@ -1430,29 +1453,29 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 	this.curBookMob=0;
 	str+="&nbsp;&nbsp;<img src='img/annotate.gif' style='vertical-align:bottom' title='Annotate' onclick='mps.dr.DrawControlBar(true)'>";		
 	str+="<label>&nbsp; Find: </label ><input id='mpsFind' style='font-size:x-small;width:80px' type='text'/>";
-	str+="<div id='timeline' style='position:absolute;left:152px;width:746px;top:5px;height:26px'></div></p>";
-	str+="<div id='promptBar' style='position:absolute;left:152px;width:746px;top:4px;height:29px;background:#eee;overflow:hidden'></div>";
+	str+="<div id='timeline' style='position:absolute;left:152px;width:"+(mapWid-154)+"px;top:5px;height:26px'></div></p>";
+	str+="<div id='promptBar' style='position:absolute;left:152px;width:"+(mapWid-154)+"px;top:4px;height:29px;background:#eee;overflow:hidden'></div>";
 	if (this.presentMode != "Book") {
-		str+="<div class='unselectable' style='position:absolute;left:987px;top:24px;font-size:8px;width:80px;color:#999'>Play speed</div>";
-		str+="<div class='unselectable' id='playSpeed' style='position:absolute;left:974px;top:11px;width:70px'></div>";
+		str+="<div class='unselectable' style='position:absolute;left:"+(mapWid+87)+"px;top:24px;font-size:8px;width:80px;color:#999'>Play speed</div>";
+		str+="<div class='unselectable' id='playSpeed' style='position:absolute;left:"+(mapWid+74)+"px;top:11px;width:70px'></div>";
 		}
 	else{
 		i=1054-950-50+sw;
-		str+="<div id='bookPageNum' style='position:absolute;left:975px;top:12px;font-size:11px;width:80px;text-align:center;color:#999;width:"+i+"px'> </div>";
+		str+="<div id='bookPageNum' style='position:absolute;left:"+(mapWid+75)+"px;top:12px;font-size:11px;width:80px;text-align:center;color:#999;width:"+i+"px'> </div>";
 		}
 	str+="<img id='playbut' style='position:absolute;top:8px;"; 
 	if (this.presentMode == "Book") 
-		str+="left:"+(1054-0+sw)+"px' src='img/playbut.gif' title='Next page'>";
+		str+="left:"+(mapWid+154-0+sw)+"px' src='img/playbut.gif' title='Next page'>";
 	else if (this.inPlay)
-		str+="left:1054px' src='img/stopbut.gif' title='Stop' onclick='mps.sh.Play()'>";
+		str+="left:"+(mapWid+154)+"px' src='img/stopbut.gif' title='Stop' onclick='mps.sh.Play()'>";
 	else
-	 	str+="left:1054px' src='img/playbut.gif' title='Play' onclick='mps.sh.Play()'>";
+	 	str+="left:"+(mapWid+154)+"px' src='img/playbut.gif' title='Play' onclick='mps.sh.Play()'>";
 	if (this.presentMode != "Book") 
-		str+="<img src='img/againbut.gif' style='position:absolute;left:950px;top:9px' title='Start over' onclick='mps.sh.Play(\"1\")'>";		
+		str+="<img src='img/againbut.gif' style='position:absolute;left:"+(mapWid+50)+"px;top:9px' title='Start over' onclick='mps.sh.Play(\"1\")'>";		
   	else
-		str+="<img src='img/revbut.gif' style='position:absolute;left:950px;top:9px' title='Last page' id='lastPageBut'>";		
+		str+="<img src='img/revbut.gif' style='position:absolute;left:"+(mapWid+50)+"px;top:9px' title='Last page' id='lastPageBut'>";		
 	$("#controlBarDiv").html(str+"");                                    // Add to DOM
-	str="<div id='contentShelf' style='position:absolute;top:27px;height:559px;background-color:#fafafa;margin:0px;padding:6px;overflow-x:hidden;overflow-y:scroll;border:1px solid #ccc;'/></div>";
+	str="<div id='contentShelf' style='position:absolute;top:27px;height:"+(mapHgt-41)+"px;background-color:#fafafa;margin:0px;padding:6px;overflow-x:hidden;overflow-y:scroll;border:1px solid #ccc;'/></div>";
 	if (this.presentMode != "Book") {
 		str+="<p class='unselectable'>&nbsp;&nbsp;&nbsp;<img id='expandAll' src='img/";			// Image base
 		if (this.expandAll)													// If expand
@@ -1966,7 +1989,7 @@ MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 	if (mps.mm == "ol") {													// If OL
 		var o=map.getView();												// Point at view
 		var c=ol.proj.transform(o.getCenter(),mps.curProjection,'EPSG:4326');		// Get center
-		pos=Math.floor(c[1]*10000)/10000+","+Math.floor(c[0]*10000)/10000+","+ResolutionToRange(o.getResolution(),900);	
+		pos=Math.floor(c[1]*10000)/10000+","+Math.floor(c[0]*10000)/10000+","+ResolutionToRange(o.getResolution(),mapWid);	
 		pos+=",0,"+Math.floor((o.getRotation()*180/Math.PI)*1000)/1000;		// Rotation
 		} 													
 	else if (mps.mm == "ge") {												// If GE
@@ -2058,21 +2081,21 @@ MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 {
 	var str="";
 	$("#infoPanelText").html("");											// Clear text
-	if ((mode == "cite") && ($("#containerDiv").width() != 900))			// If panel is already open in cite
+	if ((mode == "cite") && ($("#containerDiv").width() != mapWid))			// If panel is already open in cite
 		mode="close";														// Close it
 	if (mode == "close") {													// If closing
-		$("#containerDiv").width(900);										// Full size
+		$("#containerDiv").width(mapWid);									// Full size
 		$("#infoPanelDiv").hide();											// Hide info panel
 		return;
 		}
 	if (this.presentMode == "Slides") {										// Present mode
 		$("#containerDiv").width(0);										// Hide GE
-		$("#infoPanelDiv").css({left:"20px",width:"900px"});				// Resize infobox
-		$("#infoPanelText").css({width:"499px","padding-left":"200px","padding-right":"200px","padding-top":"16px"});	// Resize textbox
+		$("#infoPanelDiv").css({left:"20px",width:(mapWid-300)+"px"});		// Resize infobox
+		$("#infoPanelText").css({width:(mapWid-401)+"px","padding-left":"200px","padding-right":"200px","padding-top":"16px"});	// Resize textbox
 		}
 	else{	
-		$("#containerDiv").width(600);										// Half size
-		$("#infoPanelDiv").css({left:"620px",width:"300px"});				// Resize infobox
+		$("#containerDiv").width(mapWid-300);								// Half size
+		$("#infoPanelDiv").css({left:(mapWid-280)+"px",width:"300px"});		// Resize infobox
 		$("#infoPanelText").css({width:"284px","padding":"8px"}); 			// Resize textbox
 		}
 	var o=mps.mobs[Math.max(mps.sh.curMob,0)];								// Point at mob
