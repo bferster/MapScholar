@@ -14,7 +14,7 @@
    	<link rel="stylesheet" href="http://openlayers.org/en/v3.0.0/css/ol.css" type="text/css">
    	<script src="http://openlayers.org/en/v3.0.0/build/ol-debug.js" type="text/javascript"></script>
    	<style type="text/css">
-		body { font-family:Verdana,Geneva,sans-serif; font-size:xx-small}
+		body { font-family:Verdana,Geneva,sans-serif; font-size:xx-small;margin:0px;padding:0px;}
 		p.pb { text-align:right; color:#fff; }
 		.rounded-corners { -moz-border-radius:8px;-webkit-border-radius:8px;-khtml-border-radius:8px;border-radius:8px;}
 		.chapterbar { -moz-border-radius:3px;-webkit-border-radius:3px;-khtml-border-radius:3px;border-radius:3px;width:192px;background-color:#999;height:14px;padding:3px;color:#fff}
@@ -57,8 +57,8 @@
 	
 	function ResizeMapScholar(drawMode) 
 	{
-		mapWid=window.innerWidth-400;
-		mapHgt=window.innerHeight-100;
+		mapWid=window.innerWidth-270;
+		mapHgt=window.innerHeight-80;
 //		mapHgt=900;		mapWid=600;
 		$("#containerDiv").width(mapWid);
 		$("#containerDiv").height(mapHgt);
@@ -1454,19 +1454,18 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 	this.curBookMob=0;
 	str+="&nbsp;&nbsp;<img src='img/annotate.gif' style='vertical-align:bottom' title='Annotate' onclick='mps.dr.DrawControlBar(true)'>";		
 	str+="<label>&nbsp; Find: </label ><input id='mpsFind' style='font-size:x-small;width:80px' type='text'/>";
-	str+="<div id='timeline' style='position:absolute;left:152px;width:"+(mapWid-154)+"px;top:5px;height:26px'></div></p>";
+	str+="<div id='timeline' style='position:absolute;left:152px;width:"+(mapWid-154-sw)+"px;top:5px;height:26px'></div></p>";
 	str+="<div id='promptBar' style='position:absolute;left:152px;width:"+(mapWid-154)+"px;top:4px;height:29px;background:#eee;overflow:hidden'></div>";
 	if (this.presentMode != "Book") {
 		str+="<div class='unselectable' style='position:absolute;left:"+(mapWid+87)+"px;top:24px;font-size:8px;width:80px;color:#999'>Play speed</div>";
 		str+="<div class='unselectable' id='playSpeed' style='position:absolute;left:"+(mapWid+74)+"px;top:11px;width:70px'></div>";
 		}
 	else{
-		i=1054-950-50+sw;
-		str+="<div id='bookPageNum' style='position:absolute;left:"+(mapWid+75)+"px;top:12px;font-size:11px;width:80px;text-align:center;color:#999;width:"+i+"px'> </div>";
+		str+="<div id='bookPageNum' style='position:absolute;left:"+(mapWid-50)+"px;top:12px;font-size:11px;width:80px;text-align:center;color:#999;width:200px'> </div>";
 		}
 	str+="<img id='playbut' style='position:absolute;top:8px;"; 
 	if (this.presentMode == "Book") 
-		str+="left:"+(mapWid+154-0+sw)+"px' src='img/playbut.gif' title='Next page'>";
+		str+="left:"+(mapWid+150)+"px' src='img/playbut.gif' title='Next page'>";
 	else if (this.inPlay)
 		str+="left:"+(mapWid+154)+"px' src='img/stopbut.gif' title='Stop' onclick='mps.sh.Play()'>";
 	else
@@ -1474,7 +1473,7 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 	if (this.presentMode != "Book") 
 		str+="<img src='img/againbut.gif' style='position:absolute;left:"+(mapWid+50)+"px;top:9px' title='Start over' onclick='mps.sh.Play(\"1\")'>";		
   	else
-		str+="<img src='img/revbut.gif' style='position:absolute;left:"+(mapWid+50)+"px;top:9px' title='Last page' id='lastPageBut'>";		
+		str+="<img src='img/revbut.gif' style='position:absolute;left:"+(mapWid-80)+"px;top:9px' title='Last page' id='lastPageBut'>";		
 	$("#controlBarDiv").html(str+"");                                    // Add to DOM
 	str="<div id='contentShelf' style='position:absolute;top:27px;height:"+(mapHgt-41)+"px;background-color:#fafafa;margin:0px;padding:6px;overflow-x:hidden;overflow-y:scroll;border:1px solid #ccc;'/></div>";
 	if (this.presentMode != "Book") {
@@ -1496,7 +1495,9 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 	
 	$("#shelfDiv").html(str);												// Add div
 	$("#shelfDiv").width(230-0+sw);											// Reset width
+	$("#shelfDiv").css("left",(mapWid-sw+20)+"px");							// Reset left
 	$("#promptBar").hide(0);												// Hide prompt bar
+
 	var n=mps.mobs.length;													// Number of mobs to add
 	this.mobVis=[];															// Remove old array
 	for (i=0;i<n;++i)														// For each mob
