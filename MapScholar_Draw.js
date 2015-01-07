@@ -27,6 +27,7 @@ MapScholar_Draw.prototype.InitOpenGraphics=function(type)					// INIT GRAPHICS D
 {
 	var _this=this;
 	var map=shivaLib.map;														// Point at map
+	var o=mps.dr.segs[0];														// Point at seg that holds color info
 	if (this.inOpenDraw) {														// If sketching
  		mps.dr.drawInter.finishDrawing_();										// Close drawing
 		return;
@@ -44,10 +45,12 @@ MapScholar_Draw.prototype.InitOpenGraphics=function(type)					// INIT GRAPHICS D
 		mps.drawingLayer=null;													// Nullify pointer		
 		return;																	// Quit
 		}
+
 	if (!mps.drawingLayer) {
 		mps.drawingLayer=new ol.layer.Vector({source: new ol.source.Vector()}); // Create box layer
 		map.addLayer(mps.drawingLayer);											// Add to map	
 		}
+	
 	if (type == "Draw")	{														// If modifying
 		map.addInteraction( this.modifyInter=new ol.interaction.Modify({		// Add modify
 		 		features: mps.featureSelect.getFeatures(),						// Point at features
@@ -80,8 +83,7 @@ MapScholar_Draw.prototype.InitOpenGraphics=function(type)					// INIT GRAPHICS D
 	  			mps.dr.inOpenDraw=e;											// Set flag
 	  			});
 		this.drawInter.on('drawend', function(e) {								// END
-	 			e.feature.setId("SEG-");										// Set id
-				var o=mps.dr.segs[0];											// Point at seg that holds color info
+		 		e.feature.setId("SEG-"+Math.floor(Math.random()*999999));		// Set unique id
 				var sty=new ol.style.Style( {									// Alloc style								
 					fill: 	new ol.style.Fill(	 { color: Hex2RGBAString(o.col,o.vis) } ),					// Fill
 					stroke: new ol.style.Stroke( { color: Hex2RGBAString(o.ecol,o.vis), width:o.ewid-0 } )	// Edge
@@ -92,18 +94,6 @@ MapScholar_Draw.prototype.InitOpenGraphics=function(type)					// INIT GRAPHICS D
 	 			$("#annType").val("Draw");										// Set select
 	 			});
  	 	}
-
-	function Hex2RGBAString(col, alpha)
-	{	
-		var r=0,g=0,b=0,
-		alpha=alpha/100;
-		if (col) {																
-			r=parseInt(col.substr(1,2),16);
-			g=parseInt(col.substr(3,2),16);
-			b=parseInt(col.substr(5,2),16);
-			}
-		return("rgba("+r+","+g+","+b+","+alpha+")");
-	}
  }
   
 MapScholar_Draw.prototype.CreateOpenKML=function()							// SAVE LAYER AS KML
@@ -247,7 +237,7 @@ MapScholar_Draw.prototype.DrawShelf=function()							// DRAW DRAWING SHELF
 		str+="<br/><div style='text-align:center'><b>Drawing</b></div><br/><table>";
 		str+="<tr><td>To add a new shape or line, choose a type of segment to draw from the Draw selector pulldown menu. Click on map to add new points. Click on the grey bar below to stop drawing."
 		str+="<br/><br/><div style='text-align:center'><b>To edit</b></div>";
-		str+="<br/>To edit an existing line or shape, click on a vertex to move, or add a new one by clicking between vertices and dragging.";
+		str+="<br/>To edit an existing line or shape, click on it to select it (it will turn blue) drag a vertex to move, or add a new one by clicking between vertices and dragging.";
 		str+="<br/><br/>To remove a vertex from a line or shape, click on it with the SHIFT key down.";
 		str+="<br/><br/>To the whole line or shape, click one of its vertices with the ALT/OPTION key down.";
 		str+="<br/><br/><div style='text-align:center'><b>To save or load KML file</b></div>";
@@ -336,7 +326,7 @@ MapScholar_Draw.prototype.DrawControlBar=function(mode)						// DRAW MAP CONTROL
 	
 	$("#annCol").click(function(e) { 										// SET COLOR
 		_this.Do();																// Set undo	
-		_this.ColorPicker("Col",e.pageX,654);									// Pick col
+		_this.ColorPicker("Col",e.pageX,mapHgt+55);								// Pick col
 		});
 		
 	$("#annEwid").blur(function(e) {										// SET EDGE WIDTH 
@@ -349,7 +339,7 @@ MapScholar_Draw.prototype.DrawControlBar=function(mode)						// DRAW MAP CONTROL
 		
 	$("#annEcol").click(function(e) { 										// SET EDGE COLOR
 		_this.Do();																// Set undo	
-		_this.ColorPicker("Ecol",e.pageX,654);									// Pick ecol
+		_this.ColorPicker("Ecol",e.pageX,mapHgt+55);							// Pick ecol
 		});
 
 	$("#annVis2").blur(function(e){ 										// SET VISIBILITY
@@ -636,8 +626,18 @@ MapScholar_Draw.prototype.AddSegsToEarth=function(num, hasRectify)			// ADD SEGM
 
 MapScholar_Draw.prototype.StyleSeg=function(num, hasRectify)				// SET SEGMENT STYLING
 {	
-	if (mps.mm != "ge")
+	if (mps.mm == "ol") {
+		var i;	
+		var o=mps.dr.segs[0];													// Point at seg that holds color info
+		var sty=new ol.style.Style( {											// Alloc style								
+				fill: 	new ol.style.Fill(	 { color: Hex2RGBAString(o.col,o.vis) } ),					// Fill
+				stroke: new ol.style.Stroke( { color: Hex2RGBAString(o.ecol,o.vis), width:o.ewid-0 } )	// Edge
+				});
+ 		var f=mps.featureSelect.getFeatures();									// Point at selected feature collection
+  		for (i=0;i<f.getLength();++i)											// For each selected feature
+			f.item(i).setStyle(sty);											// Set style
 		return;
+		}
 	var r,g,b,a;
 	var ge=shivaLib.map;														// Local copy of earth
 	var s=this.segs[num];														// Point at seg
