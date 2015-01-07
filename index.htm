@@ -2081,12 +2081,17 @@ MapScholar_Shelf.prototype.ToggleExpandCollapse=function()				// EXPAND/COLLAPSE
 
 MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 {
-	var str="";
+	var str="",sw=0;
+	var o=mps.mobs[Math.max(mps.sh.curMob,0)];								// Point at mob
+	if (this.presentMode == "Book") { 										// Book mode
+		o=mps.mobs[this.curBookMob];										// Point at underlying mob, not page
+		sw=138;																// Shrink for book mode
+		}
 	$("#infoPanelText").html("");											// Clear text
 	if ((mode == "cite") && ($("#containerDiv").width() != mapWid))			// If panel is already open in cite
 		mode="close";														// Close it
 	if (mode == "close") {													// If closing
-		$("#containerDiv").width(mapWid);									// Full size
+		$("#containerDiv").width(mapWid-sw);								// Full size
 		$("#infoPanelDiv").hide();											// Hide info panel
 		return;
 		}
@@ -2100,9 +2105,6 @@ MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 		$("#infoPanelDiv").css({left:(mapWid-280)+"px",width:"300px"});		// Resize infobox
 		$("#infoPanelText").css({width:"284px","padding":"8px"}); 			// Resize textbox
 		}
-	var o=mps.mobs[Math.max(mps.sh.curMob,0)];								// Point at mob
-	if (this.presentMode == "Book") 										// Book mode
-		o=mps.mobs[this.curBookMob];										// Point at underlying mob, not page
 	$("#infoPanelDiv").show();												// Show info panel
 	if (o.title) {															// If it has a title
 		str+="<b>"+shivaLib.LinkToAnchor(o.title);							// Add it
