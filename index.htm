@@ -240,6 +240,7 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 	Sound("delete","init");													// Init sound
 	this.dr=new MapScholar_Draw();											// Alloc draw module
 	this.sh=new MapScholar_Shelf();											// Alloc shelf module
+	this.loadCounter=0;														// Images/KMLs to load
 	
 	if (this.mm == "ge") {													// If using GE
 		shivaLib.ShivaEventHandler("init");									// Init shiva event listener
@@ -365,6 +366,7 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT 
 {
 	var i,o,m;
+	this.loadCounter=0;														// Reset mages/KMLs to load
 	this.mobs=new Array();													// Holds map objects data
 	if (data) {																// If loading from data
 		for (i=0;i<data.length;++i) { 										// For each row
@@ -534,8 +536,10 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 		this.kmlLayers=[];
 		for (i=0;i<n;++i) {													// For each seg
 			m=this.mobs[i];													// Point at mob
-			if (m.type == "map") 											// Map 
+			if (m.type == "map") {											// Map 
 			    this.MakeMapImage(m);										// Add it 
+				this.loadCounter++;											// Add to load count
+				}
 			else if (m.type == "layer") {									// If a layer
 				m.mid="LAYER-"+this.kmlLayers.length;						// Make id
 				if (m.url.match(/\.kml|\.kmz|getkml\.php/i)) {				// KML file
@@ -1462,6 +1466,8 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 	else{
 		str+="<div id='bookPageNum' style='position:absolute;left:"+(mapWid-60)+"px;top:12px;font-size:11px;width:80px;text-align:center;color:#999;width:200px'> </div>";
 		}
+	str+="<div id='loadProgress' style='position:absolute;left:"+(mapWid-65-sw)+"px;top:11px;font-size:10px;width:120px;font-weight:bold;color:#009900;background:#eee;padding:left:8px;text-align:center'></div>";
+
 	str+="<img id='playbut' style='position:absolute;top:8px;"; 
 	if (this.presentMode == "Book") 
 		str+="left:"+(mapWid+150)+"px' src='img/playbut.gif' title='Next page'>";
@@ -2224,6 +2230,14 @@ MapScholar.prototype.MakeMapImage=function(mob) 						// ADD MAP IMAGE TO PROJEC
 
 	function MapImage(mob) {												// MAPIMAGE CONSTRUCTOR
 	    this.img=new Image();												// Alloc image
+        this.img.onload=function() { 										// Add handler to remove from count after loaded
+         	var str="";
+         	mps.loadCounter--; 												// Dec
+       		if (mps.loadCounter)											// If stuff to load
+ 				str=mps.loadCounter+" maps to load";						// Set progress
+ 				trace(str)
+ 				$("#loadProgress").text(str);								// Show status
+        	}					
         this.imgWidth;	 this.imgHeight;									// Set size, if any
         this.n=mob.north-0;													// Set bounds
         this.s=mob.south-0;
