@@ -2230,14 +2230,17 @@ MapScholar.prototype.MakeMapImage=function(mob) 						// ADD MAP IMAGE TO PROJEC
 
 	function MapImage(mob) {												// MAPIMAGE CONSTRUCTOR
 	    this.img=new Image();												// Alloc image
-        this.img.onload=function() { 										// Add handler to remove from count after loaded
+		
+		function progress() {												// SHOW LOAD PROGRESS
          	var str="";
          	mps.loadCounter--; 												// Dec
        		if (mps.loadCounter)											// If stuff to load
  				str=mps.loadCounter+" maps to load";						// Set progress
- 				trace(str)
- 				$("#loadProgress").text(str);								// Show status
+ 			$("#loadProgress").text(str);									// Show status
         	}					
+
+	    this.img.onload=progress;											// Add handler to remove from count after loaded
+        this.img.onerror=progress;											// Add handler to remove from count if error
         this.imgWidth;	 this.imgHeight;									// Set size, if any
         this.n=mob.north-0;													// Set bounds
         this.s=mob.south-0;
