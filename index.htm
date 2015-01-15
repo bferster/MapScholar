@@ -51,15 +51,18 @@
 	var map=null;
 	var shivaLib=null;
 	var geocoder=geocoder=new google.maps.Geocoder();
-	var mapMode="ge";
+	var mapMode="ol";
 	var	mapWid,mapHgt;
 	ResizeMapScholar("dontDraw");
 	
 	function ResizeMapScholar(drawMode) 
 	{
 		mapWid=window.innerWidth-270;
-		mapHgt=window.innerHeight-80;
-//		mapHgt=900;		mapWid=600;
+		mapHgt=mapWid*.6667;
+		if (mapHgt > window.innerHeight-80) {
+			mapHgt=window.innerHeight-80;
+			mapWid=mapHgt/.6667;
+			}
 		$("#containerDiv").width(mapWid);
 		$("#containerDiv").height(mapHgt);
 		$("#shelfDiv").height(mapHgt+36);
@@ -1082,7 +1085,7 @@ MapScholar.prototype.GoToPos=function() 								// SET GE TO A POSITION OVER TIM
 
 MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 {
-	var l,t,h,w;
+	var l,t,h,w,x=900;
 	var m=this.mobs[num];													// Point at mob
 	var txt=shivaLib.LinkToAnchor(m.desc);									// Use desc field
 	var pos=m.north-0;														// get north
@@ -1099,17 +1102,19 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 	if ((m.east) && (m.type == "text"))										// If spec'ing pos												
 		l=m.north,t=m.south,w=m.east,h=m.west;								// Use it		
 	else{ 
+		if (mps.sh.presentMode == "Book")									// If book mode
+			x=810.5;															// Smaller width
 		switch(pos) {														// Route on pos
-			case 1:		l=225;	t=150;	w=450;		h=300;		break;		// Half centered
+			case 1:		l=225;	t=150;	w=x/2;		h=300;		break;		// Half centered
 			case 2:		l=338;	t=225;	w=230;		h=150;		break;		// Quarter centered
 			case 3:		l=112;	t=75;	w=675;		h=450;		break;		// Three-Quarter centered
-			case 4:		l=20;	t=20;	w=854;		h=100;		break;		// Top
-			case 5:		l=20;	t=475;	w=854;		h=100;		break;		// Bottom
-			case 6:		l=20;	t=20;	w=450;		h=300;		break;		// Half top-left
-			case 7:		l=426;	t=20;	w=450;		h=300;		break;		// Half top-right
-			case 8:		l=20;	t=280;	w=450;		h=300;		break;		// Half bot left
-			case 9:		l=426;	t=280;	w=450;		h=300;		break;		// Half bot right
-			default:	l=0;	t=0;	w=894;		h=594;		break;		// Full
+			case 4:		l=20;	t=20;	w=x-6;		h=100;		break;		// Top
+			case 5:		l=20;	t=475;	w=x-6;		h=100;		break;		// Bottom
+			case 6:		l=20;	t=20;	w=x/2;		h=300;		break;		// Half top-left
+			case 7:		l=426;	t=20;	w=x/2;		h=300;		break;		// Half top-right
+			case 8:		l=20;	t=280;	w=x/2;		h=300;		break;		// Half bot left
+			case 9:		l=426;	t=280;	w=x/2;		h=300;		break;		// Half bot right
+			default:	l=0;	t=0;	w=x-6;		h=595.5;		break;		// Full
 			}
 		var rx=mapWid/900;		var ry=mapHgt/600;							// Get scalers for above
 		w*=rx;		h*=ry;		l*=rx;		t*=ry;							// Scale to fit size	
@@ -1134,22 +1139,24 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 
 MapScholar.prototype.ShowLink=function(num, mode)						// HIDE/SHOW LINK
 {
-	var m=this.mobs[num];													// Point at mob
+	var x=900,m=this.mobs[num];												// Point at mob
 	if (mode) {																// If showing			
 		if (m.east) 														// If spec'ing pos												
 			l=m.north,t=m.south,w=m.east,h=m.west;							// Use it		
 		else{ 
+			if (mps.sh.presentMode == "Book")								// If book mode
+				x=810.5;													// Smaller width
 			switch(m.north) {												// Route on pos
-				case 1:		l=225;	t=150;	w=450;		h=300;		break;	// Half centered
+				case 1:		l=225;	t=150;	w=x/2;		h=300;		break;	// Half centered
 				case 2:		l=338;	t=225;	w=230;		h=150;		break;	// Quarter centered
 				case 3:		l=112;	t=75;	w=675;		h=450;		break;	// Three-Quarter centered
-				case 4:		l=20;	t=20;	w=854;		h=100;		break;	// Top
-				case 5:		l=20;	t=475;	w=854;		h=100;		break;	// Bottom
-				case 6:		l=20;	t=20;	w=450;		h=300;		break;	// Half top-left
-				case 7:		l=426;	t=20;	w=450;		h=300;		break;	// Half top-right
-				case 8:		l=20;	t=280;	w=450;		h=300;		break;	// Half bot left
-				case 9:		l=426;	t=280;	w=450;		h=300;		break;	// Half bot right
-				default:	l=0;	t=0;	w=894;		h=594;		break;	// Full
+				case 4:		l=20;	t=20;	w=x-6;		h=100;		break;	// Top
+				case 5:		l=20;	t=475;	w=x-6;		h=100;		break;	// Bottom
+				case 6:		l=20;	t=20;	w=x/2;		h=300;		break;	// Half top-left
+				case 7:		l=426;	t=20;	w=x/2;		h=300;		break;	// Half top-right
+				case 8:		l=20;	t=280;	w=x/2;		h=300;		break;	// Half bot left
+				case 9:		l=426;	t=280;	w=x/2;		h=300;		break;	// Half bot right
+				default:	l=0;	t=0;	w=x-6;		h=594.5;	break;	// Full
 				}
 			}
 		var rx=mapWid/900;		var ry=mapHgt/600;							// Get scalers for above
