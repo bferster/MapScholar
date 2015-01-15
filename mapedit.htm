@@ -98,7 +98,7 @@
 // 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		
-	var playerWid=1150;
+	var playerWid;
 	var curShow="None";															// Currently loaded show name
 	var curPane="intro";														// Current edit pane
 	var curJson={ };															// Holds current JSON
@@ -116,6 +116,7 @@
 			window.attachEvent("message",shivaEventHandler);					// Add handler
 
 		qmf=new QmediaFile("//qmediaplayer.com/",1);							// Alloc file system
+		
 		NewShow();																// Init show
 		
 		var url=window.location.search.substring(1);							// Get query string
@@ -125,6 +126,7 @@
 			$("#playerIF").prop("src","index.htm?ol=1");						// Reset to OL map
 		
 		var w=$(window).width();												// Get window width
+		playerWid=w-500;														// Size window
 		if (w < playerWid+500)													// If too small
 			playerZoom=(w-500)/playerWid;
 	
@@ -151,8 +153,16 @@
 					}
 			 	});
 		
-		Draw();
-		$(window).resize(function(e) { if (!e.target.id) Draw();	 } );		// Redraw on window resize		
+		$(window).resize(function(e) {											// Redraw on window resize		
+				var w=$(window).width();										// Get window width
+				playerWid=w-500;												// Size window
+				if (w < playerWid+500)											// If too small
+					playerZoom=(w-500)/playerWid;								// Scale it
+				if (!e.target.id) 
+					Draw();	 
+			});		
+		
+			Draw();
 		$("#editDiv").show();													// Show editor
 
 		$("#playerSiz").draggable({												// DRAG PLAYER WIDTH HANDLER
@@ -788,11 +798,7 @@
 	function shivaEventHandler(e)											// ON SHIVA EVENT
 	{
 //		trace(e.data);
-		if (e.data.match(/MapScholar=resize/))	{								// If a resize
-			playerWid=(e.data.split("|")[2]-0+20);								// Isolate it
-			Draw();																// Redraw
-			}
-		else if (e.data.match(/ShivaEarth=move/))	{							// If a move
+		if (e.data.match(/ShivaEarth=move/))	{								// If a move
 			var v=e.data.split("|");											// Split
 			$("#gotolat").val(v[2]);											// Set lat field, if open
 			$("#gotolon").val(v[3]);											// Set lon field, if open

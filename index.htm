@@ -1956,7 +1956,6 @@ MapScholar_Shelf.prototype.PresentView=function(select)					// PRESENTATION MODE
 		this.DrawInfoPanel("show");											// Show it
 	else																	// Other node
 		this.DrawInfoPanel("close");										// Close panel
-	SendShivaMessage("MapScholar=resize",$("#controlBarDiv").width()+$("#shelfDiv").width());	// Send that size may have changed
 }	
 
 MapScholar_Shelf.prototype.SetBookStartEnd=function()					// SET BOOK START/END
@@ -2519,4 +2518,3 @@ MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 </script>
 </body>
 </html>
-
