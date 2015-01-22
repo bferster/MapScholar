@@ -1103,20 +1103,22 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 		l=m.north,t=m.south,w=m.east,h=m.west;								// Use it		
 	else{ 
 		if (mps.sh.presentMode == "Book")									// If book mode
-			x=810.5;															// Smaller width
+			x=762;														// Smaller width
+		var x2=x*.5,x4=x*.25,x8=x*.125;										// Fractional widths
 		switch(pos) {														// Route on pos
-			case 1:		l=225;	t=150;	w=x/2;		h=300;		break;		// Half centered
-			case 2:		l=338;	t=225;	w=230;		h=150;		break;		// Quarter centered
-			case 3:		l=112;	t=75;	w=675;		h=450;		break;		// Three-Quarter centered
-			case 4:		l=20;	t=20;	w=x-6;		h=100;		break;		// Top
-			case 5:		l=20;	t=475;	w=x-6;		h=100;		break;		// Bottom
-			case 6:		l=20;	t=20;	w=x/2;		h=300;		break;		// Half top-left
-			case 7:		l=426;	t=20;	w=x/2;		h=300;		break;		// Half top-right
-			case 8:		l=20;	t=280;	w=x/2;		h=300;		break;		// Half bot left
-			case 9:		l=426;	t=280;	w=x/2;		h=300;		break;		// Half bot right
-			default:	l=0;	t=0;	w=x-6;		h=595.5;		break;		// Full
+			case 1:		l=x4;		t=150;	w=x2;		h=300;		break;	// Half centered
+			case 2:		l=x*.375;	t=225;	w=x4;		h=150;		break;	// Quarter centered
+			case 3:		l=x8;		t=75;	w=x*.75;	h=450;		break;	// Three-Quarter centered
+			case 4:		l=20;		t=20;	w=x-46;		h=100;		break;	// Top
+			case 5:		l=20;		t=475;	w=x-46;		h=100;		break;	// Bottom
+			case 6:		l=20;		t=20;	w=x2-20;	h=300;		break;	// Half top-left
+			case 7:		l=x2;		t=20;	w=x2-20;	h=300;		break;	// Half top-right
+			case 8:		l=20;		t=280;	w=x2-20;	h=300;		break;	// Half bot left
+			case 9:		l=x2;		t=280;	w=x2-20;	h=300;		break;	// Half bot right
+			default:	l=0;		t=0;	w=x-6;		h=594;		break;	// Full
 			}
-		var rx=mapWid/900;		var ry=mapHgt/600;							// Get scalers for above
+		var rx=$("#containerDiv").width()/x;								// X scaler
+		var ry=$("#containerDiv").height()/600;								// Y scaler
 		w*=rx;		h*=ry;		l*=rx;		t*=ry;							// Scale to fit size	
 		}
 	if ((mode) && (mps.sh.presentMode != "Slides")) {						// If showing in normal GE mode
@@ -1146,22 +1148,24 @@ MapScholar.prototype.ShowLink=function(num, mode)						// HIDE/SHOW LINK
 		else{ 
 			if (mps.sh.presentMode == "Book")								// If book mode
 				x=810.5;													// Smaller width
+			var x2=x*.5,x4=x*.25,x8=x*.125;									// Fractional widths
 			switch(m.north) {												// Route on pos
-				case 1:		l=225;	t=150;	w=x/2;		h=300;		break;	// Half centered
-				case 2:		l=338;	t=225;	w=230;		h=150;		break;	// Quarter centered
-				case 3:		l=112;	t=75;	w=675;		h=450;		break;	// Three-Quarter centered
-				case 4:		l=20;	t=20;	w=x-6;		h=100;		break;	// Top
-				case 5:		l=20;	t=475;	w=x-6;		h=100;		break;	// Bottom
-				case 6:		l=20;	t=20;	w=x/2;		h=300;		break;	// Half top-left
-				case 7:		l=426;	t=20;	w=x/2;		h=300;		break;	// Half top-right
-				case 8:		l=20;	t=280;	w=x/2;		h=300;		break;	// Half bot left
-				case 9:		l=426;	t=280;	w=x/2;		h=300;		break;	// Half bot right
-				default:	l=0;	t=0;	w=x-6;		h=594.5;	break;	// Full
+				case 1:		l=x4;		t=150;	w=x2;		h=300;		break;	// Half centered
+				case 2:		l=x*.375;	t=225;	w=x4;		h=150;		break;	// Quarter centered
+				case 3:		l=x8;		t=75;	w=x*.75;	h=450;		break;	// Three-Quarter centered
+				case 4:		l=20;		t=20;	w=x-46;		h=100;		break;	// Top
+				case 5:		l=20;		t=475;	w=x-46;		h=100;		break;	// Bottom
+				case 6:		l=20;		t=20;	w=x2-20;	h=300;		break;	// Half top-left
+				case 7:		l=x2;		t=20;	w=x2-20;	h=300;		break;	// Half top-right
+				case 8:		l=20;		t=280;	w=x2-20;	h=300;		break;	// Half bot left
+				case 9:		l=x2;		t=280;	w=x2-20;	h=300;		break;	// Half bot right
+				default:	l=0;		t=0;	w=x-16;		h=584;		break;	// Full
 				}
 			}
-		var rx=mapWid/900;		var ry=mapHgt/600;							// Get scalers for above
+		var rx=$("#containerDiv").width()/x;								// X scaler
+		var ry=$("#containerDiv").height()/600;								// Y scaler
 		w*=rx;		h*=ry;		l*=rx;		t*=ry;							// Scale to fit size	
-		shivaLib.ShowIframe((l+20-0),(t+20-0),w-0,h-0,m.url,"iframe-"+num,"transparent");	// Show iframe
+		shivaLib.ShowIframe((l+20-0),(t+20-0),(w+20)-0,(h+20-0),m.url,"iframe-"+num,"transparent");	// Show iframe
 		}
 	else
 		shivaLib.ShowIframe(0,0,0,0,"","iframe-"+num);						// Hide iframe

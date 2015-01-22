@@ -191,15 +191,21 @@
 
 	function LoadShow(data)													// LOAD A SHOW
 	{
+ 		var i,o;
  		if (data.qmfmsg == "private") {											// If a private file		
 			AlertBox("Private project","Sorry, but this project is marked <i>private</i>. You will need to supply the password to load it");
 			return;																// Quit
 			}
 		else if (data.qmfmsg == "error") {										// If an error
-			AlertBox("Sorry, but there was an error loading this project");
+			AlertBox("Sorry, but there was an error loading this project");		// Show
 			return;																// Quit
 			}
  		curJson=data;															// Set json
+  		for (i=0;i<curJson.length;++i) {										// For each mob
+   			o=curJson[i];														// Point at it
+   			if (o.id == undefined)												// If no id
+				o.id=Math.floor(Math.random()*9999);							// Make one up 
+			}  		
    		if (qmf.curFile)														// If a good file
    			curShow=qmf.curFile;												// Set curshow
   		Preview(); 																// Preview show
@@ -579,6 +585,7 @@
 	{	
 		$("#alertBoxDiv").remove();												// Remove any old ones
 		if (!text)	text="";													// Not defined
+		else		text=text.replace(/\\\"/g,"\"");							// Un-slash
 		$("body").append("<div style='overflow:hidden;' class='unselectable' id='alertBoxDiv'></div>");														
 		var str="<p><img src='images/qlogo32.png' style='vertical-align:-10px'/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";								
 		str+="<span style='font-size:18px;text-shadow:1px 1px #ccc;color:#000000'><b>Style text</b></span><br><br><p><table>";
@@ -588,7 +595,7 @@
    		
   		$("#alertBoxDiv").dialog({ width:580, buttons: {
 	    	"OK": 		function() { 
-	    					var s=CKEDITOR.instances.editor1.getData().replace(/[\n|\r]/g,"").replace(/"/g,"&quot;");
+	    					var s=CKEDITOR.instances.editor1.getData().replace(/[\n|\r]/g,"").replace(/"/g,"&quot;").replace(/&quot;/g,"\"");
 	    					callback(s);										// Send to callback	
 		    				$(this).remove();									// Remove dialog
 		    				},
@@ -723,11 +730,11 @@
 								o.id=$("#mobid").val();							// Set val
 								o.citation=$("#cite").val();					// Set val
 								o.prompt=$("#prompt").val();					// Set val
-								o.north=$("#north").val();						// Set val
-								o.south=$("#south").val();						// Set val
-								o.east=$("#east").val();						// Set val
-								o.west=$("#west").val();						// Set val
-								o.rotation=$("#rotation").val();				// Set val
+								o.north=$("#north").val()-0;					// Set val
+								o.south=$("#south").val()-0;					// Set val
+								o.east=$("#east").val()-0;						// Set val
+								o.west=$("#west").val()-0;						// Set val
+								o.rotation=$("#rotation").val()-0;				// Set val
 								o.status=$("#status").val();					// Set val
 								o.base=$("#base").val();						// Set val
 								o.settings=$("#settings").val();				// Set val
