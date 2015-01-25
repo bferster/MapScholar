@@ -2274,35 +2274,35 @@ MapScholar.prototype.MakeMapImage=function(mob) 						// ADD MAP IMAGE TO PROJEC
 			this.img.src=mob.small;											// Set url
  	}
 	
-    MapImage.prototype.drawImage=function(alpha) 						// DRAW IMAGE
-    { 
-      if (!this.imgWidth) {
-	        this.imgWidth=this.img.width;
-	        this.imgHeight=this.img.height;
-	        this.imgWidthMeters=Math.abs(this.east - this.west);            
-	        this.imgHeightMeters=Math.abs(this.north - this.south);
- 	        }
-		var xCenterOffset=(this.center[0]-mps.canvasExtent[0])/mps.canvasRes;
-      	var yCenterOffset=(mps.canvasExtent[3]-this.center[1])/mps.canvasRes;
-        var scaleX=(this.imgWidthMeters / mps.canvasRes) / this.imgWidth;
-        var scaleY=(this.imgHeightMeters / mps.canvasRes) / this.imgHeight;
-        var drawWidth = this.imgWidth * scaleX;
-        var drawHeight = this.imgHeight * scaleY;
-        var ctx=mps.canvasContext;
-        if (ctx) {
-			ctx.globalAlpha = alpha / 100;
-          	ctx.translate(xCenterOffset,yCenterOffset);
-            ctx.rotate(this.rotation * (Math.PI/180));
-          	ctx.translate(-(drawWidth / 2), -(drawHeight / 2));
-            ctx.drawImage(this.img, 0, 0, drawWidth, drawHeight);
-            ctx.translate((drawWidth / 2), (drawHeight / 2));
-           	ctx.rotate(-(this.rotation * (Math.PI / 180)));
-            ctx.translate(-xCenterOffset,-yCenterOffset);
-            ctx.globalAlpha=1;
-        }                  
-    };
-} 																			// Closure for map image
-    
+MapImage.prototype.drawImage=function(alpha)                   			// DRAW IMAGE
+{ 
+	if (!this.imgWidth) {
+		this.imgWidth=this.img.width;
+		this.imgHeight=this.img.height;
+		this.imgWidthMeters=Math.abs(this.east - this.west);            
+		this.imgHeightMeters=Math.abs(this.north - this.south);
+		}
+	var canvasExtentWidth = mps.canvasExtent[2] - mps.canvasExtent[0];
+	var canvasExtentHeight = mps.canvasExtent[3] - mps.canvasExtent[1];
+	var xCenterOffset = mps.canvasWidth * (this.center[0]-mps.canvasExtent[0]) / canvasExtentWidth;
+	var yCenterOffset = mps.canvasHeight * (mps.canvasExtent[3]-this.center[1]) / canvasExtentHeight;
+	var drawWidth = mps.canvasWidth * (this.imgWidthMeters / canvasExtentWidth);
+	var drawHeight = mps.canvasHeight * (this.imgHeightMeters / canvasExtentHeight);
+	var ctx=mps.canvasContext;
+	if (ctx) {
+		ctx.globalAlpha = alpha / 100;
+		ctx.translate(xCenterOffset,yCenterOffset);
+		ctx.rotate(this.rotation * (Math.PI/180));
+		ctx.translate(-(drawWidth / 2), -(drawHeight / 2));
+		ctx.drawImage(this.img, 0, 0, drawWidth, drawHeight);
+		ctx.translate((drawWidth / 2), (drawHeight / 2));
+		ctx.rotate(-(this.rotation * (Math.PI / 180)));
+		ctx.translate(-xCenterOffset,-yCenterOffset);
+		ctx.globalAlpha=1;
+		}                  
+	}
+}
+        
 MapScholar.prototype.CreateCanvasLayer=function()						// CREATE CANVAS LAYER 
 {        
     this.canvasLayer=new ol.layer.Image( {									// Make new image layer
