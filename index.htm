@@ -341,10 +341,6 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 							Sound("click");									// Click
 							mps.sh.HighlightMob(f.getId().substr(6),e.originalEvent.shiftKey,true);	// Highlight mob
 	   						}
-	   				else if (id.match(/dseg/)) {							// A just-drawn feature
-	   						mps.dr.curSketch=f;								// Save feature
-	   						trace("id="+f.getId().substr(4))
-	   						}
 	   					}													// End feature w/ id
 			   		})														// End each feature											
 				});															// End click
@@ -1087,12 +1083,11 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 {
 	var l,t,h,w,x=900;
 	var m=this.mobs[num];													// Point at mob
-	var txt=shivaLib.LinkToAnchor(m.desc);									// Use desc field
+	var txt=m.desc;															// Use desc field
 	var pos=m.north-0;														// get north
 	if (m.type != "text") {													// If not a text mob
 		txt=shivaLib.LinkToAnchor(m.text);									// Get text from text field
 		pos=4;																// Assume top
-		var s=txt.match(/pos\([^\(]*\)/i);									// Extract position	
 		if (s) {															// If found
 			pos=s[0].substring(4,s[0].length-1)-0;							// Get new pos
 			txt=txt.replace(s[0],"");										// Remove it
@@ -1103,7 +1098,7 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 		l=m.north,t=m.south,w=m.east,h=m.west;								// Use it		
 	else{ 
 		if (mps.sh.presentMode == "Book")									// If book mode
-			x=762;														// Smaller width
+			x=762;															// Smaller width
 		var x2=x*.5,x4=x*.25,x8=x*.125;										// Fractional widths
 		switch(pos) {														// Route on pos
 			case 1:		l=x4;		t=150;	w=x2;		h=300;		break;	// Half centered
@@ -1121,11 +1116,11 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 		var ry=$("#containerDiv").height()/600;								// Y scaler
 		w*=rx;		h*=ry;		l*=rx;		t*=ry;							// Scale to fit size	
 		}
-	if ((mode) && (mps.sh.presentMode != "Slides")) {						// If showing in normal GE mode
+	if ((mode) && (mps.sh.presentMode != "Slides")) {						// If showing in normal map mode
 		str="<div style='font-family:sans-serif;font-size:small'>";			// Div
 		str+="<p style='text-align:center;font-weight:bold'>";				// Center & bold
 		if (m.title)														// If a title set
-			str+=shivaLib.LinkToAnchor(m.title)+"<br/>";					// Add title
+			str+=m.title+"<br/>";											// Add title
 		if ((m.small) && (m.type != "map"))									// If an image spec'd
 			str+="<br/><img style='border:1px solid #999' src='"+m.small+"' width='"+w/3+"'><br/>";		// Add it		
 		str+="</p>"+txt+"<div>";											// Add desc
@@ -1706,7 +1701,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 		var o=mps.mobs[num];      											// Point at mob
 		var desc=o.desc;													// Get desc
 		if (o.title) 														// If it has a title
-			str+="<center><b>"+shivaLib.LinkToAnchor(o.title)+"</b></center><br>";	// Add it
+			str+="<center><b>"+o.title+"</b></center><br>";					// Add it
 		if (desc && desc.match(/mob\(/)) {									// If an embedded mob
 			var vv,url,num;
 			v=(desc+" ").match(/mob\((.*?)\)/ig);							// Extract url(s)
@@ -1739,7 +1734,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				for (j=k;j<vv.length-1;++j)									// For all pos's
 					url+=vv[j]+",";											// Re-sum them up
 				url+=vv[j];													// Add last one
-				desc=desc.replace(RegExp(v[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&"))," <a href='javascript:mps.Goto(\""+url+"\")'>"+title+"</a> ");	// Replace with anchor tag
+				desc=desc.replace(RegExp(v[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&"))," <a href='javascript:mps.Goto(\""+url.replace(/<.*?>/g,"")+"\")'>"+title+"</a> ");	// Replace with anchor tag
 				}
 			}
 		if (desc && desc.match(/toc\(/)) {									// If an embedded toc
@@ -1770,7 +1765,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			desc+="> More...</span><span id='moreText' style='display:none'>"+v[1]+"</span>"; 											
 			}
 		if (desc) 															// If it has a desc
-			str+=shivaLib.LinkToAnchor(desc)+"<br>";						// Add it
+			str+=desc+"<br>";												// Add it
 		str+="<br><hr width='319'></td></tr>";								// End
 		for (i=0;i<adds.length;++i)											// For each mob mentioned
 			str+=AddMobToShelf(adds[i]);									// Add it
@@ -1792,12 +1787,12 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				str+="collapse";											// Collapse
 			if (o.type == "header")											// If a header
 				str+="2";													// Use dark icons
-			str+=".gif'><b>"+shivaLib.LinkToAnchor(o.title)+"</div>";		// Title
+			str+=".gif'><b>"+o.title+"</div>";								// Title
 			if (o.type == "chapter")
 				str+="<img src='img/cplaybut.gif' style='position:relative;left:182px;top:-16px' title='Play chapter' onclick='mps.sh.Play(\"0\",\""+i+"\")'>";		
 			str+="</td><tr>";												// End 
 			if ((o.desc)&& (o.status != "closed"))							// If a description
-				str+="<tr><td colspan='2'><i>"+shivaLib.LinkToAnchor(o.desc)+"</i><br/><br/></td></tr>";	// Add it
+				str+="<tr><td colspan='2'><i>"+o.desc+"</i><br/><br/></td></tr>";	// Add it
 			if (o.status == "closed")	{									// If closed
 				var type=o.type;											// Search type
 				for (j=i+1;j<n;++j) {										// For each mob
@@ -1852,14 +1847,14 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			if (pic)														// If a pic
 				str+="<img style='border: 1px solid #999' width='64' src='"+pic+"'>"; // Add it
 			str+="&nbsp;&nbsp;</td>";											// End col
-			str+="<td valign='top'><span id='mobPos"+ num+"'><b>"+shivaLib.LinkToAnchor(o.title)+"</b><br/></span>";	// Add title
+			str+="<td valign='top'><span id='mobPos"+ num+"'><b>"+o.title+"</b><br/></span>";	// Add title
 			if (o.start)													// If a date
 				str+="<span style='color:#770000'><b>"+Math.floor(o.start)+"</b></span> ";	// Add date
 			}
 		else{																// Other mob
 			str+="><td colspan='2' valign='top'>";							// Single column
 			str+="<img src='"+pic+"'>"; 									// Add it
-			str+="&nbsp;&nbsp;<span id='mobPos"+ i+"'><b>"+shivaLib.LinkToAnchor(o.title)+"</b><br/></span>";	// Add title
+			str+="&nbsp;&nbsp;<span id='mobPos"+ i+"'><b>"+o.title+"</b><br/></span>";	// Add title
 			}
 		if ((o.desc) && ((o.type == "map") || (o.type == "chapter") || (o.type == "header") || (o.small))) { // If desc spec'd
 			if ((o.text)&& (mps.sh.mobVis[i] > 0))							// If text defined and visible
@@ -1867,7 +1862,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			str+="<br/>";													// Add desc
 			}
 		if ((o.desc) && ((o.type == "goto")&& (mps.sh.curMob == i) && (mps.sh.mobVis[num] > 0)))  // If desc on an open goto
-			str+=shivaLib.LinkToAnchor(o.desc)+"<br/>";						// Add desc
+			str+=o.desc+"<br/>";						// Add desc
 		str+="<br/></td></tr>";												// Close entry
 		if (((mps.sh.curMob == num) || (mps.sh.presentMode == "Book")) && (mps.sh.mobVis[num] > 0) && ((o.type == "map") || (o.type == "layer")|| (o.type == "choro"))){	// If selected and visible
 			thisMob=num;													// Set current mob
@@ -2121,7 +2116,7 @@ MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 		}
 	$("#infoPanelDiv").show();												// Show info panel
 	if (o.title) {															// If it has a title
-		str+="<b>"+shivaLib.LinkToAnchor(o.title);							// Add it
+		str+="<b>"+o.title;													// Add it
 		if (o.start) {														// If a start set
 			str+="<span style='color:#990000'>";							// Red
 			str+="&nbsp;&nbsp;&nbsp;("+Math.floor(o.start);					// Add it
@@ -2138,7 +2133,7 @@ MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 			str+="<br/>Click <a href='"+o.url+" ' target='_blank'>here</a> for more information<br/><br/>";	// Add it		
 		}
 	if (o.desc)																// If it has a desc
-		str+=shivaLib.LinkToAnchor(o.desc)+"<br/><br/>";					// Add it
+		str+=o.desc+"<br/><br/>";											// Add it
 	if ((o.type == "map") || (mode == "info")) { 							// A map													
 		var pic="";															// Assume no pic
 		if (o.med)                                                 	   		// If a med defined															
