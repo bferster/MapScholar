@@ -885,18 +885,31 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 
 MapScholar.prototype.ChoroQuery=function(query, color)					// SHOW RESULTS OF QUERY ON CHOROPLETH
 {
-	var i;
+	var i,seg;
 	var str="";
 	if ((mps.sh.curMob == -1) || (mps.mobs[mps.sh.curMob].type != "choro"))	// If not a choro
 			return;															// Quit
 	var o=mps.mobs[mps.sh.curMob];											// Point at mob
-	var seg=mps.mobs[mps.FindMobByID(o.base)].seg;							// Get seg from saved seg of base
-	var f=seg.getFeatures().getChildNodes();								// Point at seg 
-	if (f.item(0).getType() == "KmlFolder")									// If a folder
-		f=f.item(0).getFeatures().getChildNodes();							// Recurse into it
-	f=f.getLength();														// Get number of features
-	for (i=0;i<f;++i)														// For each feature
-		str+=i+",50,cccccc,000000,1;";										// Make it bland
+	if (mps.mm == "ge") {													// If GE
+		seg=mps.mobs[mps.FindMobByID(o.base)].seg;							// Get seg from saved seg of base
+		var f=seg.getFeatures().getChildNodes();							// Point at seg 
+		if (f.item(0).getType() == "KmlFolder")								// If a folder
+			f=f.item(0).getFeatures().getChildNodes();						// Recurse into it
+		f=f.getLength();													// Get number of features
+		for (i=0;i<f;++i)													// For each feature
+			str+=i+",50,cccccc,000000,1;";	// Make it bland
+		}
+	else if (mps.mm == "ol") {												// If OL
+		seg=(""+o.base).split(",");											// Get base array
+		seg=mps.FindMobByID(seg[seg.length-1]-0);							// Point at last base index id and get index
+		seg=mps.mobs[seg].mid.substr(6)-0;									// Get id
+		seg=mps.kmlLayers[seg];												// Get seg
+		var fa=seg.getSource().getFeatures();								// Get KML feature array
+		if (!fa || !fa.length)												// If no KML features
+			return;															// Quit
+		for (i=0;i<fa.length;++i)											// For each feature to style
+			str+=i+",50,cccccc,000000,1;";									// Make it bland
+		}
 	mps.SetChoroplethFeatures(seg,str,null,false);							// Set feature
 	var results=[];															// Blank array
 	var features=o.url;														// Point at data
