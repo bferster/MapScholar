@@ -2280,7 +2280,7 @@ MapScholar.prototype.MakeMapImage=function(mob) 						// ADD MAP IMAGE TO PROJEC
 			this.img.src=mob.url;											// Set url
 		else if (mob.small)													// If a small
 			this.img.src=mob.small;											// Set url
- 	}
+  	}
 	
 MapImage.prototype.drawImage=function(alpha)                   			// DRAW IMAGE
 { 
@@ -2357,19 +2357,32 @@ MapScholar.prototype.DrawMapImages=function()							// DRAW OL MAPS
 
 MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 {
-	var o=this.geoRef={};													// Holds params												
 	if (num == undefined)													// If mob num not spec'd
 		num=mps.sh.curMob;													// Use current one
 	else																	// Use designated one
 		this.sh.HighlightMob(num,false,true);								// Highlight mob
-
-	this.drawLayer=new ol.FeatureOverlay({ source: new ol.source.Vector() } );	// Feature overlay for georefee
-	this.drawLayer.setMap(map);												// Add to map
-
+	if (mps.geoRef) {														// If geo referencing left open
+		if (mps.geoRef.modify)												// If interaction initted													
+			map.removeInteraction(mps.geoRef.modify);						// Remove it
+		mps.drawLayer.getFeatures().clear();								// Clear existing points
+		map.unByKey(mps.geoRef.pDrag)										// Remove drag handler
+		map.unByKey(mps.geoRef.pUp)											// Remove mouse up handler
+		}
+	var o=this.geoRef={};													// Holds params												
+	if (!this.drawLayer) {													// If not defined yet
+		this.drawLayer=new ol.FeatureOverlay({ source: new ol.source.Vector() } );	// Feature overlay for georef
+		this.drawLayer.setMap(map);												// Add to map
+		}
 	var mob=this.mobs[num];													// Get mob
 	if (!mob.north) {														// If no coords yet
-		var nw=map.getCoordinateFromPixel([250,150]);						// NW corner
-		var se=map.getCoordinateFromPixel([650,450]);						// SE corner
+		var asp=0;
+		if (mob.mapImage && mob.mapImage.img && mob.mapImage.img.naturalWidth)	// If image is loaded		
+			asp=mob.mapImage.img.naturalHeight/mob.mapImage.img.naturalWidth;	// Calc image aspect
+		if (!asp)															// If no aspect
+			asp=.75;														// Assume 4/3
+		var bot=(mapHgt*.25)+(mapWid*.5*asp);
+		var nw=map.getCoordinateFromPixel([mapWid*.25,mapHgt*.25]);			// NW corner
+		var se=map.getCoordinateFromPixel([mapWid*.75,bot]);				// SE corner
 		nw=ol.proj.transform(nw,mps.curProjection,"EPSG:4326"); 			// Project coord
 		se=ol.proj.transform(se,mps.curProjection,"EPSG:4326"); 			// Project 
 		mob.north=nw[1];													// Set N
@@ -2378,10 +2391,10 @@ MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 		mob.west=nw[0];														// Set W
 		mps.MakeMapImage(mob);												// Reset map image
 		mps.DrawMapImages();												// Draw map images
+		
 		}
 	o.asp=(mob.north-mob.south)/(mob.east-mob.west);						// Calc image asp
 	SetControlDots(true);													// Starter dots
-
 	var str="<br> &nbsp; &nbsp; Rotation &nbsp;&nbsp; <span id='geoRot1' style='width:360px;display:inline-block'></span>&nbsp;&nbsp;";
 	str+="Fine rotation &nbsp;&nbsp; <span id='geoRot2' style='width:200px;display:inline-block'></span>";
 	str+=" &nbsp; &nbsp; Value &nbsp; <input type='text' class='is' id='geoRot3' style='font-size:10px;width:60px;display:inline-block;border-radius:10px;text-align:center'>";
@@ -2415,7 +2428,7 @@ MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 		mps.MakeMapImage(mob);											// Reset map image
 		mps.DrawMapImages();											// Draw map images
 		SetControlDots(true);											// Reset control dots
-		var str=mob.north+"|"+mob.south+"|"+mob.west+"|"+mob.east+"|"+mob.rotation;
+		var str=mob.north+"|"+mob.south+"|"+mob.east+"|"+mob.west+"|"+mob.rotation;
 		SendShivaMessage("MapScholar=rectify",str);						// Send rectify position to mapedit
 	}
 
@@ -2424,7 +2437,7 @@ MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 			ReDrawImage();												// Redraw image
 			});															 
 
-	o.pDrag=shivaLib.map.on('pointerdrag',function(e) {						// ON MOUSE DRAG
+	o.pDrag=shivaLib.map.on('pointerdrag',function(e) {					// ON MOUSE DRAG
 		if (mps.geoRef) {													// If geo referencing
 			var id;
 			var shift=ol.events.condition.shiftKeyOnly(e);					// Shift key status
@@ -2432,8 +2445,8 @@ MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 			map.forEachFeatureAtPixel(e.pixel,function(f) {					// Look at features
 				id=f.getId();												// Get id of feature
 				if (id == "georef0") {										// Move all dots
-					var w=(mob.east-mob.west)/2;							// Get width
-					var h=(mob.north-mob.south)/2;							// Get width
+					var w=Math.abs(mob.east-mob.west)/2;					// Get width
+					var h=Math.abs(mob.north-mob.south)/2;					// Get width
 					mob.west=p[0]-w;										// Set W
 					mob.east=p[0]+w;										// Set E
 					mob.north=p[1]+h;										// Set N
@@ -2499,8 +2512,8 @@ MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 				})
 			}
 		
-		o.pts[0].x=mob.west+(mob.east-mob.west)/2;							// CX
-		o.pts[0].y=mob.south+(mob.north-mob.south)/2;						// CY
+		o.pts[0].x=mob.west+Math.abs(mob.east-mob.west)/2;					// CX
+		o.pts[0].y=mob.south+Math.abs(mob.north-mob.south)/2;				// CY
 		o.pts[1].x=mob.west-0;	o.pts[1].y=mob.north-0;						// NW
 		o.pts[2].x=mob.east-0;	o.pts[2].y=mob.north-0;						// NE
 		o.pts[3].x=mob.east-0;	o.pts[3].y=mob.south-0;						// SE
