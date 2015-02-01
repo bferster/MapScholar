@@ -710,9 +710,9 @@
   	 	str+="&nbsp; End Date: <input id='edate' class='is' style='width:40px'>";
    	 	str+="&nbsp; Mob ID: <input id='mobid' class='is' style='width:30px'></td></tr>";
 	 	str+="<tr><td>Citation: </td><td><input id='cite' class='is' style='width:270px'> ";
-  	 	str+="<img src='img/editdot.gif' id='citeh'></td></tr>";
+  	 	str+="<img src='img/editdot.gif' id='citeh' style='vertical-align:-2px;cursor:pointer'></td></tr>";
 	 	str+="<tr><td>Prompt: </td><td><input id='prompt' class='is' style='width:270px'> ";
-  	 	str+="<img src='img/editdot.gif' id='prompth'></td></tr>";
+  	 	str+="<img src='img/editdot.gif' id='prompth' style='vertical-align:-2px;cursor:pointer'></td></tr>";
      	str+="<tr><td>North: </td><td><input id='north' class='is' style='width:40px'>";
   	 	str+="&nbsp; South: <input id='south' class='is' style='width:40px'>"
 		str+=" &nbsp; <button class='bs' style='color:#009900;background-color:#fff' id='rectify'>Geo - reference</button></td></tr>";
@@ -720,9 +720,10 @@
      	str+="&nbsp; West: &nbsp;<input id='west' class='is' style='width:40px'>";
      	str+="&nbsp; Rotation: <input id='rotation' class='is' style='width:40px'></td></tr>";
   	 	str+="<tr><td>Settings: </td><td><input id='settings' class='is' style='width:40px'>";
-     	str+="&nbsp; Base: &nbsp;<input id='base' class='is' style='width:40px'>";
-     	str+="&nbsp; Status: &nbsp;&nbsp; <input id='status' class='is' style='width:40px'></td></tr>";
- 	 	str+="<tr><td>Small pic: </td><td><input id='small' class='is' style='width:92px'>";
+     	str+="&nbsp; Status: <input id='status' class='is' style='width:40px'>";
+     	str+="&nbsp; Base: &nbsp;&nbsp;&nbsp; <input id='base' class='is' style='width:40px'> ";
+  	 	str+="<img src='img/adddot.gif' style='vertical-align:-2px;cursor:pointer' id='baseh'></td></tr>";
+	 	str+="<tr><td>Small pic: </td><td><input id='small' class='is' style='width:92px'>";
      	str+="&nbsp; Med pic: &nbsp;<input id='med' class='is' style='width:94px'></td></tr>";
   		str+="<tr><td>Orig/url: </td><td><input id='url' class='is' style='width:200px'>&nbsp; ";
   		str+="<img src='images/flickrbut.png' id='flickr' style='vertical-align:-4px'></td></tr>";
@@ -807,6 +808,14 @@
 				HTMLEditor(id, curJson[id].prompt, function(d) {				// Edit text
 					curJson[id].prompt=d;										// Set val
 					});
+				});				
+		$("#baseh").on("click", function() {									// BASE PICKER
+				PickMob(function(m) {											// Get mob
+					var b=$("#base").val();										// Get current contents
+					if (b)														// If one already there
+						b+=",";													// Add sep
+					$("#base").val(b+m)											// Add mob
+					}),"page";
 				});				
 
 		$("#rectify").on("click", function() {									// RECTIFY PIC
