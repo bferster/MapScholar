@@ -636,7 +636,7 @@
 					var id=e.currentTarget.id.substr(7);						// Extract id
 					if (id == undefined)										// If deselecting
 						return;													// Quit
-					callback(id);												// Run callback
+					callback(curJson[id].id);									// Run callback
 					$("#pickBoxDiv").remove();									// Kill dialog
 					});
 			}
