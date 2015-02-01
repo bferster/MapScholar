@@ -588,7 +588,7 @@
 		else		text=text.replace(/\\\"/g,"\"");							// Un-slash
 		$("body").append("<div style='overflow:hidden;' class='unselectable' id='alertBoxDiv'></div>");														
 		var str="<p><img src='images/qlogo32.png' style='vertical-align:-10px'/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";								
-		str+="<span style='font-size:18px;text-shadow:1px 1px #ccc;color:#000000'><b>Style text</b></span><br><br><p><table>";
+		str+="<span style='font-size:18px;text-shadow:1px 1px #ccc;color:#000000'><b>Style text</b></span><br><br><p>";
  		str+="<textarea id='editor1' rows='4' style='width:100%' >"+text+"</textarea>";
  		$("#alertBoxDiv").append("</div>"+str);	
  		CKEDITOR.replace('editor1');
@@ -608,11 +608,52 @@
  		$(".ui-button").css({"border-radius":"30px","outline":"none"});
  	}
 
+	function PickMob(callback, exclude) 											// PICK A MOB
+	{	
+		var i,o;
+		var trsty=" style='height:20px;background-color:#f8f8f8' onMouseOver='this.style.backgroundColor=\"#dee7f1\"' ";
+		trsty+="onMouseOut='this.style.backgroundColor=\"#f8f8f8\"'";
+		$("body").append("<div style='overflow:hidden;' class='unselectable' id='pickBoxDiv'></div>");														
+		var str="<p><img src='images/qlogo32.png' style='vertical-align:-10px'/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";								
+		str+="<span style='font-size:18px;text-shadow:1px 1px #ccc;color:#000000'><b>Choose mob</b></span><br><br><p>";
+		str+="<div style='max-height:300px;overflow-x:hidden;overflow-y:auto;background-color:#f8f8f8;padding:8px;border:1px solid #999;border-radius:8px'>";		// Scrollable container
+		str+="<table style='font-size:12px;width:100%;padding:0px;border-collapse:collapse'>";
+		str+="<tr><td style='min-width:40px'><b>ID</b></td><td style='min-width:60px'><b>Type</b></td><td><b>Title</b></td></tr>";
+		str+="<tr><td colspan='3'><hr></td></tr>";
+
+ 		for (i=0;i<curJson.length;++i) {
+			o=curJson[i];
+			if (o.type == exclude)
+				continue;
+			str+="<tr id='pickMob"+i+"'"+trsty+"><td>"+o.id+" </td><td>"+o.type+" </td><td>"+o.title+"</td></tr>";
+ 			}
+		$("#pickBoxDiv").append("</div>"+str);	
+  		
+		
+		
+		for (i=0;i<curJson.length;++i) {
+			$("#pickMob"+i).on("click", function(e) {							// ON ROW CLICK
+					var id=e.currentTarget.id.substr(7);						// Extract id
+					if (id == undefined)										// If deselecting
+						return;													// Quit
+					callback(id);												// Run callback
+					$("#pickBoxDiv").remove();									// Kill dialog
+					});
+			}
+
+  		$("#pickBoxDiv").dialog({ buttons: {
+		    "Cancel": 	function() { $(this).remove(); }
+			}});	
+		$(".ui-dialog-titlebar").hide();
+		$(".ui-dialog-buttonpane.ui-widget-content.ui-helper-clearfix").css("border","none");
+		$(".ui-dialog").css({"border-radius":"14px", "box-shadow":"4px 4px 8px #ccc"});
+ 		$(".ui-button").css({"border-radius":"30px","outline":"none"});
+ 	}
 
 	function GoToEditor(id, where, callback) 								// GOTO EDITOR
 	{	
-		$("#alertBoxDiv").remove();												// Remove any old ones
-		$("body").append("<div style='overflow:hidden;' class='unselectable' id='alertBoxDiv'></div>");														
+		$("#gotoBoxDiv").remove();												// Remove any old ones
+		$("body").append("<div style='overflow:hidden;' class='unselectable' id='gotoBoxDiv'></div>");														
 		var str="<p><img src='images/qlogo32.png' style='vertical-align:-10px'/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";								
 		str+="<span style='font-size:18px;text-shadow:1px 1px #ccc;color:#000000'><b>Set goto position</b></span><br><br><p><table>";
      	str+="<tr><td>Lat: </td><td><input id='gotolat' class='is' style='width:100px'>";
@@ -623,7 +664,7 @@
   	 	str+="<td> Speed: </td><td><input id='gotospd' class='is' style='width:100px'></tr>";
  		str+="</table>";		
 		str+="<br><b>How to set a goto position:</b><br><br>Position the earth on the left where you want to go to. Click on the <i>OK</i> button to save, or the <i>Remove goto button</i> to remove the goto entirely. You can also use the MapScholar shelf items or the <i>Find</i> option to navigate. You can change the default speed of the move by entering a value in the speed box. The speed is from 0 (forever) to 5 (instantly) and is optional. The default is 1, which takes approximately 2 seconds. " 
-		$("#alertBoxDiv").append("</div>"+str);	
+		$("#gotoBoxDiv").append("</div>"+str);	
 
 		if (!where)																// If no pos set
 			where=curPos;														// Use current pos
@@ -636,7 +677,7 @@
 		if (v[5] != undefined)													// If a speed set
 			$("#gotospd").val(v[5]);											// Set speed field,
 					
-		$("#alertBoxDiv").dialog({ width:500, buttons: {
+		$("#gotoBoxDiv").dialog({ width:500, buttons: {
 	    	"OK": 			function() { 
 	    						where="";										// Normal move
 	    						where+=$("#gotolat").val()+",";					// Add lat
@@ -652,7 +693,7 @@
 	    	"Remove goto": 	function() { callback("");			$(this).remove();	},
 	    	"Cancel":  		function() { $(this).remove(); 							}
 			}});	
-		$("#alertBoxDiv").dialog("option","position",{ my:"center", at:"center", of:"#paneDiv" });
+		$("#gotoBoxDiv").dialog("option","position",{ my:"center", at:"center", of:"#paneDiv" });
 		$(".ui-dialog-titlebar").hide();
 		$(".ui-dialog-buttonpane.ui-widget-content.ui-helper-clearfix").css("border","none");
 		$(".ui-dialog").css({"border-radius":"14px", "box-shadow":"4px 4px 8px #ccc"});
