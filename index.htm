@@ -316,7 +316,7 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 		          		center: ol.proj.transform( [-50,50],'EPSG:4326',this.curProjection),
 		          		minZoom: 2, maxZoom: 16, zoom: 6 }),
  				});
-  
+      
 	       	this.CreateCanvasLayer();										// Canvas layer for map images
 			this.boxLayer=new ol.layer.Vector({ source: new ol.source.Vector({ projection: 'EPSG:4326'}) }); 	// Create box layer
 			map.addLayer(this.boxLayer);									// Add to map	
@@ -324,10 +324,28 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 		   	for (i=0;i<this.layers.length;++i) 								// For each layer
 			    this.layers[i].set('visible',this.layers[i].get("title") == this.baseLayer); // Set visibility
 
+	      	mps.featureSelect.getFeatures().on("change:length", function(e) {	// ON FEATURE SELECT
+				var i,j,f;
+	  			if (e.target && e.target.item(0)) {							// If something there
+					var id=e.target.item(0).getId();						// Id of seg
+					for (i=0;i<mps.kmlLayers.length;++i) {					// For each KML layer
+						f=mps.kmlLayers[i].getSource().getFeatures();		// Get KML feature array
+						if (!f || !f.length)								// If no KML features
+							continue;										// Quit
+						for (j=0;j<f.length;++j) {							// For each feature 
+							if (f[j].getId() == id) {						// Found it
+								$("#mpsFind").val(j);						// Show id in Find: box
+									return;
+								}
+							}												// End feature
+						}													// End layer
+					}														// End got one
+  				});
+
 			map.on('moveend', function(e) {									// On end of move
               	mps.DrawMapImages();										// Redraw maps in new extent, if moved
 				var o=map.getView();										// Point at view
-				var c=ol.proj.transform(o.getCenter(),mps.curProjection,'EPSG:4326');		// Get center
+				var c=ol.proj.transform(ValidCenter(o.getCenter()),mps.curProjection,'EPSG:4326');		// Get center
 				var pos=Math.floor(c[1]*10000)/10000+"|"+Math.floor(c[0]*10000)/10000+"|"+Math.floor(ResolutionToRange(o.getResolution(),mapWid));	
 				pos+="|0|"+Math.floor((o.getRotation()*180/Math.PI)*1000)/-1000;		// Rotation
 				SendShivaMessage("ShivaEarth=move",pos);					// Send that view has changed
@@ -991,7 +1009,7 @@ MapScholar.prototype.Goto=function(pos)									// SET EARTH VIEWPOINT
 	if (this.mm == "ol") {													// If OL
 		var o=map.getView();												// Point at view
 		var c=ol.proj.transform([v[1]-0,""+v[0].replace(/\*/,"")-0],'EPSG:4326',this.curProjection);	// Get center
-		var fc=o.getCenter();												// Get from center
+		var fc=ValidCenter(o.getCenter());									// Get from center
 		var fr=o.getRotation();												// Get from rotation		
 		var fs=o.getResolution();											// Get from resolution
 		var r=-v[4]*Math.PI/180;											// Get to rotation	
@@ -2012,7 +2030,7 @@ MapScholar_Shelf.prototype.Settings=function()							// SETTINGS
 	var pos;
 	if (mps.mm == "ol") {													// If OL
 		var o=map.getView();												// Point at view
-		var c=ol.proj.transform(o.getCenter(),mps.curProjection,'EPSG:4326');		// Get center
+		var c=ol.proj.transform(ValidCenter(o.getCenter()),mps.curProjection,'EPSG:4326');		// Get center
 		pos=Math.floor(c[1]*10000)/10000+","+Math.floor(c[0]*10000)/10000+","+ResolutionToRange(o.getResolution(),mapWid);	
 		pos+=",0,"+Math.floor((o.getRotation()*180/Math.PI)*1000)/1000;		// Rotation
 		} 													
@@ -2229,6 +2247,14 @@ MapScholar_Shelf.prototype.Play=function(again, chapter)				// PLAY
 	{
 		return((resolution*(width))/(2*Math.tan(75*(Math.PI/360))));		// Code from Shane Lin 
 	}
+
+	function ValidCenter(c)												// MAKE SURE COORDS STAY IN MAIN MAP COORD SPACE
+  	{
+  	 	c=ol.proj.transform(c, mps.curProjection,'EPSG:4326' );				// Project
+		c[0]=c[0]%180;		c[1]=c[1]%180;									// Keep -180 to 180 degrees
+ 	 	c=ol.proj.transform(c, 'EPSG:4326',mps.curProjection );				// Project back
+ 		return c;															// Return valid coord
+	}	
 
 	function Hex2RGBAString(col, alpha)
 	{	

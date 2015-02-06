@@ -4,7 +4,7 @@
 		exec:function(editor){
 	 		var theSelectedText = editor.getSelection().getNative();
 	 		GoToEditor(0,0,function(m) { 
-	 			editor.insertHtml("goto("+m+",here)")
+	 			editor.insertHtml("goto(here,"+m+")");
 	 			},"page");
 			}
 	},

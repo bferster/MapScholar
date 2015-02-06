@@ -72,6 +72,7 @@ MapScholar_Draw.prototype.InitOpenGraphics=function(type)					// INIT GRAPHICS D
 		  			}	
 				})
 			);
+      
 		}
 
 	else if ((type  == "LineString") || (type  == "Polygon"))	{				// If drawing
@@ -128,7 +129,7 @@ MapScholar_Draw.prototype.LoadOpenKML=function(kmlData)						// LOAD KML TO LAYE
 		   		s.unByKey(key);													// Kill listener
 	    		for (i=0;i<s.getFeatures().length;++i){							// For each feature
 	        		f=s.getFeatures()[i].clone();								// Clone feature
-	       			f.setId("SEG-"+i);  										// Set id
+	       			f.setId("SEG-"+Math.floor(Math.random()*999999));  			// Set id
 					mps.drawingLayer.getSource().addFeature(f);					// Add to layer
 					}
 	 			 }
@@ -139,7 +140,7 @@ MapScholar_Draw.prototype.LoadOpenKML=function(kmlData)						// LOAD KML TO LAYE
 	    for (i=0;i<fs.length;++i){												// For each feature
 	        f=fs[i].clone();													// Clone feature
 	      	f.getGeometry().transform("EPSG:4326","EPSG:3857");					// Project
-	       	f.setId("SEG-"+i);  												// Set id
+	       	f.setId("SEG-"+Math.floor(Math.random()*999999));  					// Set id
 			mps.drawingLayer.getSource().addFeature(f);							// Add to layer
 			}
 		}
