@@ -309,7 +309,7 @@
 
 	function MakePageTable() 												// MAKE PAGE TABLE
 	{	
-		var i,o; 
+		var i,o,pageNum=1; 
 		var	pic="images/pageicon.jpg";											// Use icon
 		var trsty=" style='background-color:#f8f8f8' onMouseOver='this.style.backgroundColor=\"#dee7f1\"' ";
 		trsty+="onMouseOut='this.style.backgroundColor=\"#f8f8f8\"'";
@@ -329,7 +329,7 @@
 			str+="<br><div style='display:inline-block;width:45px;color:#777'><b>ID:</b></div>";
 			str+="<input class='is' style='width:30px' type='text' id='idi"+i+"' value='"+(o.id != undefined ? o.id : '')+"'>";
 			str+=" &nbsp; <button class='bs' style='color:#009900;background-color:#fff;' id='idg"+i+"'>"+(o.goto ? 'Set goto' : 'Add goto')+"</button>";
-
+			str+="<span style='color:#777'> &nbsp; Page: &nbsp;</span></b></span><span style='font-weight:normal'>"+(pageNum++)+"</span>";
 			str+="</td><td><img style='visibility:hidden' id='idtm"+i+"' src='images/movedot.gif'>";	// Add move icon
 			str+="<br><br><img style='visibility:hidden' id='idtr"+i+"' src='images/trashdot.gif' onclick='onDeleteMob(this.id)'></td>"; // Add trashcan
 			if (i < curJson.length-1) 											// If not last line
@@ -392,7 +392,7 @@
 
 			$("#idg"+i).on("click", function() {								// GOTO EDITOR
 					var id=this.id.substr(3);									// Get id
-					GoToEditor(id, curJson[id].goto, function(w) {				// Edit source
+					aEditor(id, curJson[id].goto, function(w) {				// Edit source
 						curJson[id].goto=w;										// Set val
 						MakePageTable();										// Show
 						});

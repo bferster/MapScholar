@@ -329,6 +329,8 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 	  			if (e.target && e.target.item(0)) {							// If something there
 					var id=e.target.item(0).getId();						// Id of seg
 					for (i=0;i<mps.kmlLayers.length;++i) {					// For each KML layer
+						if (!mps.kmlLayers[i].getSource().getFeatures)		// If no source features
+							continue;
 						f=mps.kmlLayers[i].getSource().getFeatures();		// Get KML feature array
 						if (!f || !f.length)								// If no KML features
 							continue;										// Quit
@@ -397,7 +399,6 @@ MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT
 			}
 		this.dr.DrawControlBar(false);										// Draw control bar and shelf
 		o=this.mobs[0];														// Point at 1st mob
-		this.Goto(o.goto);													// Go to 1st pos
 		if (o.status && ((o.type == "boxes") || (o.type == "startup"))) { 	// Startup mob
 			if (o.status.match(/book/i))									// If book
 				this.sh.PresentView({value:"Book"});						// Reset view
@@ -421,6 +422,10 @@ MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT
 				}
 			}
 		mps.sh.HighlightMob(o.type == "startup" ? 1 : 0,false,true);		// Show first content mob
+		if (o.goto && (o.type == "startup"))								// If a goto in startup mob
+			this.Goto(o.goto);												// Go to 1st pos
+
+
 		return;
 		}
 }
@@ -2250,10 +2255,10 @@ MapScholar_Shelf.prototype.Play=function(again, chapter)				// PLAY
 
 	function ValidCenter(c)												// MAKE SURE COORDS STAY IN MAIN MAP COORD SPACE
   	{
-  	 	c=ol.proj.transform(c, mps.curProjection,'EPSG:4326' );				// Project
-		c[0]=c[0]%180;		c[1]=c[1]%180;									// Keep -180 to 180 degrees
- 	 	c=ol.proj.transform(c, 'EPSG:4326',mps.curProjection );				// Project back
  		return c;															// Return valid coord
+  	 	c=ol.proj.transform(c, mps.curProjection,'EPSG:4326' );				// Project
+	 	c[0]=c[0]%180;														// Keep -180 to 180 degrees
+ 	 	c=ol.proj.transform(c, 'EPSG:4326',mps.curProjection );				// Project back
 	}	
 
 	function Hex2RGBAString(col, alpha)
