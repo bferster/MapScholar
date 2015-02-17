@@ -1029,8 +1029,12 @@ MapScholar.prototype.Goto=function(pos)									// SET EARTH VIEWPOINT
 				&& (Math.abs(fr-r) < 1) && (Math.abs(fr-r) < 1)				// Rotation  match
 				)															// Already there
 			return;															// Quit
+		var b=4;															// Default bounce
+		var bMin=2000;
 		var duration=2000;													// Duration
-		var start =+new Date();												// Start time
+		var start=+new Date();												// Start time
+		if (v[5])	duration=v[5]*1000;										// If set, get duration
+		if (v[6])	b=v[6]-0,bMin=10000000;									// If set, get bounce amount
 		var pan=ol.animation.pan({											// Pan
 		    duration: duration,												// Duration
 		    source: fc,														// Start value
@@ -1048,7 +1052,7 @@ MapScholar.prototype.Goto=function(pos)									// SET EARTH VIEWPOINT
 		  	});
 		 var bounce=ol.animation.bounce({									// Fly bounce
 		    duration: duration,												// Duration
-		    resolution: Math.min(4*o.getResolution(),2000),					// End value
+		    resolution: Math.min(b*o.getResolution(),bMin),					// End value
 		    start: start													// Starting time
 		  });
 		

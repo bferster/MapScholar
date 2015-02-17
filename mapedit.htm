@@ -392,7 +392,7 @@
 
 			$("#idg"+i).on("click", function() {								// GOTO EDITOR
 					var id=this.id.substr(3);									// Get id
-					aEditor(id, curJson[id].goto, function(w) {				// Edit source
+					GotoEditor(id, curJson[id].goto, function(w) {				// Edit source
 						curJson[id].goto=w;										// Set val
 						MakePageTable();										// Show
 						});
@@ -656,14 +656,15 @@
 		$("body").append("<div style='overflow:hidden;' class='unselectable' id='gotoBoxDiv'></div>");														
 		var str="<p><img src='images/qlogo32.png' style='vertical-align:-10px'/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";								
 		str+="<span style='font-size:18px;text-shadow:1px 1px #ccc;color:#000000'><b>Set goto position</b></span><br><br><p><table>";
-     	str+="<tr><td>Lat: </td><td><input id='gotolat' class='is' style='width:100px'>";
-  	 	str+="<td> Long: </td><td><input id='gotolon' class='is' style='width:100px'></td>";
-  	 	str+="<td> Range: </td><td><input id='gotohgt' class='is' style='width:100px'></tr>";
-    	str+="<tr><td>Tilt: </td><td><input id='gototlt' class='is' style='width:100px'>";
-  	 	str+="<td> Rotate: </td><td><input id='gotohdg' class='is' style='width:100px'></td>";
-  	 	str+="<td> Speed: </td><td><input id='gotospd' class='is' style='width:100px'></tr>";
- 		str+="</table>";		
-		str+="<br><b>How to set a goto position:</b><br><br>Position the earth on the left where you want to go to. Click on the <i>OK</i> button to save, or the <i>Remove goto button</i> to remove the goto entirely. You can also use the MapScholar shelf items or the <i>Find</i> option to navigate. You can change the default speed of the move by entering a value in the speed box. The speed is from 0 (forever) to 5 (instantly) and is optional. The default is 1, which takes approximately 2 seconds. " 
+     	str+="<tr><td>Lat: </td><td><input id='gotolat' class='is' style='width:80px'>";
+  	 	str+="<td> Long: </td><td><input id='gotolon' class='is' style='width:80px'></td>";
+  	 	str+="<td> Range: </td><td><input id='gotohgt' class='is' style='width:80px'></tr>";
+    	str+="<tr><td>Tilt: </td><td><input id='gototlt' class='is' style='width:80px'>";
+  	 	str+="<td> Rotate: </td><td><input id='gotohdg' class='is' style='width:80px'></td>";
+  	 	str+="<td> Speed: </td><td><input id='gotospd' class='is' style='width:80px'></tr>";
+     	str+="<tr><td> Bounce: </td><td><input id='gotobnc' class='is' style='width:80px'></td><td></td><td></td></tr>";
+		str+="</table>";		
+		str+="<br><b>How to set a goto position:</b><br><br>Position the earth on the left where you want to go to. Click on the <i>OK</i> button to save, or the <i>Remove goto button</i> to remove the goto entirely. You can also use the MapScholar shelf items or the <i>Find</i> option to navigate. You can change the default speed of the move by entering a value in the speed box. The speed is set in seconds and is optional, (default is 2 seconds). " 
 		$("#gotoBoxDiv").append("</div>"+str);	
 
 		if (!where)																// If no pos set
@@ -676,6 +677,8 @@
 		$("#gotohdg").val(v[4]);												// Set heading field
 		if (v[5] != undefined)													// If a speed set
 			$("#gotospd").val(v[5]);											// Set speed field,
+		if (v[6] != undefined)													// If a bounce set
+			$("#gotobnc").val(v[6]);											// Set bounce field,
 					
 		$("#gotoBoxDiv").dialog({ width:500, buttons: {
 	    	"OK": 			function() { 
@@ -687,6 +690,8 @@
 	    						where+=$("#gotohdg").val();						// Heading
 								if ($("#gotospd").val())						// If a speed set
 		    						where+=","+$("#gotospd").val();				// Add it
+								if ($("#gotobnc").val())						// If a bounce set
+		    						where+=","+$("#gotobnc").val();				// Add it
 	    						callback(where);								// Send to callback	
 	    						$(this).remove();								// Remove dialog
 	    						},
