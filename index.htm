@@ -154,6 +154,9 @@
 		   		features.removeChild(features.getFirstChild());				// Remove it
 			}
 		mps.AddMapBoxes();													// Add boxes
+		var o=mps.mobs[0];													// Point at first mob
+		if (o && o.med  && (o.type == "startup"))							// A startup with an image
+			mps.ShowText(0,true);											// Show title page, if set
 	}		
 	
 	function shivaEventHandler(e)										// ON SHIVA MESSAGE
@@ -1124,12 +1127,14 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 	if (m.type != "text") {													// If not a text mob
 		txt=shivaLib.LinkToAnchor(m.text);									// Get text from text field
 		pos=4;																// Assume top
-		if (s) {															// If found
-			pos=s[0].substring(4,s[0].length-1)-0;							// Get new pos
-			txt=txt.replace(s[0],"");										// Remove it
-			}
+//		if (s) {															// If found
+//			pos=s[0].substring(4,s[0].length-1)-0;							// Get new pos
+//			txt=txt.replace(s[0],"");										// Remove it
+//			}
 		mps.popupOpen=num;													// Set popup flag
 		}
+	if (m.type == "startup") 												// If a startup
+		pos=0;																// Whole screen
 	if ((m.east) && (m.type == "text"))										// If spec'ing pos												
 		l=m.north,t=m.south,w=m.east,h=m.west;								// Use it		
 	else{ 
@@ -1162,6 +1167,22 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 		str+="</p>"+txt+"<div>";											// Add desc
 		if ((m.url) && (m.type != "map"))									// If a link
 			str+="<br/>Click <a href='"+m.url+" ' target='_blank'>here</a> for more information";	// Add it		
+		if (m.type == "startup") {											// No startup
+			str="<div style='font-family:sans-serif;font-size:18px;display:table;position:absolute;height:96%;width:96%;'>";
+			str+="<div style='display: table-cell; vertical-align: middle;'>";
+			str+="<div style='margin-left:auto;margin-right:auto;width:90%;height:360px;max-width:900px;'>";
+			str+="<div style='float:left;width:50%;position:relative;'>";
+			str+="<img alt='Atlas Cover' src='"+m.med+"' style='float:left; width: 100%; height: auto; margin-left: auto; margin-right: auto;'/></div>";
+			str+="<div style='float: right; position: relative; height: 350px;  width: 45%;'>"
+			str+="<div style='font-size:16px; margin-bottom: 40px'><strong>"+m.title+"</strong><br>";
+			if (m.desc)
+				str+="<span style='font-size:14px'>"+m.desc+"</span>";
+			str+="</div><div style='font-size:14px'><p>A <a href='http://www.mapscholar.org' target='_blank'>MapScholar</a> Atlas";
+			if (m.citation)
+				str+=" by "+m.citation;
+			str+="</p></div><img alt='Mapscholar Supporters' src='img/sponsors.png' style='margin-top:10px;margin-left:-10px;position: absolute; bottom: 0;' />";
+			str+="</div></div></div></div>";
+			}
 		shivaLib.ShowIframe((l+20-0),(t+20-0),w,h,"blank.htm","iframe-"+num,"white",str);	// Show iframe
 		}
 	else{																	// If hiding
