@@ -808,7 +808,7 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 		var results=[];														// Blank array
 		a=query;															// Copy query
 		d="";																// No extra field
-		if (a.match(/ CLEAR/)) {												// If has clear tag
+		if (a.match(/ CLEAR/)) {											// If has clear tag
 			hide=true;														// Add clear elements
 			a=a.replace(/ CLEAR/,"");										// Remove tag
 			}
