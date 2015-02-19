@@ -402,16 +402,16 @@ MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT
 			}
 		this.dr.DrawControlBar(false);										// Draw control bar and shelf
 		o=this.mobs[0];														// Point at 1st mob
-		if (o.status && ((o.type == "boxes") || (o.type == "startup"))) { 	// Startup mob
+		if (o.status && (o.type == "startup")) { 							// Startup mob
 			if (o.status.match(/book/i))									// If book
 				this.sh.PresentView({value:"Book"});						// Reset view
 			else if (o.status.match(/slides/i))								// If slides
 				this.sh.PresentView({value:"Slides"});						// Reset view
-			if (o.status.match(/on/i)) {									// If set, boxes on
+			if (o.status.match(/boxes.*on/i)) {								// If set, boxes on
 				mps.showBoxes=true;											// Set flag
 				mps.ShowMapBoxes(-1,"on");									// Set boxes
 				}
-			else if (o.status.match(/off/i)) {								// If set, boxes off
+			else if (o.status.match(/boxes.*off/i)) {						// If set, boxes off
 				mps.showBoxes=false;										// Set flag
 				mps.ShowMapBoxes(-1,"off");									// Set boxes
 				}
@@ -464,6 +464,8 @@ MapScholar.prototype.AddMapBoxes=function()								// ADD MAP WIREFRAMES
 			var r=[[0,0],[0,0],[0,0],[0,0],[0,0]];							// Init coords
 			m=this.mobs[i];													// Point at mob
 			if (m.type != "map")											// If not a map
+				continue;													// Continue
+			if (!m.north)													// No georefereced
 				continue;													// Continue
 			var p1=ol.proj.transform([m.west-0,m.north-0],'EPSG:4326',this.curProjection);	// Transform
 			var p2=ol.proj.transform([m.east-0,m.south-0],'EPSG:4326',this.curProjection); // Transform
@@ -1417,15 +1419,15 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 
 	if (o.settings) {														// If a settings field
 		if (o.settings.match(/roads/)) {									// Roads tag
-			mps.showRoads=(o.settings.match(/roads *on/i)) ? true : false	// Set flag
+			mps.showRoads=(o.settings.match(/roads.*on/i)) ? true : false	// Set flag
 			mps.ShowMapLayers(mps.showRoads);								// Show roads?
 			}
 		if (o.settings.match(/scale/)) {									// Scale tag
-			mps.showScale=(o.settings.match(/scale *on/i)) ? true : false	// Set flag
+			mps.showScale=(o.settings.match(/scale.*on/i)) ? true : false	// Set flag
 			mps.ShowMapScale(mps.showScale);								// Show scale?
 			}
 		if (o.settings.match(/boxes/)) {									// boxes tag
-			mps.showBoxes=(o.settings.match(/boxes *on/i)) ? "on" : "off"	// Set flag
+			mps.showBoxes=(o.settings.match(/boxes.*on/i)) ? "on" : "off"	// Set flag
 			mps.ShowMapBoxes(-1,mps.showBoxes);								// Show boxes?
 			}
 		if (m=o.settings.match(/base.?(\S+)\s*/)) {							// Base tag
