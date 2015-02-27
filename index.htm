@@ -37,7 +37,7 @@
 <body>
 	<div id="containerDiv" style="position:absolute;left:20px;top:20px;"></div>
 	<div id="shelfDiv" style="position:absolute;width:230px;top:20px;background-color:#eee;"> 
-		<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>2/1/15</p>
+		<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>3/1/15</p>
 		</div>
 	<div id="controlBarDiv" style="position:absolute;height:36px;left:20px;background-color:#eee"> </div>
 	<div id="infoPanelDiv" style="display:none;position:absolute;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
@@ -228,8 +228,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // MAIN 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-
-var lastClick=0;
 
 function MapScholar(mapMode)											// CONSTRUCTOR
 {
@@ -1237,12 +1235,13 @@ MapScholar.prototype.ShowSound=function(num, mode)						// HIDE/SHOW AUDIO
 	url+="&start="+(m.start?m.start:0)+"&end="+(m.end?m.end:"");			// Start, end
 	url+="&autoplay="+(m.status == "play")+"&volume="+(m.rotation?m.rotation:50);		// Autoplay, volume
 	if (navigator.userAgent.match(/firefox/i))								// If firefox
-		url=url.replace(/\.mp3/g,".ogg");									// Needs oggs
+		url=url.replace(/\.mp3/g,".ogg");									// Needs ogg
+	var n=m.north, w=m.west;												// Get pos
 	if (mode) {																// If showing
-		if (!m.west)														// If no position defined
-			m.north=600,m.west=450;											// Set at bottom
-		m.west*=mapWid/900;			m.north*=mapHgt/600;					// Scale to fit size	
-		shivaLib.ShowIframe(m.west-150,m.north-150,300,140,url,"iframe-"+num,"black");	// Show iframe
+		if (!w)																// If no position defined
+			n=600,w=450;													// Set at bottom
+		w*=mapWid/900;			n*=mapHgt/600;								// Scale to fit size	
+		shivaLib.ShowIframe(w-150,n-150,300,140,url,"iframe-"+num,"black");	// Show iframe
 		if (mps.sh.inPlay)													// If playing until end
 			mps.sh.soundPause=true;											// Pause changing until done
 		shivaLib.msgAction=[{ id:"ShivaVideo=done", Do:function() { mps.sh.soundPause=false; }}];
@@ -1740,14 +1739,9 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			});
 		$("#mob"+i).click( function(e) {									// Add click handler
 			var id=this.id.substr(3);										// Get id
-			var now=new Date().getTime();									// Get cur time
-			if (now-lastClick < 500)										// Within double-click time
-				id=-id;
-			else
-				Sound("click");												// Click once
+			Sound("click");													// Click 
 			mps.sh.HighlightMob(id,e.shiftKey,false);						// Highlight mob
 			SendShivaMessage("MapScholar=mob",mps.mobs[id].id);				// Send that mob has been clicked
-			lastClick=now;													// Then is now	
 			});
 		$("#heading"+i).click( function(e) {								// Add click handler
 			var id=this.id.substr(7);										// Get id

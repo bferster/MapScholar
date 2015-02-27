@@ -841,6 +841,7 @@
 					if (s) {													// If something
 						var v=s.split("\t");									// Split into files
 						var n=v.length-1;										// Get num of files
+						curJson[id].url=curJson[id].med=curJson[id].small="";	// Clear items
 						if (v[n-1])		curJson[id].url=v[n-1];					// Set url using last
 						if (v[n-2])		curJson[id].med=v[n-2];					// Set med using last-1
 						if (v[n-3])		curJson[id].small=v[n-3];				// Set med using last-2
