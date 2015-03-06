@@ -1137,8 +1137,8 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 //			}
 		mps.popupOpen=num;													// Set popup flag
 		}
-	if (m.type == "startup") 												// If a startup
-		pos=0;																// Whole screen
+	if (m.prompt && m.prompt.match(/title/i)) 								// A title
+		pos=0,m.east="";													// Whole screen
 	if ((m.east) && (m.type == "text"))										// If spec'ing pos												
 		l=m.north,t=m.south,w=m.east,h=m.west;								// Use it		
 	else{ 
@@ -1163,15 +1163,12 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 		}
 	if ((mode) && (mps.sh.presentMode != "Slides")) {						// If showing in normal map mode
 		str="<div style='font-family:sans-serif;font-size:small'>";			// Div
-		str+="<p style='text-align:center;font-weight:bold'>";				// Center & bold
-		if (m.title)														// If a title set
-			str+=m.title+"<br/>";											// Add title
 		if ((m.small) && (m.type != "map"))									// If an image spec'd
 			str+="<br/><img style='border:1px solid #999' src='"+m.small+"' width='"+w/3+"'><br/>";		// Add it		
 		str+="</p>"+txt+"<div>";											// Add desc
 		if ((m.url) && (m.type != "map"))									// If a link
 			str+="<br/>Click <a href='"+m.url+" ' target='_blank'>here</a> for more information";	// Add it		
-		if (m.type == "startup") {											// No startup
+		if (m.prompt && m.prompt.match(/title/i)) {							// A title
 			str="<div style='font-family:sans-serif;font-size:18px;display:table;position:absolute;height:96%;width:96%;'>";
 			str+="<div style='display: table-cell; vertical-align: middle;'>";
 			str+="<div style='margin-left:auto;margin-right:auto;width:90%;height:360px;max-width:900px;'>";
@@ -1805,7 +1802,9 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				t+="<br>&nbsp; &nbsp; ";									// Add break
 				for (j=1;j<vv[1];++j)										// Add indent
 					t+="&nbsp; &nbsp; ";									// Add spaces
-				t+="<a href='javascript:mps.sh.HighlightMob(\"goto"+(vv[0]-mps.sh.startBook+1)+"\")'>"+mps.mobs[vv[0]].title+"</a>";	
+				t+="<a href='javascript:mps.sh.HighlightMob(\"goto"+(vv[0]-mps.sh.startBook+1)+"\"); ";
+				t+="mps.sh.HighlightMob(\""+mps.sh.firstPageMob+"\")";		// Show 1st mob on page
+				t+="'>"+mps.mobs[vv[0]].title+"</a>";	
 				desc=desc.replace(RegExp(v[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&")),t);	// Replace with anchor tag
 				}
 			}
