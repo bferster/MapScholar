@@ -856,6 +856,8 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 		for (i=1;i<features.length;++i)	{									// For each feature to style
 			o=features[i];							 	 			 	 	// Point at feature data
 			f=fa[o[0]];														// Point at KML feature
+			if (!f)															// No feature
+				continue;													// Skip it
 			
 			w=1;
 			a=1;
