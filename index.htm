@@ -982,6 +982,7 @@ MapScholar.prototype.ShowMapBoxes=function(num, mode)					// HIDE/SHOW WIREFRAME
 			mps.ShowText(i,mps.sh.mobVis[i] > 0);							// Show/hide text iframe
 		if (m.type != "map")												// If not a map
 			continue;														// Continue
+		trace(i)
 		if (this.mm == "ge") {												// If GE
 			if (m.gid) {													// If loaded
 				seg=ge.getElementById(m.gid);								// Get object
@@ -1797,16 +1798,11 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			var t,vv;
 			v=(desc+" ").match(/toc\((.*?)\)/ig);							// Extract url(s)
 			for (i=0;i<v.length;++i) {										// For each url
-				t="";														// Clear string
 				vv=v[i].substring(4,v[i].length-1).split(",");				// Split by comma
 				vv[0]=mps.FindMobByID(vv[0]);								// Get mob from id
-				if (!i)	t="<br>";											// Add space to 1st
-				t+="<br>&nbsp; &nbsp; ";									// Add break
-				for (j=1;j<vv[1];++j)										// Add indent
-					t+="&nbsp; &nbsp; ";									// Add spaces
-				t+="<a href='javascript:mps.sh.HighlightMob(\"goto"+(vv[0]-mps.sh.startBook+1)+"\"); ";
+				t="<a href='javascript:mps.sh.HighlightMob(\"goto"+(vv[0]-mps.sh.startBook+1)+"\"); ";
 				t+="mps.sh.HighlightMob(\""+mps.sh.firstPageMob+"\")";		// Show 1st mob on page
-				t+="'>"+mps.mobs[vv[0]].title+"</a>";	
+				t+="'>"+mps.mobs[vv[0]].title+"</a><br>";	
 				desc=desc.replace(RegExp(v[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&")),t);	// Replace with anchor tag
 				}
 			}
