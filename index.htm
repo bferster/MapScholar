@@ -37,7 +37,7 @@
 <body>
 	<div id="containerDiv" style="position:absolute;left:20px;top:20px;"></div>
 	<div id="shelfDiv" style="position:absolute;width:230px;top:20px;background-color:#eee;"> 
-		<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>3/6/15</p>
+		<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>3/10/15</p>
 		</div>
 	<div id="controlBarDiv" style="position:absolute;height:36px;left:20px;background-color:#eee"> </div>
 	<div id="infoPanelDiv" style="display:none;position:absolute;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
@@ -982,7 +982,6 @@ MapScholar.prototype.ShowMapBoxes=function(num, mode)					// HIDE/SHOW WIREFRAME
 			mps.ShowText(i,mps.sh.mobVis[i] > 0);							// Show/hide text iframe
 		if (m.type != "map")												// If not a map
 			continue;														// Continue
-		trace(i)
 		if (this.mm == "ge") {												// If GE
 			if (m.gid) {													// If loaded
 				seg=ge.getElementById(m.gid);								// Get object
@@ -2408,8 +2407,10 @@ MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 {
 	if (num == undefined)													// If mob num not spec'd
 		num=mps.sh.curMob;													// Use current one
-	else																	// Use designated one
+	else{
+		this.sh.mobVis[num]=0												// Hide it
 		this.sh.HighlightMob(num,false,true);								// Highlight mob
+		}
 	if (mps.geoRef) {														// If geo referencing left open
 		if (mps.geoRef.modify)												// If interaction initted													
 			map.removeInteraction(mps.geoRef.modify);						// Remove it
