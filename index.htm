@@ -1127,6 +1127,9 @@ MapScholar.prototype.GoToPos=function() 								// SET GE TO A POSITION OVER TIM
 MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 {
 	var l,t,h,w,x=900;
+	var cw=$("#containerDiv").width();
+	if (mps.sh.presentMode == "Book")										// If book mode
+		cw-=135;															// Account to extra
 	var m=this.mobs[num];													// Point at mob
 	var txt=m.desc;															// Use desc field
 	var pos=m.north-0;														// get north
@@ -1159,7 +1162,7 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 			case 9:		l=x2;		t=280;	w=x2-20;	h=300;		break;	// Half bot right
 			default:	l=0;		t=0;	w=x-6;		h=594;		break;	// Full
 			}
-		var rx=$("#containerDiv").width()/x;								// X scaler
+		var rx=cw/x;														// X scaler
 		var ry=$("#containerDiv").height()/600;								// Y scaler
 		w*=rx;		h*=ry;		l*=rx;		t*=ry;							// Scale to fit size	
 		}
@@ -1197,6 +1200,9 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 MapScholar.prototype.ShowLink=function(num, mode)						// HIDE/SHOW LINK
 {
 	var x=900,m=this.mobs[num];												// Point at mob
+	var cw=$("#containerDiv").width();
+	if (mps.sh.presentMode == "Book")										// If book mode
+		cw-=135;															// Account to extra
 	if (mode) {																// If showing			
 		if (m.east) 														// If spec'ing pos												
 			l=m.north,t=m.south,w=m.east,h=m.west;							// Use it		
@@ -1217,7 +1223,7 @@ MapScholar.prototype.ShowLink=function(num, mode)						// HIDE/SHOW LINK
 				default:	l=0;		t=0;	w=x-16;		h=584;		break;	// Full
 				}
 			}
-		var rx=$("#containerDiv").width()/x;								// X scaler
+		var rx=cw/x;														// X scaler
 		var ry=$("#containerDiv").height()/600;								// Y scaler
 		w*=rx;		h*=ry;		l*=rx;		t*=ry;							// Scale to fit size	
 		shivaLib.ShowIframe((l+20-0),(t+20-0),(w+20)-0,(h+20-0),m.url,"iframe-"+num,"transparent");	// Show iframe
