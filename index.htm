@@ -52,6 +52,7 @@
 	var shivaLib=null;
 	var geocoder=geocoder=new google.maps.Geocoder();
 	var mapMode="ol";
+	var initMob="";
 	var	mapWid,mapHgt;
 	ResizeMapScholar("dontDraw");
 	
@@ -78,12 +79,12 @@
 	function ShivaPostInit()
  	{
 		var url=window.location.search.substring(1);						// Get query string
-		if (url) {															// Somthing on query line
-			var regex=/[?|&]mob=([^&]+)/i;									// Extractor
-			var s=regex.exec(url);											// Get mob id, if one
-			if (s) 															// If there was one
-				mps.sh.curMob=s[1];											// Set mob
-			url=url.replace(/&*(ol=|ge=)./i,"");							// Remove tag	
+		if (url) {															// Something on query line
+			var v=url.split("&");											// Split
+			if (v.length > 1) {												// If more than one
+				url=v[0];													// Reset url
+				initMob=v[1];												// Set init mob
+				}
 			}
 		if (!url)															// Nothing on query line
 			url="https://docs.google.com/spreadsheet/pub?key=0AohdE1_3ZElJdDhIbTRVRkhHSWNBWUUtYS1rZmJoSEE";
@@ -425,8 +426,16 @@ MapScholar.prototype.InitProject=function(url, data)					// INIT PROJECT
 		mps.sh.HighlightMob(o.type == "startup" ? 1 : 0,false,true);		// Show first content mob
 		if (o.goto && (o.type == "startup"))								// If a goto in startup mob
 			this.Goto(o.goto);												// Go to 1st pos
-
-
+		if (initMob && initMob.match(/p=/)) {								// Go to a page?
+			mps.sh.PresentView({value:"Book"});								// Book view
+ 			mps.sh.HighlightMob("goto"+initMob.substr(2));					// Show page
+ 			mps.sh.HighlightMob(mps.sh.firstPageMob);						// Show first mob		
+			}
+		if (initMob && initMob.match(/m=/)) {								// Go to a map?
+			mps.sh.PresentView({value:"Atlas"});							// Atlas view
+	 		var val=mps.FindMobByID(initMob.substr(2));						// Id -> index
+	 		mps.sh.HighlightMob(-val);										// Show mob
+ 			}
 		return;
 		}
 }
@@ -1398,8 +1407,15 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 		while (((mps.mobs[i].type == "header") || (mps.mobs[i].type == "chapter")) && (i > 0))  // Skip over nav mobs
 			mps.Goto(mps.mobs[i--].goto);									// Set position
 		this.curMob=i;														// Set curMob
-		mps.ShowMapBoxes(-1,"on");											// Show visible boxes
-		}	
+		for (j=0;j<mps.mobs.length;++j) {									// For each seg
+			if (mps.mobs[j].type == "link")									// If a link
+				mps.ShowLink(j,mps.sh.mobVis[j] > 0);						// Show/hide iframe
+			else if (mps.mobs[j].type == "sound")							// If a sound
+				mps.ShowSound(j,mps.sh.mobVis[j] > 0);						// Show/hide audio iframe
+			else if (mps.mobs[j].type == "text")							// If a text
+				mps.ShowText(j,mps.sh.mobVis[j] > 0);						// Show/hide text iframe
+			}	
+		}
 	else{																	// Absolute
 		if (which < 0) {
 			which=-which;
