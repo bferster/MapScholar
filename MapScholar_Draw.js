@@ -85,10 +85,16 @@ MapScholar_Draw.prototype.InitOpenGraphics=function(type)					// INIT GRAPHICS D
 	  			});
 		this.drawInter.on('drawend', function(e) {								// END
 		 		e.feature.setId("SEG-"+Math.floor(Math.random()*999999));		// Set unique id
+				var vis=o.vis,evis=o.vis;										// Assume visible
+				var col=o.col,ecol=o.ecol;										// Get colors
+				if (o.col == "") 	vis=0,col=0;								// Hide fill
+				if (o.ecol == "") 	evis=0,ecol=0;								// Hide edge
 				var sty=new ol.style.Style( {									// Alloc style								
-					fill: 	new ol.style.Fill(	 { color: Hex2RGBAString(o.col,o.vis) } ),					// Fill
-					stroke: new ol.style.Stroke( { color: Hex2RGBAString(o.ecol,o.vis), width:o.ewid-0 } )	// Edge
+					fill: 	new ol.style.Fill(	 { color: Hex2RGBAString(o.col,vis) } ),					// Fill
+					stroke: new ol.style.Stroke( { color: Hex2RGBAString(o.ecol,evis), width:o.ewid-0 } )	// Edge
 					});
+	 				 
+	 			
 	 			e.feature.setStyle(sty);										// Add style to last one added
 	 			mps.dr.inOpenDraw=null;											// Kill flag
 				mps.dr.InitOpenGraphics("Draw");								// Reset drawing system
@@ -542,7 +548,6 @@ MapScholar_Draw.prototype.ColorPicker=function(which, x, y)					// COLOR PICKER
 	    var col=cols[Math.floor((e.pageX-this.offsetLeft)/15)];					// Set color
 		if (col) col="#"+col;													// Add #	
 		$("#ann"+which).css("background-color",col);							// Set interior
-//		$("#ann"+which).css("border","1px solid "+col);							// Border
 		if (!col)		$("#ann"+which).val("  no").css("color","#666");		// Add no
 		else			$("#ann"+which).val(col).css("color",col);				// Hide text
 		if (mps.dr.curSeg != -1) {												// If editing
@@ -630,9 +635,13 @@ MapScholar_Draw.prototype.StyleSeg=function(num, hasRectify)				// SET SEGMENT S
 	if (mps.mm == "ol") {
 		var i;	
 		var o=mps.dr.segs[0];													// Point at seg that holds color info
+		var vis=o.vis,evis=o.vis;												// Assume visible
+		var col=o.col,ecol=o.ecol;												// Get colors
+		if (o.col == "") 	vis=0,col=0;										// Hide fill
+		if (o.ecol == "") 	evis=0,ecol=0;										// Hide edge
 		var sty=new ol.style.Style( {											// Alloc style								
-				fill: 	new ol.style.Fill(	 { color: Hex2RGBAString(o.col,o.vis) } ),					// Fill
-				stroke: new ol.style.Stroke( { color: Hex2RGBAString(o.ecol,o.vis), width:o.ewid-0 } )	// Edge
+				fill: 	new ol.style.Fill(	 { color: Hex2RGBAString(col,vis) } ),					// Fill
+				stroke: new ol.style.Stroke( { color: Hex2RGBAString(ecol,evis), width:o.ewid-0 } )	// Edge
 				});
  		var f=mps.featureSelect.getFeatures();									// Point at selected feature collection
   		for (i=0;i<f.getLength();++i)											// For each selected feature

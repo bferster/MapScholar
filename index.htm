@@ -315,7 +315,7 @@ function MapScholar(mapMode)											// CONSTRUCTOR
  						}).extend([ new ol.control.ScaleLine() ]),			// Add scale
 		        view: new ol.View({											// Views
 		          		center: ol.proj.transform( [-50,50],'EPSG:4326',this.curProjection),
-		          		minZoom: 2, maxZoom: 16, zoom: 6 }),
+		          		zoomFactor: 1.25, minZoom: 6, maxZoom: 64, zoom: 24 }),
  				});
       
 	       	this.CreateCanvasLayer();										// Canvas layer for map images
@@ -1398,6 +1398,7 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 		while (((mps.mobs[i].type == "header") || (mps.mobs[i].type == "chapter")) && (i > 0))  // Skip over nav mobs
 			mps.Goto(mps.mobs[i--].goto);									// Set position
 		this.curMob=i;														// Set curMob
+		mps.ShowMapBoxes(-1,"on");											// Show visible boxes
 		}	
 	else{																	// Absolute
 		if (which < 0) {
