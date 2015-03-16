@@ -1407,14 +1407,6 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 		while (((mps.mobs[i].type == "header") || (mps.mobs[i].type == "chapter")) && (i > 0))  // Skip over nav mobs
 			mps.Goto(mps.mobs[i--].goto);									// Set position
 		this.curMob=i;														// Set curMob
-		for (j=0;j<mps.mobs.length;++j) {									// For each seg
-			if (mps.mobs[j].type == "link")									// If a link
-				mps.ShowLink(j,mps.sh.mobVis[j] > 0);						// Show/hide iframe
-			else if (mps.mobs[j].type == "sound")							// If a sound
-				mps.ShowSound(j,mps.sh.mobVis[j] > 0);						// Show/hide audio iframe
-			else if (mps.mobs[j].type == "text")							// If a text
-				mps.ShowText(j,mps.sh.mobVis[j] > 0);						// Show/hide text iframe
-			}	
 		}
 	else{																	// Absolute
 		if (which < 0) {
@@ -1819,12 +1811,18 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 		if (desc && desc.match(/toc\(/)) {									// If an embedded toc
 			var t,vv;
 			v=(desc+" ").match(/toc\((.*?)\)/ig);							// Extract url(s)
+
+		 	gotopage=function(val) {										// HIGHLIGHT MOB
+				$("#contentShelf").scrollTop(0);							// Scroll to top
+		 		mps.sh.HighlightMob("goto"+(val-mps.sh.startBook+1));		// Show page
+		 		mps.sh.HighlightMob(mps.sh.firstPageMob);					// Show first mob		
+				}
+
 			for (i=0;i<v.length;++i) {										// For each url
 				vv=v[i].substring(4,v[i].length-1).split(",");				// Split by comma
 				vv[0]=mps.FindMobByID(vv[0]);								// Get mob from id
-				t="<a href='javascript:mps.sh.HighlightMob(\"goto"+(vv[0]-mps.sh.startBook+1)+"\"); ";
-				t+="mps.sh.HighlightMob(\""+mps.sh.firstPageMob+"\")";		// Show 1st mob on page
-				t+="'>"+mps.mobs[vv[0]].title+"</a><br>";	
+				t="<a href='javascript:gotopage(\""+vv[0]+"\")'>";			// Goto function
+				t+=mps.mobs[vv[0]].title+"</a><br>";						// Set title
 				desc=desc.replace(RegExp(v[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&")),t);	// Replace with anchor tag
 				}
 			}
