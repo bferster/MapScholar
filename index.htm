@@ -575,15 +575,38 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 				this.loadCounter++;											// Add to load count
 				}
 			else if (m.type == "layer") {									// If a layer
+//if (m.url.match(/553/)) m.url="test.kml"				
+				
 				m.mid="LAYER-"+this.kmlLayers.length;						// Make id
 				if (m.url.match(/\.kml|\.kmz|getkml\.php/i)) {				// KML file
 				this.kmlLayers.push(new ol.layer.Vector({  source: new ol.source.KML({	// New layer
 							title: "LAYER-"+i,								// Set name
 				   			projection: ol.proj.get(mps.curProjection),		// Set KML projection
 				    		url:"proxy.php?url="+m.url,						// Proxied URL
+//url:m.url,						// Proxied URL
+
 				  			visible:false									// Hide it
 				  			})
 						}));
+
+				this.kmlLayers[this.kmlLayers.length-1].getSource().once("change",function() {	// WHEN KML IS LOADED						
+					this.forEachFeature(function(f) {						// For each feature in KML
+						if ((f.getGeometry().getType() == "Point") && f.get("name")){	// If a marker with a label
+							var sty=new ol.style.Style({					// Add style
+ 						      image: new ol.style.Icon( { src: "img/marker.png"	}),	// Add icon
+   						      text:	new ol.style.Text( {					// Text style
+							    	textAlign: "left", textBaseline: "middle",	// Set alignment
+							    	font: "bold 16px Arial",				// Set font
+							    	text: f.get("name"),					// Get label
+							   	 	fill: new ol.style.Fill({color: "#fff" }),	// Set color
+							    	offsetX: 16								// Set offset
+							 		})
+								});
+								f.setStyle(sty);							// Set style to show label	
+								}
+							});
+					});
+				
 					}
 				else{														// Tiles image
 					this.kmlLayers.push(new ol.layer.Tile({  source: new ol.source.XYZ({	// New layer
