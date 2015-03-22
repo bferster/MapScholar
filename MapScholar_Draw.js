@@ -38,6 +38,7 @@ MapScholar_Draw.prototype.InitOpenGraphics=function(type)					// INIT GRAPHICS D
 		 map.removeInteraction(this.drawInter); 								// Remove it
 
 	if (type == "Line")			type="LineString";								// Lines
+	else if (type == "Marker")	type="Point";									// Markers
 	else if (type == "Shape")	type="Polygon";									// Shapes
 	else if (type == "done") {													// Done
 		if (mps.drawingLayer)													// If drawlayer alloc'd
@@ -75,7 +76,7 @@ MapScholar_Draw.prototype.InitOpenGraphics=function(type)					// INIT GRAPHICS D
       
 		}
 
-	else if ((type  == "LineString") || (type  == "Polygon"))	{				// If drawing
+	else if ((type  == "LineString") || (type  == "Polygon") || (type  == "Point"))	{	// If drawing
 		map.addInteraction( this.drawInter=new ol.interaction.Draw({			// Add draw tool
 				source: mps.drawingLayer.getSource(),							// Set source
 				type: type })													// Set type of drawing
@@ -84,17 +85,28 @@ MapScholar_Draw.prototype.InitOpenGraphics=function(type)					// INIT GRAPHICS D
 	  			mps.dr.inOpenDraw=e;											// Set flag
 	  			});
 		this.drawInter.on('drawend', function(e) {								// END
+		 		var sty;
 		 		e.feature.setId("SEG-"+Math.floor(Math.random()*999999));		// Set unique id
 				var vis=o.vis,evis=o.vis;										// Assume visible
 				var col=o.col,ecol=o.ecol;										// Get colors
 				if (o.col == "") 	vis=0,col=0;								// Hide fill
 				if (o.ecol == "") 	evis=0,ecol=0;								// Hide edge
-				var sty=new ol.style.Style( {									// Alloc style								
-					fill: 	new ol.style.Fill(	 { color: Hex2RGBAString(o.col,vis) } ),					// Fill
-					stroke: new ol.style.Stroke( { color: Hex2RGBAString(o.ecol,evis), width:o.ewid-0 } )	// Edge
-					});
-	 				 
-	 			
+				if (type == "Point") sty=new ol.style.Style({					// Alloc text style
+					      image: new ol.style.Icon( { src: "img/marker.png"	}),	// Add icon
+					      text:	new ol.style.Text( {							// Text style
+						    	textAlign: "left", textBaseline: "middle",		// Set alignment
+						    	font: "bold 14px Arial",						// Set font
+						    	text: $("#annText").val(),						// Set label
+						   	 	fill: new ol.style.Fill({color: "#fff" }),		// Set color
+						    	stroke: new ol.style.Stroke( { color: "#000",width: 1 }),	// Set edge		   
+								offsetX: 16										// Set offset
+						 		})
+							});
+				else sty=new ol.style.Style( {									// Alloc style								
+						fill: 	new ol.style.Fill(	 { color: Hex2RGBAString(o.col,vis) } ),					// Fill
+						stroke: new ol.style.Stroke( { color: Hex2RGBAString(o.ecol,evis), width:o.ewid-0 } )	// Edge
+						});
+						 			
 	 			e.feature.setStyle(sty);										// Add style to last one added
 	 			mps.dr.inOpenDraw=null;											// Kill flag
 				mps.dr.InitOpenGraphics("Draw");								// Reset drawing system
@@ -277,10 +289,10 @@ MapScholar_Draw.prototype.DrawControlBar=function(mode)						// DRAW MAP CONTROL
 		var str="<p>"
 		str+="&nbsp;&nbsp;<img width='18' height='18' src='img/globe.gif' style='vertical-align:bottom' title='Back to map' onclick='mps.dr.DrawControlBar(false)'>";		
 		str+="&nbsp;&nbsp;&nbsp;<select class='is' id='annType' style='font-size:10px;padding-left:4px' onchange='mps.dr.AddNewSeg()'>";
-		str+="<option>Draw</option>";		str+="<option>Line</option>";		str+="<option>Shape</option>";
+		str+="<option>Draw</option>";		str+="<option>Line</option>";		str+="<option>Shape</option>";	str+="<option>Marker</option>"
 		if (mps.mm != "ol") {													// If GE
 			str+="<option>Box</option>";		str+="<option>Arrow</option>";		str+="<option>Circle</option>";	
-			str+="<option>Marker</option>";		str+="<option>Image</option>";		
+			str+="<option>Image</option>";		
 			}
 		str+="</select>&nbsp;&nbsp;"; 
 		if ((type != "Draw") || (mps.mm == "ol")) {								// If drawing/editng
@@ -290,6 +302,7 @@ MapScholar_Draw.prototype.DrawControlBar=function(mode)						// DRAW MAP CONTROL
 			str+="<input class='is' type='text' size='1' style='font-size:10px;border-top-left-radius:0px;border-bottom-left-radius:0px' id='annEcol'/>&nbsp;&nbsp;&nbsp;";
 			str+="Visibility&nbsp;&nbsp;<span id='annVis' style='width:100px;display:inline-block'></span>&nbsp;&nbsp;";
 			str+="<input type='text' style='font-size:10px;width:30px;height:14px;vertical-align:bottom;border:none;background:none'; id='annVis2'/>";
+			str+="Label&nbsp;&nbsp;<input type='text'  class='is' style='font-size:10px'; id='annText'/>";
 			}
 		if ((this.undos.length) && (mps.mm == "ge"))
 			str+="<img src='img/undodot.png' style='position:absolute;left:"+(mapWid-20)+"px' title='Undo' id='annUndo'>";		
@@ -357,6 +370,7 @@ MapScholar_Draw.prototype.DrawControlBar=function(mode)						// DRAW MAP CONTROL
 			}
 		});
 
+
 	$("#annRot2").blur(function(e){ 										// SET ROTATION
 		if (_this.curSeg != -1) {												// If editing
 			_this.segs[_this.curSeg].rot=$("#annRot2").val();					// Set rot
@@ -402,7 +416,7 @@ MapScholar_Draw.prototype.DrawControlBar=function(mode)						// DRAW MAP CONTROL
 		_this.DrawMap();														// Redraw map
 		});
 
-	$("#annText").blur(function(e){ 										// SET TEXT
+	$("#annText").change(function(e){ 										// SET TEXT
 		if (_this.curSeg != -1)	{												// If editing
 			_this.Do();															// Set undo	
 			_this.segs[_this.curSeg].text=$("#annText").val();					// Set text
@@ -567,7 +581,8 @@ MapScholar_Draw.prototype.ColorPicker=function(which, x, y)					// COLOR PICKER
 
 MapScholar_Draw.prototype.DrawMap=function()								// DRAW MAP
 {		
-  	this.DrawControlDots((this.curSeg != -1));									// Add control dots	if editing
+	if (mps.mm == "ge") 														// If GE
+  		this.DrawControlDots((this.curSeg != -1));								// Add control dots	if editing
 }
 
 MapScholar_Draw.prototype.AddSegsToEarth=function(num, hasRectify)			// ADD SEGMENTS TO EDOM
@@ -633,13 +648,26 @@ MapScholar_Draw.prototype.AddSegsToEarth=function(num, hasRectify)			// ADD SEGM
 MapScholar_Draw.prototype.StyleSeg=function(num, hasRectify)				// SET SEGMENT STYLING
 {	
 	if (mps.mm == "ol") {
-		var i;	
+		var i,sty;	
 		var o=mps.dr.segs[0];													// Point at seg that holds color info
 		var vis=o.vis,evis=o.vis;												// Assume visible
 		var col=o.col,ecol=o.ecol;												// Get colors
 		if (o.col == "") 	vis=0,col=0;										// Hide fill
 		if (o.ecol == "") 	evis=0,ecol=0;										// Hide edge
-		var sty=new ol.style.Style( {											// Alloc style								
+		if (o.type == "Marker")	
+			sty=new ol.style.Style({											// Alloc text style
+		    	image: new ol.style.Icon( { src: "img/marker.png"	}),			// Add icon
+		      	text:	new ol.style.Text( {									// Text style
+			    textAlign: "left", textBaseline: "middle",						// Set alignment
+			    font: "bold 14px Arial",										// Set font
+			    text: $("#annText").val(),										// Set label
+			   	fill: new ol.style.Fill({ color: "#fff" }),						// Set color
+				stroke: new ol.style.Stroke( { color: "#000",width: 1 }),		// Set edge		   
+			    offsetX: 16														// Set offset
+			 	})
+			});
+		else 
+			sty=new ol.style.Style( {											// Alloc style								
 				fill: 	new ol.style.Fill(	 { color: Hex2RGBAString(col,vis) } ),					// Fill
 				stroke: new ol.style.Stroke( { color: Hex2RGBAString(ecol,evis), width:o.ewid-0 } )	// Edge
 				});
