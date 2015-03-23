@@ -167,7 +167,7 @@
 			map.setView(new ol.View({										// Finer grained zoom view
 		          center: ol.proj.transform( [-50,50],'EPSG:4326',mps.curProjection),
 		          zoomFactor: 1.25, minZoom: 6, maxZoom: 64, zoom: 24 })
-		          ),trace(7);
+		          );
 		else if (e.data.indexOf("MapEdit=mob") == 0)	{					// If mob 
 			if (mps.mm == "ge")												// If GE
 				mps.dr.ClearSegs();											// Clear existing segs
