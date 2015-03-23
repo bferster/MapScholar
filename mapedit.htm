@@ -220,6 +220,7 @@
 		if (curPane == "settings") 												// If current pane Settings
 			Draw();																// Redraw frame because width may be reset
 		Sound("click");															// Click
+		SendShivaMessage("MapEdit=zoom",0);										// Use finer grained zoom factor (1.25)	   		
 		SendShivaMessage("MapEdit=data",JSON.stringify(curJson));				// Send to show player	   		
     	}
    	  	
@@ -631,8 +632,6 @@
  			}
 		$("#pickBoxDiv").append("</div>"+str);	
   		
-		
-		
 		for (i=0;i<curJson.length;++i) {
 			$("#pickMob"+i).on("click", function(e) {							// ON ROW CLICK
 					var id=e.currentTarget.id.substr(7);						// Extract id
