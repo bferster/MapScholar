@@ -329,7 +329,7 @@
 			str+=" <img src='img/editdot.gif' id='iddh"+i+"'>";
 			str+="<br><div style='display:inline-block;width:45px;color:#777'><b>ID:</b></div>";
 			str+="<input class='is' style='width:30px' type='text' id='idi"+i+"' value='"+(o.id != undefined ? o.id : '')+"'>";
-			str+=" &nbsp; <button class='bs' style='color:#009900;background-color:#fff;' id='idg"+i+"'>"+(o.goto ? 'Set goto' : 'Add goto')+"</button>";
+			str+=" &nbsp; <button class='bs' style='color:#009900;background-color:#fff' id='idm"+i+"'>More...</button>";
 			str+="<span style='color:#777'> &nbsp; Page: &nbsp;</span></b></span><span style='font-weight:normal'>"+(pageNum++)+"</span>";
 			str+="</td><td><img style='visibility:hidden' id='idtm"+i+"' src='images/movedot.gif'>";	// Add move icon
 			str+="<br><br><img style='visibility:hidden' id='idtr"+i+"' src='images/trashdot.gif' onclick='onDeleteMob(this.id)'></td>"; // Add trashcan
@@ -391,12 +391,9 @@
 					MakePageTable();											// Remake table
 					});				
 
-			$("#idg"+i).on("click", function() {								// GOTO EDITOR
+			$("#idm"+i).on("click", function() {								// GOTO EDITOR
 					var id=this.id.substr(3);									// Get id
-					GotoEditor(id, curJson[id].goto, function(w) {				// Edit source
-						curJson[id].goto=w;										// Set val
-						MakePageTable();										// Show
-						});
+					MoreEditor(id,"page") 										// Edit more settings
 					});				
 		}																	// End mob loop
 	}	
@@ -538,7 +535,7 @@
 
 			$("#idm"+i).on("click", function() {								// MORE EDITOR
 					var id=this.id.substr(3);									// Get id
-					MoreEditor(id) 												// Edit more settings
+					MoreEditor(id,"mob") 										// Edit more settings
 					});				
 	
 			$("#idt"+i).on("blur", function() {									// ON BLUR OF TITLE
@@ -706,7 +703,7 @@
  		$(".ui-button").css({"border-radius":"30px","outline":"none"});
 	}
 
-	function MoreEditor(id) 												// MORE EDITOR
+	function MoreEditor(id, type) 												// MORE EDITOR
 	{	
 		$("#alertBoxDiv").remove();												// Remove any old ones
 		$("body").append("<div style='overflow:hidden;' class='unselectable' id='alertBoxDiv'></div>");														
@@ -789,7 +786,8 @@
 								o.small=$("#small").val();						// Set val
 								o.med=$("#med").val();							// Set val
 								o.url=$("#url").val();							// Set val
-								MakeMobTable();									// Show
+								if (type == "mob")								// If editing mobs
+									MakeMobTable();								// Show
 		    					$(this).remove();								// Remove dialog
 								SendShivaMessage("MapEdit=rectify","allDone");	// Done rectifying	   		
 	    						},
@@ -847,7 +845,7 @@
 						if (v[n-2])		curJson[id].med=v[n-2];					// Set med using last-1
 						if (v[n-3])		curJson[id].small=v[n-3];				// Set med using last-2
 						}
-					MoreEditor(id);												// Show more editor again
+					MoreEditor(id,type);										// Show more editor again
 					}, true );
 				});				
 

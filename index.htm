@@ -985,7 +985,7 @@ MapScholar.prototype.ChoroQuery=function(query, color)					// SHOW RESULTS OF QU
 	mps.SetChoroplethFeatures(seg,str,null,false);							// Set feature
 }
 
-MapScholar.prototype.ShowMapBoxes=function(num, mode)					// HIDE/SHOW WIREFRAMES
+MapScholar.prototype.ShowMapBoxes=function(num, mode, group)			// HIDE/SHOW WIREFRAMES
 {
 	var i,seg,m,sty;
 	var ge=shivaLib.map;													// Point to earth												
@@ -996,6 +996,15 @@ MapScholar.prototype.ShowMapBoxes=function(num, mode)					// HIDE/SHOW WIREFRAME
 			});
 	  	var styleOff = new ol.style.Style({ stroke: null	});				// No line
 		}
+	if (group && (this.mm == "ol")) {										// If a group of mobs specified								
+		for (i=0;i<group.length;++i) {										// For each mob
+			m=this.FindMobByID(group[i]);										// Get index
+			seg=this.boxLayer.getSource().getFeatureById("mapBox"+m);		// Point at box
+			if (seg) 														// If valid
+				seg.setStyle([styleOn]);									// Show it		
+			}
+		return;
+		}			
 	if (num < 0)															// If doing all
 		start=0,end=this.mobs.length;										// Whole list
 	this.ShowMapImages(num);												// Control images
@@ -1547,6 +1556,14 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 		this.DrawInfoPanel("show");											// Show it
 	if (o.settings && o.settings.match(/slide/i)) 							// If forcing a slide display
 		this.presentMode=oldMode;											// Restor old one
+
+	if (o.settings.match(/box=/i)) {										// Show box tag
+		v=o.settings.split(",");											// Spit out boxe ids
+		if (v[0]) {															// If at least one
+			v[0]=(""+v[0]).replace(/box=/i,"");								// Remove header	
+			mps.ShowMapBoxes(0,0,v);										// Show boxes
+			}
+		}
 }
 
 MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
