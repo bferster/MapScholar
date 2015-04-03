@@ -37,7 +37,7 @@
 <body>
 	<div id="containerDiv" style="position:absolute;left:20px;top:20px;"></div>
 	<div id="shelfDiv" style="position:absolute;width:230px;top:20px;background-color:#eee;"> 
-		<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>3/23/15</p>
+		<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>4/3/15</p>
 		</div>
 	<div id="controlBarDiv" style="position:absolute;height:36px;left:20px;background-color:#eee"> </div>
 	<div id="infoPanelDiv" style="display:none;position:absolute;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
@@ -997,8 +997,13 @@ MapScholar.prototype.ShowMapBoxes=function(num, mode, group)			// HIDE/SHOW WIRE
 	  	var styleOff = new ol.style.Style({ stroke: null	});				// No line
 		}
 	if (group && (this.mm == "ol")) {										// If a group of mobs specified								
+		for (i=0;i<this.mobs.length;++i) {									// For each mob
+			seg=this.boxLayer.getSource().getFeatureById("mapBox"+i);		// Point at box
+			if (seg) 														// If valid
+				seg.setStyle([styleOff]);									// Hide it		
+			}
 		for (i=0;i<group.length;++i) {										// For each mob
-			m=this.FindMobByID(group[i]);										// Get index
+			m=this.FindMobByID(group[i]);									// Get index
 			seg=this.boxLayer.getSource().getFeatureById("mapBox"+m);		// Point at box
 			if (seg) 														// If valid
 				seg.setStyle([styleOn]);									// Show it		
@@ -1557,8 +1562,8 @@ MapScholar_Shelf.prototype.HighlightMob=function(which, multi, scroll)	// HIGHLI
 	if (o.settings && o.settings.match(/slide/i)) 							// If forcing a slide display
 		this.presentMode=oldMode;											// Restor old one
 
-	if (o.settings.match(/box=/i)) {										// Show box tag
-		v=o.settings.split(",");											// Spit out boxe ids
+	if (o.settings && o.settings.match(/box=/i)) {							// Show box tag
+		v=o.settings.split(",");											// Spit out box ids
 		if (v[0]) {															// If at least one
 			v[0]=(""+v[0]).replace(/box=/i,"");								// Remove header	
 			mps.ShowMapBoxes(0,0,v);										// Show boxes
