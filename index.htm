@@ -2212,7 +2212,7 @@ MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 		o=mps.mobs[this.curBookMob];										// Point at underlying mob, not page
 		}
 	$("#infoPanelText").html("");											// Clear text
-	if ((mode == "cite") && ($("#containerDiv").width() != mapWid))			// If panel is already open in cite
+	if ((mode == "cite") && Math.abs($("#containerDiv").width()-mapWid) > 25) // If panel is already open in cite
 		mode="close";														// Close it
 	if (mode == "close") {													// If closing
 		$("#containerDiv").width(mapWid);									// Full size
