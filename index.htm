@@ -893,7 +893,7 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 			sr=255;	sg=255;	sb=255;
 			fr=255;	fg=0;	fb=0;
 
-			sty=f.getStyle();											// Get Style
+			sty=f.getStyle();												// Get Style
 			if (o && o[1])													// If alpha set
 				a=o[1]/100;													// Convert 0-100 to 0-1
 			if (o && o[2]) {												// If fill set
@@ -1993,7 +1993,9 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 				var j;
 				str+="</br></br><input type='text' id='chorQuery'style='width:80%;font-size:x-small;height:12px' onchange='mps.ChoroQuery(this.value,\"ff0000\")'>";
 				var ss=o.desc;												// Copy desc
-				var v=ss.match(/bull.?\(.+?\)/gi);							// Get bullets
+				var v=null;
+				if (ss)														// If a description
+					v=ss.match(/bull.?\(.+?\)/gi);							// Get bullets
 				if (v) {													// If bullets
 					for (j=0;j<v.length;++j) 								// For each one
 						v[j]="<br><font color='"+v[j].match(/bull\((.+)\)/i)[1]+"'>&block;&block;&block; </font>";	// Make Color tag
