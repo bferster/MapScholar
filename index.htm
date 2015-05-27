@@ -71,8 +71,11 @@
 		$("#controlBarDiv").css("top",(mapHgt+20)+"px");
 		$("#infoPanelDiv").height(mapHgt-1);
 		$("#infoPanelText").height(mapHgt-18);
-		if (drawMode != "dontDraw")
+		if (drawMode != "dontDraw") {
+			if (map)																
+				map.updateSize();													
 			mps.sh.Draw();
+			}
 		}
 
 	function ShivaPostInit()
@@ -867,7 +870,7 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 				o=features[i];												// Point at feature
 				for (j=0;j<range.length;++j) {								// For each range
 					if ((o[5] >= range[j].min) && (o[5] < range[j].max)) {	// If in range
-						o[1].opacity=range[j].a;							// Alpha 
+						o[1]=range[j].a;									// Alpha 
 						o[2]=range[j].c;	 								// Col
 						o[3]=range[j].e;	 								// eCol
 						o[4]=range[j].w;	 								// Wid
@@ -882,6 +885,12 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 		var fa=seg.getSource().getFeatures();								// Get KML feature array
 		if (!fa || !fa.length)												// If no KML features
 			return;															// Quit
+		if (hide) {															// If hiding
+			for (i=0;i<fa.length;++i)										// For each feature in kml
+				if (fa[i]) {													// If valid feature
+  					 fa[i].style = { display: 'none' };
+ 				}
+			}
 		for (i=1;i<features.length;++i)	{									// For each feature to style
 			o=features[i];							 	 			 	 	// Point at feature data
 			f=fa[o[0]];														// Point at KML feature
@@ -909,8 +918,8 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 			if (o && o[4] != undefined) 									// If line wid set
 				w=o[4]-0;													// Set wid
 			sty=new ol.style.Style({										// Create style
-		     	stroke: new ol.style.Stroke({ color: "rgba("+sr+","+sg+","+sb+","+a+")",	width: w }),
-		  		fill: new ol.style.Fill({ color: "rgba("+fr+","+fg+","+fb+","+a+")" })
+		     	stroke: new ol.style.Stroke({ color: [sr,sg,sb,a], width: w }),
+		  		fill: new ol.style.Fill({ color: [fr,fg,fb,a] })
 		   		});
 			f.setStyle(sty);												// Set feature
 			}
@@ -2094,7 +2103,6 @@ MapScholar_Shelf.prototype.SetBookStartEnd=function()					// SET BOOK START/END
 				}
 			}
 		}
-
 }
 
 MapScholar_Shelf.prototype.ShowPrompt=function(msg, time)				// SHOW PROMPT
