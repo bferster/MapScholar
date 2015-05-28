@@ -141,14 +141,25 @@
 	
 	function LoadShow(data)												// ON INIT OR QMF CALL
 	{
+		var i;
 		var m=shivaLib.map;													// Point to map												
-		if (mps.geoRef) {													// If feo referncing left open
+		if (mps.geoRef) {													// If geo referncing left open
 			if (mps.geoRef.modify)											// If interaction initted													
 				map.removeInteraction(mps.geoRef.modify);					// Remove it
 			mps.drawLayer.getFeatures().clear();							// Clear existing points
 			m.unByKey(mps.geoRef.pDrag)										// Remove drag handler
 			m.unByKey(mps.geoRef.pUp)										// Remove mouse up handler
 			mps.geoRef=null;												// Clear flag
+			}
+		if (mps.mm == "ol") {												// OL
+			if (mps.kmlLayers) {											// If any KML layera
+				for (i=0;i<mps.kmlLayers.length;++i) {						// For each kml
+					trace(mps.kmlLayers[i].getSource())
+					mps.kmlLayers[i].getSource().clear();					// Clear it
+					map.removeLayer(mps.kmlLayers[i]);						// Delete layer
+					}
+				mps.kmlLayers=[];
+				}
 			}
 		mps.InitProject("",data);											// Init project
 		if (mps.mm == "ge") {												// GE
@@ -574,16 +585,15 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 				this.loadCounter++;											// Add to load count
 				}
 			else if (m.type == "layer") {									// If a layer
-//if (m.url.match(/553/)) m.url="test.kml"				
-				
+if (m.url.match(/553/)) m.url="test.kml"				
+trace(m.url)				
 				m.mid="LAYER-"+this.kmlLayers.length;						// Make id
 				if (m.url.match(/\.kml|\.kmz|getkml\.php/i)) {				// KML file
 				this.kmlLayers.push(new ol.layer.Vector({  source: new ol.source.KML({	// New layer
 							title: "LAYER-"+i,								// Set name
 				   			projection: ol.proj.get(mps.curProjection),		// Set KML projection
 				    		url:"proxy.php?url="+m.url,						// Proxied URL
-//url:m.url,						// Proxied URL
-
+url:m.url,						
 				  			visible:false									// Hide it
 				  			})
 						}));
@@ -839,7 +849,7 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 	if (query)	{															// If a query spec'd
 		var results=[];														// Blank array
 		a=query;															// Copy query
-		d="";																// No extra field
+		d="";																// No extra field that RANGE might need
 		if (a.match(/ CLEAR/)) {											// If has clear tag
 			hide=true;														// Add clear elements
 			a=a.replace(/ CLEAR/,"");										// Remove tag
@@ -886,10 +896,13 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 		if (!fa || !fa.length)												// If no KML features
 			return;															// Quit
 		if (hide) {															// If hiding
-			for (i=0;i<fa.length;++i)										// For each feature in kml
-				if (fa[i]) {													// If valid feature
-  					 fa[i].style = { display: 'none' };
- 				}
+			sty=new ol.style.Style({										// Create style
+		  		fill:   new ol.style.Fill({ color: [0,0,255,0] }),			// Fully transparent fill
+		  		stroke: new ol.style.Stroke({ color: [0,0,255,0] }),		// Fully transparent stroke
+		   		});
+			for (i=0;i<fa.length;++i) 										// For each feature in kml
+				if (fa[i])													// If valid feature
+					fa[i].setStyle(sty);									// Hide it
 			}
 		for (i=1;i<features.length;++i)	{									// For each feature to style
 			o=features[i];							 	 			 	 	// Point at feature data
@@ -902,7 +915,6 @@ MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) 
 			sr=255;	sg=255;	sb=255;
 			fr=255;	fg=0;	fb=0;
 
-			sty=f.getStyle();												// Get Style
 			if (o && o[1])													// If alpha set
 				a=o[1]/100;													// Convert 0-100 to 0-1
 			if (o && o[2]) {												// If fill set
