@@ -154,7 +154,6 @@
 		if (mps.mm == "ol") {												// OL
 			if (mps.kmlLayers) {											// If any KML layera
 				for (i=0;i<mps.kmlLayers.length;++i) {						// For each kml
-					trace(mps.kmlLayers[i].getSource())
 					mps.kmlLayers[i].getSource().clear();					// Clear it
 					map.removeLayer(mps.kmlLayers[i]);						// Delete layer
 					}
@@ -585,15 +584,15 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 				this.loadCounter++;											// Add to load count
 				}
 			else if (m.type == "layer") {									// If a layer
-if (m.url.match(/553/)) m.url="test.kml"				
-trace(m.url)				
+//if (m.url.match(/553/)) m.url="test.kml"				
+				
 				m.mid="LAYER-"+this.kmlLayers.length;						// Make id
 				if (m.url.match(/\.kml|\.kmz|getkml\.php/i)) {				// KML file
 				this.kmlLayers.push(new ol.layer.Vector({  source: new ol.source.KML({	// New layer
 							title: "LAYER-"+i,								// Set name
 				   			projection: ol.proj.get(mps.curProjection),		// Set KML projection
 				    		url:"proxy.php?url="+m.url,						// Proxied URL
-url:m.url,						
+//url:m.url,						
 				  			visible:false									// Hide it
 				  			})
 						}));
