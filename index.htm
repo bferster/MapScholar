@@ -37,7 +37,7 @@
 <body>
 	<div id="containerDiv" style="position:absolute;left:20px;top:20px;"></div>
 	<div id="shelfDiv" style="position:absolute;width:230px;top:20px;background-color:#eee;"> 
-		<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>4/3/15</p>
+		<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>6/25/15</p>
 		</div>
 	<div id="controlBarDiv" style="position:absolute;height:36px;left:20px;background-color:#eee"> </div>
 	<div id="infoPanelDiv" style="display:none;position:absolute;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
@@ -168,7 +168,7 @@
 			}
 		mps.AddMapBoxes();													// Add boxes
 		var o=mps.mobs[0];													// Point at first mob
-		if (o && o.med  && (o.type == "startup"))							// A startup with an image
+		if (o && o.med  && (o.type == "startup" && (!initMob))				// A startup with an image, but not a link to a direct page
 			mps.ShowText(0,true);											// Show title page, if set
 	}		
 	
@@ -822,7 +822,6 @@ MapScholar.prototype.ShowMapScale=function(mode)						// HIDE/SHOW MAP SCALE
 	else if (this.mm == "ol") 												// OL
 		$(".ol-scale-line").css("visibility",mode ? "visible" : "hidden");	// Hide show scale
 }
-
 
 MapScholar.prototype.SetChoroplethFeatures=function(seg, features, query, hide) // SET CHOROPLETH FEATURES
 {
