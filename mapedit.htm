@@ -106,6 +106,7 @@
 	var butsty=" style='border-radius:10px;color#666;padding-left:12px;padding-right:12px;color:#222;background-color:#ccc;font-size:12px;' ";	// Button styling
 	var keyFlag="";																// Holds key flags												
 	var playerZoom=1;															// Zoom
+	var copyPasteMob=null;														// Points at mob in 'clipboard' for cut & paste
 	var curPos;																	// Current earth locale
 	var curEdit=0;
 	
@@ -730,9 +731,11 @@
      	str+="&nbsp; Med pic: &nbsp;<input id='med' class='is' style='width:94px'></td></tr>";
   		str+="<tr><td>Orig/url: </td><td><input id='url' class='is' style='width:200px'>&nbsp; ";
   		str+="<img src='images/flickrbut.png' id='flickr' style='vertical-align:-4px'></td></tr>";
-   		str+="</table>";		
-		str+="<br><b>Settings:</b><br><br>Help goes here";
-			$("#alertBoxDiv").append(""+str);	
+ 		str+="<tr></tr><tr><td></td><td><br><button style='color:#000099;background-color:#fff' class='bs' id='mobcopy'>Copy to clipboard</button>";
+ 		if (copyPasteMob)														// If something to paste
+	 		str+="&nbsp;&nbsp;<button style='color:#000099;background-color:#fff' class='bs' id='mobpaste'>Paste from clipboard</button>";
+ 		str+="</td></tr></table>";		
+		$("#alertBoxDiv").append(""+str);	
 		var o=curJson[id];														// Point at mob
 		
 		if (o.start)															// If set
@@ -803,6 +806,21 @@
 		$(".ui-dialog").css({"border-radius":"14px", "box-shadow":"4px 4px 8px #ccc"});
  		$(".ui-button").css({"border-radius":"30px","outline":"none"});
 
+	
+		$("#mobcopy").on("click", function() {									// COPY MOB
+					Sound("ding");												// Ding it
+					copyPasteMob=JSON.parse(JSON.stringify(o));					// Clone mob
+					$("#alertBoxDiv").remove();									// Close dialog
+					MakeMobTable();												// Remake mobs
+					});				
+
+		$("#mobpaste").on("click", function() {									// PASTE MOB
+					Sound("ding");												// Ding it
+					curJson[id]=JSON.parse(JSON.stringify(copyPasteMob));		// Clone mob
+					$("#alertBoxDiv").remove();									// Close dialog
+					MakeMobTable();												// Remake mobs
+					});				
+	
 		$("#citeh").on("click", function() {									// HTML EDITOR
 				HTMLEditor(id, curJson[id].citation, function(d) {				// Edit text
 					curJson[id].citation=d;										// Set val
