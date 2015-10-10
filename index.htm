@@ -154,7 +154,8 @@
 		if (mps.mm == "ol") {												// OL
 			if (mps.kmlLayers) {											// If any KML layera
 				for (i=0;i<mps.kmlLayers.length;++i) {						// For each kml
-					mps.kmlLayers[i].getSource().clear();					// Clear it
+					if (typeof mps.kmlLayers[i].getSource().clear == "function") // If a clear() function
+						mps.kmlLayers[i].getSource().clear();				// Clear it
 					map.removeLayer(mps.kmlLayers[i]);						// Delete layer
 					}
 				mps.kmlLayers=[];
