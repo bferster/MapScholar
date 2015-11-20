@@ -2585,29 +2585,33 @@ MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 					mob.north=p[1]+h;										// Set N
 					mob.south=p[1]-h;										// Set S
 					}
-				else if (id == "georef1") {									// NW
+				else if (id == "georef1") {									// SW
 					mob.west=p[0];											// Set W
-					mob.north=((mob.east-mob.west)*o.asp)+(mob.south-0);	// Set N
 					if (shift)												// If shift key											
-						mob.north=p[1];										// Distort aspect
+						mob.south=p[1];										// Distort aspect
+					else													// Preserving aspect
+						mob.north=((mob.east-mob.west)*o.asp)+(mob.south-0); // Set based on width and aspect
 					}
 				else if (id == "georef2") {									// NE
 					mob.east=p[0];											// Set E
-					mob.north=((mob.east-mob.west)*o.asp)+(mob.south-0);	// Set N
 					if (shift)												// If shift key											
-						mob.north=p[1];										// Distort aspect
+						mob.south=p[1];										// Distort aspect
+					else													// Preserving aspect
+						mob.north=((mob.east-mob.west)*o.asp)+(mob.south-0);// Set based on width and aspect
 					}
 				else if (id == "georef3") {									// SE
 					mob.east=p[0];											// Set E
-					mob.south=mob.north-((mob.east-mob.west)*o.asp);		// Set S
 					if (shift)												// If shift key											
-						mob.south=p[1];										// Distort aspect
-					}
+						mob.north=p[1];										// Distort aspect
+					else													// Preserving aspect
+						mob.south=mob.north-((mob.east-mob.west)*o.asp);	// Set based on width and aspect
+						}
 				else if (id == "georef4") {									// SW
 					mob.west=p[0];											// Set W
-					mob.south=mob.north-((mob.east-mob.west)*o.asp);		// Set S
 					if (shift)												// If shift key											
-						mob.south=p[1];										// Distort aspect
+						mob.north=p[1];										// Distort aspect
+					else													// Preserving aspect
+						mob.south=mob.north-((mob.east-mob.west)*o.asp);	// Set based on width and aspect
 					}
 				});															// Each feature
 			}
