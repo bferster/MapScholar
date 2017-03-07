@@ -661,14 +661,19 @@
     	str+="<tr><td>Tilt: </td><td><input id='gototlt' class='is' style='width:80px'>";
   	 	str+="<td> Rotate: </td><td><input id='gotohdg' class='is' style='width:80px'></td>";
   	 	str+="<td> Speed: </td><td><input id='gotospd' class='is' style='width:80px'></tr>";
-     	str+="<tr><td> Bounce: </td><td><input id='gotobnc' class='is' style='width:80px'></td><td></td><td></td></tr>";
+  //   	str+="<tr><td> Bounce: </td><td><input id='gotobnc' class='is' style='width:80px'></td>";
+		str+="<td colspan='2'><input id='gotosta' type='checkbox'>&nbsp; Inhibit bounce</td></td><td></td><td></td></tr>";
 		str+="</table>";		
-		str+="<br><b>How to set a goto position:</b><br><br>Position the earth on the left where you want to go to. Click on the <i>OK</i> button to save, or the <i>Remove goto button</i> to remove the goto entirely. You can also use the MapScholar shelf items or the <i>Find</i> option to navigate. You can change the default speed of the move by entering a value in the speed box. The speed is set in seconds and is optional, (default is 2 seconds). " 
+		str+="<br><b>How to set a goto position:</b><br><br>Position the earth on the left where you want to go to. Click on the <i>OK</i> button to save, or the <i>Remove goto button</i> to remove the goto entirely. You can also use the MapScholar shelf items or the <i>Find</i> option to navigate. You can change the default speed of the move by entering a value in the speed box. The speed is set in seconds and is optional, (default is 2 seconds). Set the bounce time or inhibit bounce altogether." 
 		$("#gotoBoxDiv").append("</div>"+str);	
 
 		if (!where)																// If no pos set
 			where=curPos;														// Use current pos
 		var v=where.split(",");													// Split
+		if ((""+v[0]).charAt(0) == "*")	{										// If a no bounce move
+			$("#gotosta").prop("checked",true);									// Check it
+			v[0]=v[0].substr(1);												// Remove start
+			}
 		$("#gotolat").val(v[0]);												// Set lat field
 		$("#gotolon").val(v[1]);												// Set lon field
 		$("#gotohgt").val(v[2]);												// Set hgt field
@@ -682,7 +687,9 @@
 		$("#gotoBoxDiv").dialog({ width:500, buttons: {
 	    	"OK": 			function() { 
 	    						where="";										// Normal move
-	    						where+=$("#gotolat").val()+",";					// Add lat
+	    						if ($("#gotosta").prop("checked"))				// If inihibit bounce is checked
+									where="*";									// Preface lat with *
+								where+=$("#gotolat").val()+",";					// Add lat
 	    						where+=$("#gotolon").val()+",";					// Lon
 	    						where+=$("#gotohgt").val()+",";					// Hgt
 	    						where+=$("#gototlt").val()+",";  				// Tilt

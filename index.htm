@@ -37,7 +37,7 @@
 <body>
 	<div id="containerDiv" style="position:absolute;left:20px;top:20px;"></div>
 	<div id="shelfDiv" style="position:absolute;width:230px;top:20px;background-color:#eee;"> 
-		<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>6/25/15</p>
+		<br><br><p style='text-align:center;color:#999'><img src='img/MapScholarLogo.png'/><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br<br><br><br><br><br><img src='img/UVALogo.gif' width='80'/><br><br><br>1/17/17</p>
 		</div>
 	<div id="controlBarDiv" style="position:absolute;height:36px;left:20px;background-color:#eee"> </div>
 	<div id="infoPanelDiv" style="display:none;position:absolute;top:20px;border-bottom:1px solid #ccc;border-left:1px solid #ccc;border-right:1px solid #ccc;background-color:#fff"> 
@@ -338,7 +338,8 @@ function MapScholar(mapMode)											// CONSTRUCTOR
 		        view: new ol.View({											// Views
 		          		center: ol.proj.transform( [-50,50],'EPSG:4326',this.curProjection),
 //		          		zoomFactor: 1.25, minZoom: 6, maxZoom: 64, zoom: 24 }),
-		          		minZoom: 2, maxZoom: 16, zoom: 6 })
+//		          		minZoom: 2, maxZoom: 16, zoom: 6 })
+ 		          		zoomFactor: 1.25, minZoom: 6, maxZoom: 72, zoom: 24 })
  				});
       
 	       	this.CreateCanvasLayer();										// Canvas layer for map images
@@ -505,7 +506,8 @@ MapScholar.prototype.AddMapBoxes=function()								// ADD MAP WIREFRAMES
 			r[3][0]=cx+(p1[0]-cx)*cos-(p2[1]-cy)*sin;						// Rotate x
 			r[3][1]=cy+(p1[0]-cx)*sin+(p2[1]-cy)*cos;						// Rotate y
 			r[4]=r[0];														// Last
-			var f=new ol.Feature(new ol.geom.LineString(r));				// Make line			f.setId("mapBox"+i);											// Add id
+			var f=new ol.Feature(new ol.geom.LineString(r));				// Make line
+			f.setId("mapBox"+i);											// Add id
 			this.boxLayer.getSource().addFeature(f);						// Add it
 			}
 		this.AddMapImages();												// Add images
@@ -1617,15 +1619,15 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 
 	str+="<img id='playbut' style='position:absolute;top:8px;"; 
 	if (this.presentMode == "Book") 
-		str+="left:"+(mapWid+150)+"px' src='img/playbut.gif' title='Next page'>";
+		str+="cursor:pointer;left:"+(mapWid+150)+"px' src='img/playbut.gif' width='22' title='Next page'>";
 	else if (this.inPlay)
-		str+="left:"+(mapWid+154)+"px' src='img/stopbut.gif' title='Stop' onclick='mps.sh.Play()'>";
+		str+="cursor:pointer;left:"+(mapWid+154)+"px' src='img/stopbut.gif' title='Stop' onclick='mps.sh.Play()'>";
 	else
-	 	str+="left:"+(mapWid+154)+"px' src='img/playbut.gif' title='Play' onclick='mps.sh.Play()'>";
+	 	str+="cursor:pointer;left:"+(mapWid+154)+"px' src='img/playbut.gif' title='Play' onclick='mps.sh.Play()'>";
 	if (this.presentMode != "Book") 
-		str+="<img src='img/againbut.gif' style='position:absolute;left:"+(mapWid+50)+"px;top:9px' title='Start over' onclick='mps.sh.Play(\"1\")'>";		
+		str+="<img src='img/againbut.gif' style='position:absolute;cursor:pointer;left:"+(mapWid+48)+"px;top:9px' title='Start over' onclick='mps.sh.Play(\"1\")'>";		
   	else
-		str+="<img src='img/revbut.gif' style='position:absolute;left:"+(mapWid-80)+"px;top:9px' title='Last page' id='lastPageBut'>";		
+		str+="<img src='img/revbut.gif' width='22' style='position:absolute;cursor:pointer;left:"+(mapWid-80)+"px;top:8px' title='Last page' id='lastPageBut'>";		
 	$("#controlBarDiv").html(str+"");                                    // Add to DOM
 	str="<div id='contentShelf' style='position:absolute;top:27px;height:"+(mapHgt-41)+"px;background-color:#fafafa;margin:0px;padding:6px;overflow-x:hidden;overflow-y:scroll;border:1px solid #ccc;'/></div>";
 	if (this.presentMode != "Book") {
@@ -1785,8 +1787,8 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
  		}
  		
  	if (this.presentMode == "Book") {										// If book mode		
-   		str+="<tr><td colspan='2' align='center'><br>Go to page: <input size='3' style='font-size:xx-small' type='text' onchange='gotoBook(this.value)'> &nbsp; <a href='javascript:gotoBook(\"0\")'>Index</a></td></tr>";
-    	str+="<tr><td colspan='2' align='center'><i><br>Add the @ sign to match a map in a publication</i></td></tr><br><br>";
+   		str+="<tr><td colspan='2' align='center'><br>Go to page: <input size='3' style='font-size:xx-small;text-align:center' type='text' onchange='gotoBook(this.value)'> &nbsp;</td></tr>";
+    	str+="<tr><td colspan='2' align='center'><br> <a href='javascript:gotoBook(\"0\")'>Table of Contents</a></td></tr><br><br>";
  		}
  	if (this.showTimeline)													// If showing timeline
  		$("#timeline").html(tim);											// Add timeline data
@@ -1837,7 +1839,7 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 		var o=mps.mobs[num];      											// Point at mob
 		var desc=o.desc;													// Get desc
 		if (o.title) 														// If it has a title
-			str+="<center><b>"+o.title+"</b></center><br>";					// Add it
+			str+="<p><b>"+o.title+"</b></p>";								// Add it
 		if (desc && desc.match(/mob\(/)) {									// If an embedded mob
 			var vv,url,num;
 			v=(desc+" ").match(/mob\((.*?)\)/ig);							// Extract url(s)
@@ -2244,16 +2246,17 @@ MapScholar_Shelf.prototype.DrawInfoPanel=function(mode)					// SET INFOPANEL
 		return;
 		}
 	if (this.presentMode == "Slides") {										// Present mode
-		$("#containerDiv").width(0);										// Hide GE
+		$("#containerDiv").width(0);										// Hide GEF
 		$("#infoPanelDiv").css({left:"20px",width:(mapWid-300)+"px"});		// Resize infobox
 		$("#infoPanelText").css({width:(mapWid-401)+"px","padding-left":"200px","padding-right":"200px","padding-top":"16px"});	// Resize textbox
 		}
 	else{	
-		$("#containerDiv").width(mapWid-300);								// Half size
+//		$("#containerDiv").width(mapWid-300);								// Half size
 		$("#infoPanelDiv").css({left:(mapWid-280)+"px",width:"300px"});		// Resize infobox
 		$("#infoPanelText").css({width:"284px","padding":"8px"}); 			// Resize textbox
 		}
 	$("#infoPanelDiv").show();												// Show info panel
+	str="<img src='closedot.gif' style='position:relative;cursor:pointer;left:calc(100% - 15px)' onclick='mps.sh.DrawInfoPanel(\"close\")'>"
 	if (o.title) {															// If it has a title
 		str+="<b>"+o.title;													// Add it
 		if (o.start) {														// If a start set
