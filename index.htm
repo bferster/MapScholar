@@ -108,7 +108,7 @@
 		else{																// An id
 			url=url.split("?")[0];											// Lop off unique
 			if (!isNaN(url)) {												// If a number
-				url="//qmediaplayer.com/loadshow.php?id="+url;				// Get from db
+				url="//www.stagetools.com/qmedia/loadshow.php?id="+url;		// Get from db
 				$.ajax({ url: url, dataType:'jsonp' });						// Get jsonp and call LoadShow() from it
 				}
 			}
