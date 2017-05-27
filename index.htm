@@ -1888,9 +1888,11 @@ MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
 			for (i=0;i<v.length;++i) {										// For each url
 				vv=v[i].substring(4,v[i].length-1).split(",");				// Split by comma
 				vv[0]=mps.FindMobByID(vv[0]);								// Get mob from id
-				t="<a href='javascript:gotopage(\""+vv[0]+"\")'>";			// Goto function
-				t+=mps.mobs[vv[0]].title+"</a><br>";						// Set title
-				desc=desc.replace(RegExp(v[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&")),t);	// Replace with anchor tag
+				if (vv[0] != -1) {											// If found
+					t="<a href='javascript:gotopage(\""+vv[0]+"\")'>";		// Goto function
+					t+=mps.mobs[vv[0]].title+"</a><br>";					// Set title
+					desc=desc.replace(RegExp(v[i].replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&")),t);	// Replace with anchor tag
+					}
 				}
 			}
 		if (desc && desc.match(/foot\(/)) {									// If embedded footnotes
