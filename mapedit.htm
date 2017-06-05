@@ -255,7 +255,7 @@
 		$("#editDiv").css({width:w+"px",left:wid*playerZoom+6+"px",height:h-8+"px"}); // Overall div
 		$("#getHelp").css({left:w-24+"px"});									// Help dot to right
 	
-		$("#showName").html("&nbsp; Current show: <b>"+curShow+"</b>");			// Show name
+		$("#showName").html("&nbsp; Current show is: <b>"+curShow+"</b>");			// Show name
 		if (curPane == "json") {												// Editing pane
 			str="<textarea id='jsonEditor' style='width:"+(w-32)+"px;height:"+(h-55)+"px;border:none;font-size:13px;padding:16px;background-color:#f8f8f8'>"+JSON.stringify(curJson,null,'\t')+"</textarea></div>";
 			$("#paneDiv").html(str);											// Put editor up	

@@ -139,7 +139,7 @@ MapScholar_Draw.prototype.LoadOpenKML=function(kmlData)						// LOAD KML TO LAYE
 	if (kmlData.shivaId) {														// If from eStore
 		var s=new ol.source.KML( {												// Set KML source
    			projection: ol.proj.get(mps.curProjection),							// Set projection
-	  	 	url:"proxy.php?url=http://stagetools.com/shiva/getkml.php?id="+kmlData.shivaId	// Proxied URL
+	  	 	url:"proxy.php?url=http://viseyes.org/shiva/getkml.php?id="+kmlData.shivaId	// Proxied URL
     		});
 
 		var key=s.on('change', function() {										// When loaded
