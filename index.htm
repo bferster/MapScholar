@@ -593,8 +593,8 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 //if (m.url.match(/553/)) m.url="test.kml"				
 				
 				m.mid="LAYER-"+this.kmlLayers.length;						// Make id
-				if (m.url.match(/\.kml|\.kmz|getkml\.php/i)) {				// KML file
-				this.kmlLayers.push(new ol.layer.Vector({  source: new ol.source.KML({	// New layer
+				if (m.url.match(/\.kml|\.kmz|getkml\.php|getkml2\.php/i)) {	// KML file
+					this.kmlLayers.push(new ol.layer.Vector({  source: new ol.source.KML({	// New layer
 							title: "LAYER-"+i,								// Set name
 				   			projection: ol.proj.get(mps.curProjection),		// Set KML projection
 				    		url:"proxy.php?url="+m.url,						// Proxied URL
@@ -602,7 +602,6 @@ MapScholar.prototype.AddMapImages=function()							// ADD MAP IMAGES
 				  			visible:false									// Hide it
 				  			})
 						}));
-
 				this.kmlLayers[this.kmlLayers.length-1].getSource().once("change",function() {	// WHEN KML IS LOADED						
 					this.forEachFeature(function(f) {						// For each feature in KML
 						if ((f.getGeometry().getType() == "Point") && f.get("name")){	// If a marker with a label
