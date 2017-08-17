@@ -88,8 +88,8 @@
 				initMob=v[1];												// Set init mob
 				}
 			}
-		if (!url)															// Nothing on query line
-			url="https://docs.google.com/spreadsheet/pub?key=0AohdE1_3ZElJdDhIbTRVRkhHSWNBWUUtYS1rZmJoSEE";
+		else																// Nothing on query line
+			url="99?";
 		if (url.match(/\?/))												// Has a ? param
 			url+="&";														// Use &
 		else																// Naive
@@ -107,6 +107,7 @@
 			}
 		else{																// An id
 			url=url.split("?")[0];											// Lop off unique
+		trace(url)
 			if (!isNaN(url)) {												// If a number
 				url="//www.stagetools.com/qmedia/loadshow.php?id="+url;		// Get from db
 				$.ajax({ url: url, dataType:'jsonp' });						// Get jsonp and call LoadShow() from it
