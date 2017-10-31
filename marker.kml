@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+<Placemark id="Marker86797">
+	<name>Hellow bow</name>
+	<Style>
+      <LabelStyle>
+            <color>ffff55ff</color>
+        </LabelStyle>	
+</Style>
+	<Point>
+		<coordinates>-81.10975364344567,32.213688038462145,0</coordinates>
+	</Point>
+</Placemark>
+</Document>
+</kml>
