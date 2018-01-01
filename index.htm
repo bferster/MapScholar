@@ -1257,10 +1257,10 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 			str+="</p></div><img alt='Mapscholar Supporters' src='img/sponsors.png' style='margin-top:10px;margin-left:-10px;position: absolute; bottom: 0;' />";
 			str+="</div></div></div></div>";
 			}
-		shivaLib.ShowIframe((l+20-0),(t+20-0),w,h,"blank.htm","iframe-"+num,"white",str);	// Show iframe
+		shivaLib.ShowIframe2((l+20-0),(t+20-0),w,h,"blank.htm","iframe-"+num,"white",str);	// Show iframe
 		}
 	else{																	// If hiding
-		shivaLib.ShowIframe(0,0,0,0,"","iframe-"+num);						// Hide iframe
+		shivaLib.ShowIframe2(0,0,0,0,"","iframe-"+num);						// Hide iframe
 		mps.popupOpen=-1;													// No popup open
 		}
 }
@@ -1294,10 +1294,10 @@ MapScholar.prototype.ShowLink=function(num, mode)						// HIDE/SHOW LINK
 		var rx=cw/x;														// X scaler
 		var ry=$("#containerDiv").height()/600;								// Y scaler
 		w*=rx;		h*=ry;		l*=rx;		t*=ry;							// Scale to fit size	
-		shivaLib.ShowIframe((l+20-0),(t+20-0),(w+20)-0,(h+20-0),m.url,"iframe-"+num,"transparent");	// Show iframe
+		shivaLib.ShowIframe2((l+20-0),(t+20-0),(w+20)-0,(h+20-0),m.url,"iframe-"+num,"transparent");	// Show iframe
 		}
 	else
-		shivaLib.ShowIframe(0,0,0,0,"","iframe-"+num);						// Hide iframe
+		shivaLib.ShowIframe2(0,0,0,0,"","iframe-"+num);						// Hide iframe
 }
 
 MapScholar.prototype.ShowSound=function(num, mode)						// HIDE/SHOW AUDIO
@@ -1314,13 +1314,13 @@ MapScholar.prototype.ShowSound=function(num, mode)						// HIDE/SHOW AUDIO
 		if (!w)																// If no position defined
 			n=600,w=450;													// Set at bottom
 		w*=mapWid/900;			n*=mapHgt/600;								// Scale to fit size	
-		shivaLib.ShowIframe(w-150,n-150,300,140,url,"iframe-"+num,"black");	// Show iframe
+		shivaLib.ShowIframe2(w-150,n-150,300,140,url,"iframe-"+num,"black");	// Show iframe
 		if (mps.sh.inPlay)													// If playing until end
 			mps.sh.soundPause=true;											// Pause changing until done
 		shivaLib.msgAction=[{ id:"ShivaVideo=done", Do:function() { mps.sh.soundPause=false; }}];
 		}
 	else{																	// If hiding
-		shivaLib.ShowIframe(0,0,0,0,"","iframe-"+num);						// Hide iframe
+		shivaLib.ShowIframe2(0,0,0,0,"","iframe-"+num);						// Hide iframe
 		mps.sh.soundPause=false;											// Not in pause anymore
 		}
 }
