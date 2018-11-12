@@ -46,6 +46,8 @@
 
  <script>
 
+	if ((location.protocol == 'https:') && (window.location.host != "localhost")) location.href = 'http:' + window.location.href.substring(window.location.protocol.length); // FORCE HTTP!
+
 	var mps=null;
 	var map=null;
 	var shivaLib=null;
