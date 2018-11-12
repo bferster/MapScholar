@@ -1194,6 +1194,7 @@ MapScholar.prototype.GoToPos=function() 								// SET GE TO A POSITION OVER TIM
 
 MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 {
+trace(num,mode)
 	var l,t,h,w,x=900;
 	var cw=$("#containerDiv").width();
 	if (mps.sh.presentMode == "Book")										// If book mode
@@ -1257,10 +1258,10 @@ MapScholar.prototype.ShowText=function(num, mode)						// HIDE/SHOW TEXT
 			str+="</p></div><img alt='Mapscholar Supporters' src='img/sponsors.png' style='margin-top:10px;margin-left:-10px;position: absolute; bottom: 0;' />";
 			str+="</div></div></div></div>";
 			}
-		shivaLib.ShowIframe2((l+20-0),(t+20-0),w,h,"blank.htm","iframe-"+num,"white",str);	// Show iframe
+		ShowIframe2((l+20-0),(t+20-0),w,h,"blank.htm","iframe-"+num,"white",str);	// Show iframe
 		}
 	else{																	// If hiding
-		shivaLib.ShowIframe2(0,0,0,0,"","iframe-"+num);						// Hide iframe
+		ShowIframe2(0,0,0,0,"","iframe-"+num);								// Hide iframe
 		mps.popupOpen=-1;													// No popup open
 		}
 }
@@ -1294,10 +1295,10 @@ MapScholar.prototype.ShowLink=function(num, mode)						// HIDE/SHOW LINK
 		var rx=cw/x;														// X scaler
 		var ry=$("#containerDiv").height()/600;								// Y scaler
 		w*=rx;		h*=ry;		l*=rx;		t*=ry;							// Scale to fit size	
-		shivaLib.ShowIframe2((l+20-0),(t+20-0),(w+20)-0,(h+20-0),m.url,"iframe-"+num,"transparent");	// Show iframe
+		ShowIframe2((l+20-0),(t+20-0),(w+20)-0,(h+20-0),m.url,"iframe-"+num,"transparent");	// Show iframe
 		}
 	else
-		shivaLib.ShowIframe2(0,0,0,0,"","iframe-"+num);						// Hide iframe
+		ShowIframe2(0,0,0,0,"","iframe-"+num);								// Hide iframe
 }
 
 MapScholar.prototype.ShowSound=function(num, mode)						// HIDE/SHOW AUDIO
@@ -1314,13 +1315,13 @@ MapScholar.prototype.ShowSound=function(num, mode)						// HIDE/SHOW AUDIO
 		if (!w)																// If no position defined
 			n=600,w=450;													// Set at bottom
 		w*=mapWid/900;			n*=mapHgt/600;								// Scale to fit size	
-		shivaLib.ShowIframe2(w-150,n-150,300,140,url,"iframe-"+num,"black");	// Show iframe
+		ShowIframe2(w-150,n-150,300,140,url,"iframe-"+num,"black");	// Show iframe
 		if (mps.sh.inPlay)													// If playing until end
 			mps.sh.soundPause=true;											// Pause changing until done
 		shivaLib.msgAction=[{ id:"ShivaVideo=done", Do:function() { mps.sh.soundPause=false; }}];
 		}
 	else{																	// If hiding
-		shivaLib.ShowIframe2(0,0,0,0,"","iframe-"+num);						// Hide iframe
+		ShowIframe2(0,0,0,0,"","iframe-"+num);								// Hide iframe
 		mps.sh.soundPause=false;											// Not in pause anymore
 		}
 }
@@ -2684,7 +2685,47 @@ MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 				o.pts[i].f.getGeometry().setCoordinates(p);					// Set geometry
 			}
 	}
-	
+
+	function ShowIframe2(left, top, wid, hgt, url, id, mode, content)
+	{
+		$("#"+id).remove();															
+		$("#CL-"+id).remove();															
+		if ((hgt == 0) || (wid == 0))
+			return;
+		var	str="<iframe id='"+id+"' ";
+		if (url)
+			str+="src='"+url+"' ";
+		str+="style='position:absolute;"; 					
+		if (mode == "black")
+			str+="border:none;background:black;"
+		else if (mode == "transparent")
+			str+="border:none;background:transparent;"
+		else
+			str+="background:white;"
+		str+="width:"+(wid+2)+"px;height:"+(hgt+2)+"px;left:"+left+"px;top:"+top+"px;'";
+		if (mode == "black")
+			str+=" scrolling='no'";
+		else if (mode == "transparent")
+			str+=" allowtransparency='true'";
+		$("body").append(str+"></iframe>");	
+		str="<iframe marginwidth='0' marginheight='0' src='closedot.gif' id='CL-"+id+"' style='position:absolute;margin:0px;padding:0px;border:none;"; 					
+		str+="width:17px;height:18px;left:"+(wid-13+left)+"px;top:"+(top+3)+"px'/>";
+		if (mode != "black")
+			$("body").append(str);	
+
+		$("#"+id).bind("load",function(e) {
+			if (content)
+				this.contentWindow.document.body.innerHTML=content;
+		});
+		$("#CL-"+id).bind("load",function(e) {
+			this.contentWindow.document.body.onclick=function(e) {
+			shivaLib.Sound("delete");
+			$("#"+id).remove();															
+			$("#CL-"+id).remove();															
+		}});
+	}	
+
+
 </script>
 </body>
 </html>
