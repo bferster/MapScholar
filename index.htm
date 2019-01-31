@@ -7,8 +7,8 @@
 	<link rel="stylesheet" type="text/css" href="http://www.viseyes.org/shiva/css/smoothness/jquery-ui-1.8.16.custom.css">
 	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
-	<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?sensor=false"></script>
  	<script type="text/javascript" src='//www.google.com/jsapi?autoload={"modules":[{"name":"visualization","version":"1"}]}'></script>
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAeGRjMSfeJ3Fgiu_RXntnu2LxuPxrsufU&libraries=places"></script>	
  	<script type="text/javascript" src="lib/shivalib-min.js"></script>
  	<script type="text/javascript" src="MapScholar_Draw.js"></script>
    	<link rel="stylesheet" href="lib/ol.css" type="text/css">
@@ -51,7 +51,6 @@
 	var mps=null;
 	var map=null;
 	var shivaLib=null;
-	var geocoder=geocoder=new google.maps.Geocoder();
 	var mapMode="ol";
 	var initMob="";
 	var	mapWid,mapHgt;
@@ -1688,53 +1687,39 @@ MapScholar_Shelf.prototype.Draw=function()								  // DRAW SHELF
 	}	
 	
 	$("#expandAll").click(function(e) {									// EXPAND/COLLAPSE ALL
-		Sound("click");														// Click
+		Sound("click");													// Click
 		mps.sh.ToggleExpandCollapse();										// Expand or collapse
 		});
 
-    $("#mpsFind").autocomplete({										// FIND ON EARTH
-      source: function(request, response) {
-			var val=$("#mpsFind").val();									// Get val
-			if ((val.length > 1) && (val.match(/=/))) {						// If looking for a kml feature
- 		      	var id=val.substr(1);										// Get id
-	   			if ((mps.sh.curMob == -1) || (mps.mobs[mps.sh.curMob].type != "layer"))	// If not a layer
-						return;												// Quit
-	  			var str="";
-  				if (mps.mm == "ge") {										// GE
-	   				var seg=mps.mobs[mps.sh.curMob].seg;					// Get seg from saved seg
-					var f=seg.getFeatures().getChildNodes();				// Point at seg 
-					if (f.item(0).getType() == "KmlFolder")					// If a folder
-						f=f.item(0).getFeatures().getChildNodes();			// Recurse into it
-					f=f.getLength();										// Get number of features
-					}
-				else if (mps.mm == "ol") {									// OL
-					seg=mps.mobs[mps.sh.curMob].mid.substr(6);				// Get id
-					seg=mps.kmlLayers[seg];									// Get seg
-					f=seg.getSource().getFeatures().length;					// Get number of features
-					}
-				for (var i=0;i<f;++i)										// For each feature
-					str+=i+",50,cccccc,000000,1;";							// Make it bland
-				mps.SetChoroplethFeatures(seg,str,null,false);				// Set feature
-				str=val.substr(1)+",50,ff0000,00ff00,3;";					// Make it stand out
-				mps.SetChoroplethFeatures(seg,str,null,false);				// Set feature
-	       		return;														// Quit
-	       		}
- 			if ((val.length > 1) && (val.match(/\?/))) 						// If querying a choro
- 		      	mps.ChoroQuery(val.substr(1),"ff0000");						// Do it
- 		      	     
-        geocoder.geocode( {'address': request.term }, function(results, status) {
-        	response($.map(results, function(item) {
-	            return {
-	              label: item.formatted_address,
-	              value: item.formatted_address,
-	              latitude: item.geometry.location.lat(),
-	              longitude: item.geometry.location.lng()
-		          }
-		    })); 
-		    })
-		    },
-	 		select: function(event, ui) { mps.Goto(ui.item.latitude+","+ui.item.longitude+",100000,0,0"); }
-    });
+	var input=document.getElementById("mpsFind");							// GEOLOCATE - point at input box
+	var autocomplete=new google.maps.places.Autocomplete(input);			// Init autocomplete
+
+	autocomplete.addListener('place_changed', function(e) {					// On complete
+		var val=$("#mpsFind").val();										// Get val
+		if ((val.length > 1) && (val.match(/=/))) {							// If looking for a kml feature
+			var id=val.substr(1);											// Get id
+			if ((mps.sh.curMob == -1) || (mps.mobs[mps.sh.curMob].type != "layer"))	// If not a layer
+				return;														// Quit
+			var str="";
+			seg=mps.mobs[mps.sh.curMob].mid.substr(6);						// Get id
+			seg=mps.kmlLayers[seg];											// Get seg
+			f=seg.getSource().getFeatures().length;							// Get number of features
+			for (var i=0;i<f;++i)											// For each feature
+				str+=i+",50,cccccc,000000,1;";								// Make it bland
+			mps.SetChoroplethFeatures(seg,str,null,false);					// Set feature
+			str=val.substr(1)+",50,ff0000,00ff00,3;";						// Make it stand out
+			mps.SetChoroplethFeatures(seg,str,null,false);					// Set feature
+			return;															// Quit
+			}
+ 		if ((val.length > 1) && (val.match(/\?/))) {						// If querying a choro
+ 			mps.ChoroQuery(val.substr(1),"ff0000");							// Do it
+			return;														// Quit
+			}
+ 		var place=autocomplete.getPlace();									// Get place
+		var lat=place.geometry.location.lat();								// Get lat
+		var lon=place.geometry.location.lng();								// Get lon
+		mps.Goto(mps.Goto(lat+","+lon+",100000,0,0"));						// Move map
+		});
 }
 
 MapScholar_Shelf.prototype.FillShelf=function()							// FILL SHELF
