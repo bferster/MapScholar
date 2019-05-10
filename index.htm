@@ -2679,6 +2679,12 @@ MapScholar.prototype.GeoReferenceMap=function(num)						// GEO REFERENCE MAP
 		$("#CL-"+id).remove();															
 		if ((hgt == 0) || (wid == 0))
 			return;
+		if (url && url.match(/flickr.com/i)) {																// Flickr's new regime
+			var	str="<img id='"+id+"' src='"+url+"' style='position:absolute;"; 					
+			str+="width:"+(wid+2)+"px;height:"+(hgt+2)+"px;left:"+left+"px;top:"+top+"px;'>";
+			$("body").append(str);	
+			return;
+			}
 		var	str="<iframe id='"+id+"' ";
 		if (url)
 			str+="src='"+url+"' ";
